@@ -31,7 +31,7 @@ button{
   border-radius:10px;
   background:#f4f7f6;
   color:#14231b;
-  font:700 13px Arial;
+  font:700 11.5px Arial;
   cursor:pointer;
 }
 button.on{background:#176d3d;color:white;border-color:#176d3d}
@@ -82,8 +82,8 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
  button{
    min-height:36px;
    padding:6px 4px;
-   font-size:10.5px;
-   letter-spacing:-.15px;
+   font-size:9px;
+   letter-spacing:-.25px;
    border-radius:8px;
  }
  #viewer{
@@ -151,8 +151,8 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
 @media(max-width:430px){
   .controls{gap:2px}
   button{
-    font-size:9.6px;
-    padding:5px 2px;
+    font-size:8.4px;
+    padding:5px 1px;
     min-height:34px;
   }
 }
@@ -249,6 +249,53 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
   }
 }
 
+
+.measure-label{
+  position:absolute;
+  z-index:13;
+  display:none;
+  pointer-events:none;
+  transform:translate(-50%,-135%);
+  background:rgba(26,48,36,.95);
+  color:#fff;
+  border-radius:8px;
+  padding:5px 7px;
+  font-size:11px;
+  font-weight:800;
+  line-height:1.15;
+  white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.22);
+}
+.measure-label::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-5px;
+  transform:translateX(-50%);
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-top:5px solid rgba(26,48,36,.95);
+}
+@media(max-width:650px){
+  .measure-label{
+    font-size:10px;
+    padding:4px 6px;
+  }
+}
+
+
+.controls button{
+  overflow:hidden;
+  text-overflow:clip;
+}
+@media(max-width:520px){
+  .controls button{
+    font-size:8.6px;
+    padding-left:1px;
+    padding-right:1px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -258,6 +305,7 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
   <button id="b3" class="on">3D</button>
   <button id="resetView" aria-label="Ansicht zurücksetzen">↻ Reset</button>
   <button id="locBtn" aria-label="Mein Standort">📍 Ort</button>
+  <button id="measureBtn" aria-label="Entfernung messen">📏 Messen</button>
   <button id="waterBtn" aria-label="Wasser ein- oder ausblenden">💧 Wasser</button>
   <button id="s1" class="on">1:1</button>
   <button id="s2">2× Tiefe</button>
@@ -281,6 +329,7 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
    <div id="locStatus" class="depth-tip" style="display:none;left:10px;top:10px;transform:none"></div>
    <div id="runtimeError" class="runtime-error"></div>
    <div id="depthPinLabel" class="depth-pin-label"></div>
+   <div id="measureLabel" class="measure-label"></div>
    <div id="controlHint" class="control-hint">☝️ drehen · ✌️ zoomen/verschieben</div>
    </div>
  </div>
@@ -821,6 +870,9 @@ function updateButtons(){
 b2.onclick=()=>{set2D();updateButtons()};
 b3.onclick=()=>{set3D();updateButtons()};
 resetView.onclick=()=>{
+  clearMeasure();
+  measureMode=false;
+  updateMeasureButton();
   if(is2D) set2D();
   else set3D();
   updateButtons();
@@ -986,6 +1038,210 @@ locBtn.onclick=()=>{
 
 
 
+
+// ---------------- Messfunktion ----------------
+const measureBtn=document.getElementById('measureBtn');
+const measureLabel=document.getElementById('measureLabel');
+
+let measureMode=false;
+let measuring=false;
+let measurePointerId=null;
+let measureStart=null;
+let measureEnd=null;
+
+const measureGroup=new THREE.Group();
+measureGroup.visible=false;
+measureGroup.renderOrder=30;
+scene.add(measureGroup);
+
+const measureLineMat=new THREE.LineBasicMaterial({
+  color:0xffd24a,
+  transparent:false,
+  depthTest:false,
+  depthWrite:false
+});
+const measureLineGeo=new THREE.BufferGeometry();
+measureLineGeo.setAttribute('position',new THREE.Float32BufferAttribute([
+  0,0,0.22,
+  0,0,0.22
+],3));
+const measureLine=new THREE.Line(measureLineGeo,measureLineMat);
+measureGroup.add(measureLine);
+
+const measureStartDot=new THREE.Mesh(
+  new THREE.SphereGeometry(0.28,16,12),
+  new THREE.MeshBasicMaterial({color:0x173b2a,depthTest:false})
+);
+measureStartDot.renderOrder=31;
+measureGroup.add(measureStartDot);
+
+const measureEndDot=new THREE.Mesh(
+  new THREE.SphereGeometry(0.30,16,12),
+  new THREE.MeshBasicMaterial({color:0xffd24a,depthTest:false})
+);
+measureEndDot.renderOrder=31;
+measureGroup.add(measureEndDot);
+
+function modelDistanceMeters(a,b){
+  const dx=b.x-a.x;
+  const dy=b.y-a.y;
+  return Math.sqrt(dx*dx+dy*dy);
+}
+
+function projectPointerToMapPlane(clientX,clientY){
+  const rect=renderer.domElement.getBoundingClientRect();
+
+  mouse.x=(clientX-rect.left)/rect.width*2-1;
+  mouse.y=-(clientY-rect.top)/rect.height*2+1;
+
+  ray.setFromCamera(mouse,camera);
+
+  const plane=new THREE.Plane(new THREE.Vector3(0,0,1),0);
+  const p=new THREE.Vector3();
+
+  if(!ray.ray.intersectPlane(plane,p)) return null;
+
+  // Messungen dürfen auch auf Luftbild / Ufer / weißem Rand beginnen.
+  // Nur auf die tatsächlich dargestellte Gesamtfläche begrenzen.
+  p.x=Math.max(-D.sceneW/2,Math.min(D.sceneW/2,p.x));
+  p.y=Math.max(-D.sceneH/2,Math.min(D.sceneH/2,p.y));
+
+  return p;
+}
+
+function sampleDepthAtXY(x,y){
+  const origin=new THREE.Vector3(x,y,50);
+  const down=new THREE.Vector3(0,0,-1);
+  const r=new THREE.Raycaster(origin,down,0,100);
+  const hit=r.intersectObject(pond,false)[0];
+  if(!hit) return null;
+  return Math.max(0,-hit.point.z/exaggeration);
+}
+
+function setMeasureGeometry(a,b){
+  const pos=measureLine.geometry.attributes.position;
+  pos.setXYZ(0,a.x,a.y,0.24);
+  pos.setXYZ(1,b.x,b.y,0.24);
+  pos.needsUpdate=true;
+
+  measureStartDot.position.set(a.x,a.y,0.26);
+  measureEndDot.position.set(b.x,b.y,0.26);
+  measureGroup.visible=true;
+}
+
+function updateMeasureLabel(final=false){
+  if(!measureStart || !measureEnd) return;
+
+  const dist=modelDistanceMeters(measureStart,measureEnd);
+  const depth=sampleDepthAtXY(measureEnd.x,measureEnd.y);
+
+  if(final){
+    measureLabel.textContent = depth==null
+      ? dist.toFixed(1)+' m · außerhalb Gewässer'
+      : dist.toFixed(1)+' m · Tiefe '+depth.toFixed(2)+' m';
+  }else{
+    measureLabel.textContent=dist.toFixed(1)+' m';
+  }
+
+  const p=new THREE.Vector3(measureEnd.x,measureEnd.y,1.0);
+  p.project(camera);
+
+  const rect=renderer.domElement.getBoundingClientRect();
+  measureLabel.style.left=((p.x*.5+.5)*rect.width)+'px';
+  measureLabel.style.top=((-p.y*.5+.5)*rect.height)+'px';
+  measureLabel.style.display='block';
+}
+
+function startMeasureAt(clientX,clientY,pointerId){
+  const p=projectPointerToMapPlane(clientX,clientY);
+  if(!p) return false;
+
+  measureStart={x:p.x,y:p.y};
+  measureEnd={x:p.x,y:p.y};
+  measuring=true;
+  measurePointerId=pointerId;
+
+  setMeasureGeometry(measureStart,measureEnd);
+  updateMeasureLabel(false);
+
+  try{ renderer.domElement.setPointerCapture(pointerId); }catch(e){}
+  return true;
+}
+
+function moveMeasureTo(clientX,clientY){
+  if(!measuring || !measureStart) return;
+
+  const p=projectPointerToMapPlane(clientX,clientY);
+  if(!p) return;
+
+  measureEnd={x:p.x,y:p.y};
+  setMeasureGeometry(measureStart,measureEnd);
+  updateMeasureLabel(false);
+}
+
+function finishMeasure(){
+  if(!measuring) return;
+  measuring=false;
+  updateMeasureLabel(true);
+  measurePointerId=null;
+}
+
+function clearMeasure(){
+  measuring=false;
+  measurePointerId=null;
+  measureStart=null;
+  measureEnd=null;
+  measureGroup.visible=false;
+  measureLabel.style.display='none';
+}
+
+function updateMeasureButton(){
+  measureBtn.classList.toggle('on',measureMode);
+  measureBtn.textContent=measureMode ? '📏 Aus' : '📏 Messen';
+}
+
+measureBtn.onclick=()=>{
+  measureMode=!measureMode;
+  if(!measureMode) clearMeasure();
+  updateMeasureButton();
+};
+
+// During measuring, stop OrbitControls from interpreting the same drag.
+renderer.domElement.addEventListener('pointerdown',e=>{
+  if(!measureMode) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  controls.enabled=false;
+  startMeasureAt(e.clientX,e.clientY,e.pointerId);
+},true);
+
+renderer.domElement.addEventListener('pointermove',e=>{
+  if(!measureMode || !measuring || e.pointerId!==measurePointerId) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+  moveMeasureTo(e.clientX,e.clientY);
+},true);
+
+function endMeasurePointer(e){
+  if(!measureMode || !measuring || e.pointerId!==measurePointerId) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  moveMeasureTo(e.clientX,e.clientY);
+  finishMeasure();
+  controls.enabled=true;
+
+  try{ renderer.domElement.releasePointerCapture(e.pointerId); }catch(err){}
+}
+
+renderer.domElement.addEventListener('pointerup',endMeasurePointer,true);
+renderer.domElement.addEventListener('pointercancel',endMeasurePointer,true);
+
+
 // ---------------- Tiefen-Pin für Touch ----------------
 // Mobil: einmal antippen = kleiner Pin an dieser Stelle mit Tiefenangabe.
 // Nächster Tipp versetzt den Pin. Desktop-Hover bleibt zusätzlich erhalten.
@@ -1070,6 +1326,7 @@ function updateDepthPinLabel(){
 // Auf Touch-Geräten reicht ein einzelnes Antippen.
 // Der Pin bleibt stehen, während die Karte anschließend gedreht oder gezoomt wird.
 renderer.domElement.addEventListener('pointerdown',e=>{
+  if(measureMode) return;
   if(e.pointerType==='touch'){
     placeDepthPin(e.clientX,e.clientY);
   }
@@ -1078,6 +1335,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{
 // Desktop: Klick setzt ebenfalls einen dauerhaften Pin,
 // Hover-Anzeige bleibt zusätzlich bestehen.
 renderer.domElement.addEventListener('click',e=>{
+  if(measureMode) return;
   if(e.pointerType!=='touch'){
     placeDepthPin(e.clientX,e.clientY);
   }
@@ -1148,6 +1406,10 @@ const clock=new THREE.Clock();
    const s=Math.max(.65,Math.min(1.8,dist/110));
    depthPinGroup.scale.setScalar(s);
    updateDepthPinLabel();
+ }
+
+ if(measureGroup.visible && measureStart && measureEnd){
+   updateMeasureLabel(!measuring);
  }
 
  controls.update();
