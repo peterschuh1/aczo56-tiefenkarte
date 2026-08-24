@@ -214,6 +214,41 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
   }
 }
 
+
+.depth-pin-label{
+  position:absolute;
+  z-index:12;
+  display:none;
+  pointer-events:none;
+  transform:translate(-50%,-135%);
+  background:rgba(20,42,31,.94);
+  color:#fff;
+  border-radius:8px;
+  padding:5px 7px;
+  font-size:11px;
+  font-weight:800;
+  line-height:1;
+  white-space:nowrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.22);
+}
+.depth-pin-label::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-5px;
+  transform:translateX(-50%);
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-top:5px solid rgba(20,42,31,.94);
+}
+@media(max-width:650px){
+  .depth-pin-label{
+    font-size:10px;
+    padding:4px 6px;
+    border-radius:7px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -245,6 +280,7 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
    <div id="tip" class="depth-tip"></div>
    <div id="locStatus" class="depth-tip" style="display:none;left:10px;top:10px;transform:none"></div>
    <div id="runtimeError" class="runtime-error"></div>
+   <div id="depthPinLabel" class="depth-pin-label"></div>
    <div id="controlHint" class="control-hint">☝️ drehen · ✌️ zoomen/verschieben</div>
    </div>
  </div>
@@ -693,6 +729,23 @@ scene.add(waterSurface);
 
 let waterVisible=false;
 
+
+function refreshPinnedPointHeight(){
+  if(!depthPinGroup.visible) return;
+
+  // Von oben auf dieselbe XY-Position auf das aktuelle Tiefenmesh raycasten.
+  const origin=new THREE.Vector3(depthPinGroup.position.x,depthPinGroup.position.y,50);
+  const down=new THREE.Vector3(0,0,-1);
+  const r=new THREE.Raycaster(origin,down,0,100);
+  const hit=r.intersectObject(pond,false)[0];
+  if(hit){
+    const d=Math.max(0,-hit.point.z/exaggeration);
+    pinnedDepth=d;
+    depthPinGroup.position.z=hit.point.z+0.08;
+    depthPinLabel.textContent=d.toFixed(2)+' m';
+  }
+}
+
 function updateDepthScale(){
  const pos=pond.geometry.attributes.position;
  for(let i=0;i<pondDepth.length;i++) pos.setZ(i,-pondDepth[i]*exaggeration);
@@ -704,6 +757,8 @@ function updateDepthScale(){
    for(let i=0;i<p.count;i++) p.setZ(i,-lev*exaggeration+.035);
    p.needsUpdate=true;
  });
+
+ refreshPinnedPointHeight();
 }
 
 function set3D(){
@@ -930,21 +985,122 @@ locBtn.onclick=()=>{
 };
 
 
+
+// ---------------- Tiefen-Pin für Touch ----------------
+// Mobil: einmal antippen = kleiner Pin an dieser Stelle mit Tiefenangabe.
+// Nächster Tipp versetzt den Pin. Desktop-Hover bleibt zusätzlich erhalten.
+const depthPinLabel=document.getElementById('depthPinLabel');
+
+const depthPinGroup=new THREE.Group();
+depthPinGroup.visible=false;
+depthPinGroup.renderOrder=20;
+scene.add(depthPinGroup);
+
+const pinStem=new THREE.Mesh(
+  new THREE.CylinderGeometry(0.07,0.07,0.85,10),
+  new THREE.MeshBasicMaterial({color:0x173b2a})
+);
+pinStem.rotation.x=Math.PI/2;
+pinStem.position.z=0.52;
+depthPinGroup.add(pinStem);
+
+const pinHead=new THREE.Mesh(
+  new THREE.SphereGeometry(0.22,18,12),
+  new THREE.MeshPhongMaterial({
+    color:0xf4c84a,
+    emissive:0x5d4a00,
+    emissiveIntensity:.20,
+    shininess:55
+  })
+);
+pinHead.position.z=0.98;
+depthPinGroup.add(pinHead);
+
+const pinTip=new THREE.Mesh(
+  new THREE.ConeGeometry(0.12,0.34,12),
+  new THREE.MeshBasicMaterial({color:0x173b2a})
+);
+pinTip.rotation.x=Math.PI;
+pinTip.position.z=0.17;
+depthPinGroup.add(pinTip);
+
+let pinnedDepth=null;
+
+function raycastPondFromClient(clientX,clientY){
+  const rect=renderer.domElement.getBoundingClientRect();
+  mouse.x=(clientX-rect.left)/rect.width*2-1;
+  mouse.y=-(clientY-rect.top)/rect.height*2+1;
+  ray.setFromCamera(mouse,camera);
+  return ray.intersectObject(pond,false)[0] || null;
+}
+
+function placeDepthPin(clientX,clientY){
+  const hit=raycastPondFromClient(clientX,clientY);
+  if(!hit) return false;
+
+  const d=Math.max(0,-hit.point.z/exaggeration);
+  pinnedDepth=d;
+
+  // Pin knapp über die angeklickte Bodenoberfläche setzen.
+  depthPinGroup.position.set(hit.point.x,hit.point.y,hit.point.z+0.08);
+  depthPinGroup.visible=true;
+
+  depthPinLabel.textContent=d.toFixed(2)+' m';
+  depthPinLabel.style.display='block';
+  updateDepthPinLabel();
+
+  return true;
+}
+
+function updateDepthPinLabel(){
+  if(!depthPinGroup.visible) return;
+
+  const p=depthPinGroup.position.clone();
+  p.z += 1.15;
+  p.project(camera);
+
+  const rect=renderer.domElement.getBoundingClientRect();
+  const x=(p.x*.5+.5)*rect.width;
+  const y=(-p.y*.5+.5)*rect.height;
+
+  depthPinLabel.style.left=x+'px';
+  depthPinLabel.style.top=y+'px';
+}
+
+// Auf Touch-Geräten reicht ein einzelnes Antippen.
+// Der Pin bleibt stehen, während die Karte anschließend gedreht oder gezoomt wird.
+renderer.domElement.addEventListener('pointerdown',e=>{
+  if(e.pointerType==='touch'){
+    placeDepthPin(e.clientX,e.clientY);
+  }
+});
+
+// Desktop: Klick setzt ebenfalls einen dauerhaften Pin,
+// Hover-Anzeige bleibt zusätzlich bestehen.
+renderer.domElement.addEventListener('click',e=>{
+  if(e.pointerType!=='touch'){
+    placeDepthPin(e.clientX,e.clientY);
+  }
+});
+
+
 const ray=new THREE.Raycaster();
 const mouse=new THREE.Vector2();
 renderer.domElement.addEventListener('pointermove',e=>{
+ // Auf Touch-Geräten keine flackernde Hover-Anzeige.
+ // Dort übernimmt der dauerhafte Tiefen-Pin die Anzeige.
+ if(e.pointerType==='touch') return;
+
  const rect=renderer.domElement.getBoundingClientRect();
- mouse.x=(e.clientX-rect.left)/rect.width*2-1;
- mouse.y=-(e.clientY-rect.top)/rect.height*2+1;
- ray.setFromCamera(mouse,camera);
- const hit=ray.intersectObject(pond,false)[0];
+ const hit=raycastPondFromClient(e.clientX,e.clientY);
+
  if(hit){
   const d=Math.max(0,-hit.point.z/exaggeration);
   tip.textContent='Tiefe: '+d.toFixed(2)+' m';
   tip.style.display='block';
   tip.style.left=(e.clientX-rect.left)+'px';
   tip.style.top=(e.clientY-rect.top)+'px';
- } else {
+ }else{
   tip.style.display='none';
  }
 });
@@ -985,6 +1141,13 @@ const clock=new THREE.Clock();
    const s=Math.max(.55,Math.min(2.4,dist/95));
    locDot.scale.setScalar(s);
    locRing.scale.setScalar(s);
+ }
+
+ if(depthPinGroup.visible){
+   const dist=camera.position.distanceTo(depthPinGroup.position);
+   const s=Math.max(.65,Math.min(1.8,dist/110));
+   depthPinGroup.scale.setScalar(s);
+   updateDepthPinLabel();
  }
 
  controls.update();
