@@ -785,13 +785,119 @@ html,body{
   .astro-sub{font-size:9px !important}
 }
 
+
+/* V33 – Status-/Warnmeldungen nicht mehr hinter Wetterbox oder Legende */
+#locStatus{
+  left:50% !important;
+  right:auto !important;
+  top:92px !important;
+  transform:translateX(-50%) !important;
+  max-width:calc(100% - 32px) !important;
+  width:max-content;
+  text-align:center;
+  white-space:normal !important;
+  line-height:1.25;
+  z-index:30 !important;
+  box-shadow:0 3px 10px rgba(0,0,0,.22);
+}
+
+/* Auch andere temporäre Viewer-Hinweise sauber unter die oberen Overlays setzen */
+.runtime-error{
+  top:92px !important;
+  left:50% !important;
+  right:auto !important;
+  transform:translateX(-50%) !important;
+  width:min(520px,calc(100% - 28px)) !important;
+  z-index:31 !important;
+}
+
+@media(max-width:650px){
+  #locStatus{
+    top:88px !important;
+    max-width:calc(100% - 20px) !important;
+    font-size:10px !important;
+    padding:6px 8px !important;
+  }
+  .runtime-error{
+    top:88px !important;
+    width:calc(100% - 18px) !important;
+    font-size:11px !important;
+  }
+}
+
+
+/* V34 – gemeinsamer 2D/3D-Schalter + Overlay-Schalter */
+#viewToggle,
+#overlayBtn{
+  font-weight:800;
+}
+
+
+/* V35 – klar erkennbarer 2D/3D-Segment-Umschalter */
+#viewToggle{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:0 !important;
+  padding:2px !important;
+  overflow:hidden !important;
+  background:#e7ece9 !important;
+  border:1px solid #c7d1cb !important;
+}
+#viewToggle .view-seg{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:26px;
+  padding:0 5px;
+  border-radius:7px;
+  font-size:11px;
+  font-weight:900;
+  line-height:1;
+  transition:background .18s ease,color .18s ease,box-shadow .18s ease;
+}
+
+/* 3D aktiv: 3D grün, 2D rot */
+#viewToggle.mode-3d .view-seg-3d{
+  background:#176d3d;
+  color:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.18);
+}
+#viewToggle.mode-3d .view-seg-2d{
+  background:#b94b45;
+  color:#fff;
+}
+
+/* 2D aktiv: 2D grün, 3D rot */
+#viewToggle.mode-2d .view-seg-2d{
+  background:#176d3d;
+  color:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.18);
+}
+#viewToggle.mode-2d .view-seg-3d{
+  background:#b94b45;
+  color:#fff;
+}
+
+@media(max-width:650px){
+  #viewToggle{
+    padding:2px !important;
+  }
+  #viewToggle .view-seg{
+    min-height:24px;
+    font-size:10px;
+    padding:0 3px;
+  }
+}
+
 </style>
 </head>
 <body>
 <div class="wrap">
  <div class="controls">
-  <button id="b2">2D</button>
-  <button id="b3" class="on">3D</button>
+  <button id="viewToggle" class="view-toggle mode-3d" aria-label="Zwischen 2D und 3D wechseln">
+    <span class="view-seg view-seg-2d">2D</span>
+    <span class="view-seg view-seg-3d">3D</span>
+  </button>
   <button id="s1" class="on">1:1</button>
   <button id="s2">2× Tiefe</button>
   <button id="resetView" aria-label="Ansicht zurücksetzen">↻ Reset</button>
@@ -800,6 +906,7 @@ html,body{
   <button id="measureBtn" aria-label="Entfernung messen">📏 Messen</button>
   <button id="waterBtn" aria-label="Wasser ein- oder ausblenden">💧 Wasser</button>
   <button id="simBtn" class="on" aria-label="Tag-Nacht- und Wettersimulation">🌦️ Auto</button>
+  <button id="overlayBtn" class="on" aria-label="Legenden und Kompass ein- oder ausblenden">👁️ Anzeigen</button>
   <button id="helpBtn" aria-label="Hilfe und Bedienung">❔ Hilfe</button>
  </div>
  <div id="viewer">
@@ -817,7 +924,7 @@ html,body{
      </div>
    </div>
 <div id="tip" class="depth-tip"></div>
-   <div id="locStatus" class="depth-tip" style="display:none;left:10px;top:10px;transform:none"></div>
+   <div id="locStatus" class="depth-tip" style="display:none"></div>
    <div id="runtimeError" class="runtime-error"></div>
    <div id="depthPinLabel" class="depth-pin-label"></div>
    <div id="measureLabel" class="measure-label"></div>
@@ -833,7 +940,7 @@ html,body{
        <h2 id="helpTitle">🗺️ Bedienung der Tiefenkarte</h2>
        <p class="help-intro">Die interaktive Karte zeigt den Vereinsweiher in 2D und 3D. Sie kann auf Computer, Tablet und Smartphone direkt mit Maus oder Fingern bedient werden.</p>
        <div class="help-grid">
-         <div class="help-item"><strong>🗺️ 2D / 3D</strong><span>Wechselt zwischen klassischer Draufsicht und frei drehbarem 3D-Modell des Gewässergrundes.</span></div>
+         <div class="help-item"><strong>🗺️ 2D / 3D</strong><span>Der geteilte 2D/3D-Schalter zeigt beide Ansichten gleichzeitig: Die aktive Ansicht ist grün, die jeweils andere rot. Antippen wechselt zwischen klassischer 2D-Draufsicht und frei drehbarem 3D-Modell.</span></div>
          <div class="help-item"><strong>🖱️ Drehen & Zoomen</strong><span>Desktop: linke Maustaste halten und ziehen. Mit dem Mausrad zoomen. Mobil: mit einem Finger drehen, mit zwei Fingern zoomen und verschieben.</span></div>
          <div class="help-item"><strong>↻ Reset</strong><span>Stellt die Karte wieder auf die festgelegte Ausgangsansicht zurück und entfernt eine aktive Messung.</span></div>
          <div class="help-item"><strong>📍 Ort</strong><span>Zeigt nach Standortfreigabe die eigene Position am Weiher. Die Genauigkeit hängt vom GPS-Empfang des Gerätes ab.</span></div>
@@ -844,6 +951,7 @@ html,body{
          <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Sonnenauf- und -untergang sowie die aktuelle Mondphase werden angezeigt.</span></div>
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Temperatur, Wind und Bewölkung stehen in der Infoanzeige.</span></div>
          <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; die Windgeschwindigkeit steht kompakt oberhalb der Kompassrose.</span></div>
+         <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetter-/Astronomiefenster, Tiefenlegende und Kompass gemeinsam ein oder aus. So kann die Karte bei Bedarf völlig frei und ohne zusätzliche Anzeigen betrachtet werden.</span></div>
          <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die angezeigten Tiefen stammen aus der Vermessung des Vereinsweihers.</span></div>
        </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1640,8 +1748,8 @@ function set2D(){
 }
 
 function updateButtons(){
- b2.classList.toggle('on',is2D);
- b3.classList.toggle('on',!is2D);
+ viewToggle.classList.toggle('mode-2d',is2D);
+ viewToggle.classList.toggle('mode-3d',!is2D);
  waterBtn.classList.toggle('on',waterVisible);
  s1.classList.toggle('on',exaggeration===1);
  s2.classList.toggle('on',exaggeration===2);
@@ -1649,8 +1757,11 @@ function updateButtons(){
 
 
 
-b2.onclick=()=>{set2D();updateButtons()};
-b3.onclick=()=>{set3D();updateButtons()};
+viewToggle.onclick=()=>{
+  if(is2D) set3D();
+  else set2D();
+  updateButtons();
+};
 resetView.onclick=()=>{
   clearMeasure();
   measureMode=false;
@@ -1847,6 +1958,30 @@ document.addEventListener('keydown',e=>{
 
 
 // ---------------- Astronomie ----------------
+
+const overlayBtn=document.getElementById('overlayBtn');
+const astroInfoEl=document.getElementById('astroInfo');
+const legendEl=document.querySelector('.legend');
+const compassEl=document.querySelector('.compass');
+let overlaysVisible=true;
+
+function updateOverlayButton(){
+  overlayBtn.classList.toggle('on',overlaysVisible);
+  overlayBtn.textContent=overlaysVisible ? '👁️ Anzeigen' : '🙈 Aus';
+}
+
+function setOverlaysVisible(show){
+  overlaysVisible=show;
+  if(astroInfoEl) astroInfoEl.style.display=show ? '' : 'none';
+  if(legendEl) legendEl.style.display=show ? '' : 'none';
+  if(compassEl) compassEl.style.display=show ? '' : 'none';
+  updateOverlayButton();
+}
+
+overlayBtn.onclick=()=>{
+  setOverlaysVisible(!overlaysVisible);
+};
+
 const astroTime=document.getElementById('astroTime');
 const astroSub=document.getElementById('astroSub');
 const compassArrow=document.getElementById('compassArrow');
