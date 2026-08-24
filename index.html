@@ -947,8 +947,8 @@ html,body{
          <div class="help-item"><strong>📌 Tiefe abfragen</strong><span>Am Computer genügt Mouseover. Auf dem Smartphone die gewünschte Stelle antippen. Ein kleiner Pin zeigt dort die Wassertiefe an.</span></div>
          <div class="help-item"><strong>📏 Messen</strong><span>Messen aktivieren, Startpunkt setzen und gedrückt bis zur Zielstelle ziehen. Währenddessen wird die Entfernung live angezeigt. Nach dem Loslassen erscheinen Entfernung und Wassertiefe am Ziel.</span></div>
          <div class="help-item"><strong>💧 Wasser</strong><span>Blendet die animierte Wasseroberfläche ein oder aus. Die Tiefenkarte darunter bleibt erhalten.</span></div>
-         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte. Karte, Luftbild und Umgebung werden mit sinkendem Sonnenstand neutral dunkler. Bei „Aus“ wird eine neutrale helle Darstellung verwendet.</span></div>
-         <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Sonnenauf- und -untergang sowie die aktuelle Mondphase werden angezeigt. Der Mond ist nachts größer sichtbar und erzeugt einen dezenten kühlen Lichtschein auf Gelände und Karte.</span></div>
+         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte. Luftbild und Umgebung werden mit sinkendem Sonnenstand neutral dunkler. Die farbige Tiefenkarte behält nachts bewusst ihre kräftigen Tiefenfarben und ausreichend Resthelligkeit, damit Farbstufen und Konturen klar lesbar bleiben. Bei „Aus“ wird eine neutrale helle Darstellung verwendet.</span></div>
+         <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Sonnenauf- und -untergang sowie die aktuelle Mondphase werden angezeigt. Der Mond ist nachts größer sichtbar, zeigt die aktuelle zunehmende oder abnehmende Phase mit entsprechender beleuchteter Seite und erzeugt einen dezenten kühlen Lichtschein auf Gelände und Karte.</span></div>
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Temperatur, Wind und Bewölkung stehen in der Infoanzeige.</span></div>
          <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; die Windgeschwindigkeit steht kompakt oberhalb der Kompassrose.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetter-/Astronomiefenster, Tiefenlegende und Kompass gemeinsam ein oder aus. So kann die Karte bei Bedarf völlig frei und ohne zusätzliche Anzeigen betrachtet werden.</span></div>
@@ -1150,8 +1150,11 @@ pondGeo.computeVertexNormals();
 const pondMat=new THREE.MeshPhongMaterial({
  vertexColors:true,
  side:THREE.DoubleSide,
- shininess:12,
- specular:new THREE.Color(0x33464e)
+ shininess:8,
+ specular:new THREE.Color(0x33464e),
+ // V45: eigene Resthelligkeit der Tiefenkarte bei Nacht.
+ emissive:new THREE.Color(0x182238),
+ emissiveIntensity:0
 });
 const pond=new THREE.Mesh(pondGeo,pondMat);
 pond.renderOrder=2;
@@ -1342,6 +1345,86 @@ scene.add(moonLight);
 const moonCanvas=document.createElement('canvas');
 moonCanvas.width=moonCanvas.height=256;
 const moonTex=new THREE.CanvasTexture(moonCanvas);
+
+// V44: realistischere Mondphase.
+// SunCalc: phase 0=Neumond, 0.25=erstes Viertel, 0.5=Vollmond,
+// 0.75=letztes Viertel. Die beleuchtete Seite wechselt entsprechend.
+function renderMoonPhase(date){
+  const ctx=moonCanvas.getContext('2d');
+  const W=moonCanvas.width, H=moonCanvas.height;
+  const cx=W/2, cy=H/2, r=W*0.40;
+  ctx.clearRect(0,0,W,H);
+
+  let illum={fraction:1,phase:.5};
+  try{
+    if(typeof SunCalc!=='undefined') illum=SunCalc.getMoonIllumination(date||new Date());
+  }catch(e){}
+
+  const fraction=Math.max(0,Math.min(1,illum.fraction));
+  const phase=((illum.phase%1)+1)%1;
+  const waxing=phase<0.5;
+
+  // Grundscheibe: dunkle Mondnachtseite, aber noch leicht sichtbar.
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.clip();
+
+  const dark=ctx.createRadialGradient(cx-r*.25,cy-r*.30,r*.08,cx,cy,r*1.2);
+  dark.addColorStop(0,'rgb(88,94,101)');
+  dark.addColorStop(1,'rgb(32,37,43)');
+  ctx.fillStyle=dark;
+  ctx.fillRect(cx-r,cy-r,r*2,r*2);
+
+  // Beleuchtete Mondfläche als echte Phasenmaske.
+  // Für jeden horizontalen Punkt wird anhand der Kugelgeometrie geprüft,
+  // ob er auf der sonnenbeschienenen Hemisphäre liegt.
+  const img=ctx.getImageData(Math.floor(cx-r),Math.floor(cy-r),Math.ceil(r*2),Math.ceil(r*2));
+  const data=img.data;
+  const iw=img.width, ih=img.height;
+
+  // Phasenwinkel: 0 Neumond, PI Vollmond, 2PI Neumond.
+  const alpha=phase*Math.PI*2;
+  const sx=Math.sin(alpha);
+  const sz=-Math.cos(alpha);
+
+  for(let py=0;py<ih;py++){
+    const ny=(py-ih/2)/r;
+    for(let px=0;px<iw;px++){
+      const nx=(px-iw/2)/r;
+      const rr=nx*nx+ny*ny;
+      if(rr>1) continue;
+      const nz=Math.sqrt(Math.max(0,1-rr));
+      const lit=(nx*sx+nz*sz)>0;
+      if(!lit) continue;
+
+      const i=(py*iw+px)*4;
+      // warm-weißes Mondlicht mit sanfter Randabdunklung
+      const limb=.70+.30*nz;
+      data[i]=Math.round(238*limb);
+      data[i+1]=Math.round(238*limb);
+      data[i+2]=Math.round(216*limb);
+      data[i+3]=255;
+    }
+  }
+  ctx.putImageData(img,Math.floor(cx-r),Math.floor(cy-r));
+
+  // Sehr dezente Oberflächenstruktur, damit der Mond nicht wie eine Glühbirne wirkt.
+  ctx.globalAlpha=.10;
+  ctx.fillStyle='#707780';
+  [
+    [-.28,-.20,.11],[.20,-.12,.08],[-.05,.25,.13],
+    [.30,.24,.055],[-.34,.18,.06],[.08,-.34,.05]
+  ].forEach(c=>{
+    ctx.beginPath();
+    ctx.arc(cx+c[0]*r,cy+c[1]*r,c[2]*r,0,Math.PI*2);
+    ctx.fill();
+  });
+  ctx.restore();
+
+  moonTex.needsUpdate=true;
+}
+
 moonTex.encoding=THREE.sRGBEncoding;
 const moonDisc=new THREE.Sprite(new THREE.SpriteMaterial({map:moonTex,transparent:true,depthWrite:false}));
 moonDisc.scale.set(22,22,1);
@@ -1520,6 +1603,10 @@ function applyDayLightLevel(level,skyColor){
 }
 
 function applyWeatherScene(){
+  if(!simulationEnabled && typeof pondMat!=='undefined'){
+    pondMat.emissiveIntensity=0;
+  }
+
   // V41: Dämmerung bewusst neutral halten.
   // Statt Orange-/Pastellstich wird die Szene hauptsächlich nur dunkler.
   // Der genaue Tages-/Nachtfaktor der bestehenden Simulation bleibt erhalten.
@@ -1612,6 +1699,12 @@ function applyWeatherScene(){
     if(typeof hemi!=='undefined'){
       // Ein wenig Restlicht verhindert, dass die Karte nachts vollständig absäuft.
       hemi.intensity=THREE.MathUtils.lerp(0.72,0.18,neutralDark);
+    }
+    // V46: Tiefenfarben nachts erhalten statt weiß auszuwaschen.
+    // Nur sehr geringe neutrale Eigenhelligkeit; die kräftigen Vertex-/Shaderfarben bleiben dominant.
+    if(typeof pondMat!=='undefined'){
+      pondMat.emissive.set(0x182238);
+      pondMat.emissiveIntensity=THREE.MathUtils.lerp(0.0,0.10,neutralDark);
     }
 
     // Satellitenbild: nur Helligkeit reduzieren, keine Farbtönung.
@@ -2318,6 +2411,9 @@ function updateAstronomy(){
   drawMoonPhase(moonIll.phase);
 
   if(typeof applyWeatherScene==='function') applyWeatherScene();
+
+  // V44: vorhandene einfache Mondgrafik abschließend durch korrekte Phase ersetzen.
+  renderMoonPhase(new Date());
 }
 
 
