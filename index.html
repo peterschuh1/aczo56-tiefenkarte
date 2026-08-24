@@ -37,7 +37,7 @@ button{
 button.on{background:#176d3d;color:white;border-color:#176d3d}
 #viewer{position:relative;width:100%;height:720px;max-height:78vh;min-height:440px;border-radius:16px;overflow:hidden;background:#eef7fb;touch-action:none}
 #viewer canvas{display:block;width:100%;height:100%}
-.badge{position:absolute;left:10px;bottom:10px;z-index:4;background:rgba(5,12,15,.74);color:#fff;padding:7px 9px;border-radius:9px;font-size:12px;line-height:1.25;pointer-events:none}
+
 .legend{
   position:absolute;
   right:8px;
@@ -95,7 +95,7 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
    touch-action:none;
  }
  .legend{right:5px;top:5px;transform:scale(.88);transform-origin:top right}
- .badge{left:5px;bottom:5px;font-size:9px;max-width:74%}
+ 
  .note{font-size:11px;line-height:1.35;margin-top:5px}
 }
 
@@ -131,14 +131,7 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
     height:100% !important;
     display:block !important;
   }
-  .badge{
-    display:block !important;
-    left:8px !important;
-    bottom:8px !important;
-    color:#111 !important;
-    background:rgba(255,255,255,.82) !important;
-    border:1px solid #ccc !important;
-  }
+  
   .legend{
     display:block !important;
     color:#111 !important;
@@ -712,6 +705,86 @@ html,body{
   }
 }
 
+
+/* V32 – Kompass/Wind und Wetteranzeige etwas größer */
+.compass{
+  width:64px !important;
+  height:64px !important;
+}
+.compass-ring{inset:6px !important}
+.compass-n{font-size:10px !important}
+.compass-e,.compass-s,.compass-w{font-size:8px !important}
+
+/* eigentliche Kompassnadel deutlicher */
+.compass-arrow{
+  width:4px !important;
+  height:42px !important;
+  margin-left:-2px !important;
+  margin-top:-21px !important;
+}
+
+/* Windpfeil ebenfalls besser erkennbar */
+.wind-arrow{
+  height:42px !important;
+  margin-top:-21px !important;
+  width:3px !important;
+}
+.wind-arrow::before{
+  left:-5px !important;
+  border-left-width:6px !important;
+  border-right-width:6px !important;
+  border-bottom-width:13px !important;
+}
+.wind-arrow::after{
+  width:3px !important;
+  height:21px !important;
+}
+.wind-speed{
+  font-size:9px !important;
+  min-width:64px !important;
+  padding:4px 6px !important;
+}
+
+/* Wetter-/Astronomiebox größer, aber weiterhin transparent */
+.astro-info{
+  min-width:175px !important;
+  padding:8px 10px !important;
+  background:rgba(255,255,255,.58) !important;
+}
+.astro-time{
+  font-size:12px !important;
+}
+.astro-sub{
+  font-size:10px !important;
+  line-height:1.35 !important;
+}
+
+@media(max-width:650px){
+  .compass{
+    width:56px !important;
+    height:56px !important;
+  }
+  .compass-arrow{
+    height:36px !important;
+    margin-top:-18px !important;
+  }
+  .wind-arrow{
+    height:36px !important;
+    margin-top:-18px !important;
+  }
+  .wind-arrow::after{height:17px !important}
+  .wind-speed{
+    font-size:8px !important;
+    min-width:58px !important;
+  }
+  .astro-info{
+    min-width:145px !important;
+    padding:7px 8px !important;
+  }
+  .astro-time{font-size:11px !important}
+  .astro-sub{font-size:9px !important}
+}
+
 </style>
 </head>
 <body>
@@ -743,8 +816,7 @@ html,body{
        </div>
      </div>
    </div>
-   <div class="badge">© GeoBasis-DE / LVermGeoRP (2026), dl-de/by-2-0 · Tiefendaten: AC 1956 Zewen-Oberkirch e. V.</div>
-   <div id="tip" class="depth-tip"></div>
+<div id="tip" class="depth-tip"></div>
    <div id="locStatus" class="depth-tip" style="display:none;left:10px;top:10px;transform:none"></div>
    <div id="runtimeError" class="runtime-error"></div>
    <div id="depthPinLabel" class="depth-pin-label"></div>
@@ -776,8 +848,8 @@ html,body{
        </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
 Tiefenkarte und Darstellung: AC 1956 Zewen-Oberkirch e. V.<br>
+Luftbild/Kartengrundlage: © GeoBasis-DE / LVermGeoRP (2026), dl-de/by-2-0<br>
 Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
-Kartengrundlage/Luftbild: gemäß der im Viewer verwendeten Kartenquelle.<br>
 © AC 1956 Zewen-Oberkirch e. V.</div>
        <div class="help-note">Hinweis: GPS-, Tiefen- und Entfernungsmessungen dienen der Orientierung. Standortgenauigkeit und Kartendaten können technisch bedingte Abweichungen enthalten.</div>
      </div>
