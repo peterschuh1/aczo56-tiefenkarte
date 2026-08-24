@@ -565,6 +565,153 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
   }
 }
 
+
+/* =========================================================
+   V29 – aufgeräumtes Desktop-/Mobil-Layout
+   ========================================================= */
+
+/* Gesamthöhe des Viewers füllt die verfügbare Seite / das iFrame aus. */
+html,body{
+  width:100%;
+  height:100%;
+  min-height:100%;
+}
+.wrap{
+  width:100%;
+  height:100svh;
+  min-height:520px;
+  max-width:1180px;
+  margin:auto;
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  background:#fff;
+}
+
+/* Zwei feste, logisch aufgebaute Reihen mit je fünf Buttons. */
+.controls{
+  flex:0 0 auto;
+  width:100%;
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:6px !important;
+  overflow:visible !important;
+  margin:0 0 7px !important;
+}
+.controls button{
+  width:100%;
+  min-width:0;
+  min-height:36px !important;
+  padding:6px 7px !important;
+  font-size:11.5px !important;
+  line-height:1.1;
+  letter-spacing:0 !important;
+  border-radius:9px;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+/* Karte nimmt exakt den verbleibenden Platz ein – kein weißer Leerraum darunter. */
+#viewer{
+  flex:1 1 auto;
+  width:100%;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  margin:0;
+}
+
+/* Wetterkarte mobil genauso sauber oben wie die Tiefenlegende. */
+.astro-info{
+  top:8px !important;
+  left:8px !important;
+  background:rgba(255,255,255,.58) !important;
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+.legend{
+  top:8px !important;
+  right:8px !important;
+  background:rgba(255,255,255,.54) !important;
+}
+
+/* Kompass unten rechts. Die Windgeschwindigkeit sitzt jetzt OBERHALB
+   der Rose und wird nicht mehr am unteren Rand abgeschnitten. */
+.compass{
+  left:auto !important;
+  right:8px !important;
+  bottom:8px !important;
+}
+.wind-speed{
+  left:50% !important;
+  top:auto !important;
+  bottom:calc(100% + 5px) !important;
+  transform:translateX(-50%) !important;
+  min-width:58px !important;
+  padding:3px 5px;
+  border-radius:999px;
+  background:rgba(255,255,255,.72);
+  font-size:8px !important;
+  line-height:1;
+  box-shadow:0 1px 5px rgba(0,0,0,.12);
+}
+
+@media(max-width:650px){
+  .wrap{
+    height:100svh;
+    min-height:440px;
+    padding:4px;
+  }
+
+  .controls{
+    gap:4px !important;
+    margin-bottom:4px !important;
+  }
+
+  .controls button{
+    min-height:34px !important;
+    padding:5px 4px !important;
+    font-size:10px !important;
+    border-radius:8px;
+  }
+
+  #viewer{
+    border-radius:10px;
+  }
+
+  .astro-info{
+    top:5px !important;
+    left:5px !important;
+    min-width:118px;
+    padding:5px 6px;
+  }
+
+  .legend{
+    top:5px !important;
+    right:5px !important;
+    transform:scale(.88);
+    transform-origin:top right;
+  }
+
+  .compass{
+    right:5px !important;
+    bottom:5px !important;
+  }
+
+  .wind-speed{
+    bottom:calc(100% + 4px) !important;
+    font-size:7px !important;
+    min-width:52px !important;
+  }
+}
+
+@media(max-width:390px){
+  .controls button{
+    font-size:9.2px !important;
+    padding:5px 2px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -572,14 +719,15 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
  <div class="controls">
   <button id="b2">2D</button>
   <button id="b3" class="on">3D</button>
+  <button id="s1" class="on">1:1</button>
+  <button id="s2">2× Tiefe</button>
   <button id="resetView" aria-label="Ansicht zurücksetzen">↻ Reset</button>
+
   <button id="locBtn" aria-label="Mein Standort">📍 Ort</button>
   <button id="measureBtn" aria-label="Entfernung messen">📏 Messen</button>
   <button id="waterBtn" aria-label="Wasser ein- oder ausblenden">💧 Wasser</button>
   <button id="simBtn" class="on" aria-label="Tag-Nacht- und Wettersimulation">🌦️ Auto</button>
   <button id="helpBtn" aria-label="Hilfe und Bedienung">❔ Hilfe</button>
-  <button id="s1" class="on">1:1</button>
-  <button id="s2">2× Tiefe</button>
  </div>
  <div id="viewer">
    <div class="legend" aria-label="Tiefenlegende">
@@ -623,9 +771,14 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
          <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Sonnen- und Mondposition sowie Wettereffekte. Bei „Aus“ wird eine neutrale helle Darstellung verwendet.</span></div>
          <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Sonnenauf- und -untergang sowie die aktuelle Mondphase werden angezeigt.</span></div>
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Temperatur, Wind und Bewölkung stehen in der Infoanzeige.</span></div>
-         <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; darunter steht die Windgeschwindigkeit.</span></div>
+         <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; die Windgeschwindigkeit steht kompakt oberhalb der Kompassrose.</span></div>
          <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die angezeigten Tiefen stammen aus der Vermessung des Vereinsweihers.</span></div>
        </div>
+       <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
+Tiefenkarte und Darstellung: AC 1956 Zewen-Oberkirch e. V.<br>
+Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
+Kartengrundlage/Luftbild: gemäß der im Viewer verwendeten Kartenquelle.<br>
+© AC 1956 Zewen-Oberkirch e. V.</div>
        <div class="help-note">Hinweis: GPS-, Tiefen- und Entfernungsmessungen dienen der Orientierung. Standortgenauigkeit und Kartendaten können technisch bedingte Abweichungen enthalten.</div>
      </div>
    </div>
