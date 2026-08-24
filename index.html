@@ -930,7 +930,7 @@ html,body{
   <button id="helpBtn" aria-label="Hilfe und Bedienung">❔ Hilfe</button>
  </div>
  <div id="viewer">
-   <div class="legend" aria-label="Tiefenlegende">
+<div class="legend" aria-label="Tiefenlegende">
      <div class="legend-scale">
        <div class="grad"></div>
        <div class="legend-ticks">
@@ -951,7 +951,7 @@ html,body{
    <div id="astroInfo" class="astro-info">
      <div id="astroTime" class="astro-time">--.--.---- · --:--</div>
      <div id="astroSub" class="astro-sub">Sonne wird berechnet …</div>
-     <div id="weatherSub" class="astro-sub" title="Live-Wetter: Open-Meteo">🌦️ Wetter wird geladen …</div>
+     <div id="weatherSub" class="astro-sub" title="Live-Wetter / Testregen: Open-Meteo">🌦️ Wetter wird geladen …</div>
    </div>
 
    <div id="helpOverlay" class="help-overlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
@@ -966,15 +966,15 @@ html,body{
          <div class="help-item"><strong>📍 Ort</strong><span>Zeigt nach Standortfreigabe die eigene Position am Weiher. Die Genauigkeit hängt vom GPS-Empfang des Gerätes ab.</span></div>
          <div class="help-item"><strong>📌 Tiefe abfragen</strong><span>Am Computer genügt Mouseover. Auf dem Smartphone die gewünschte Stelle antippen. Ein kleiner Pin zeigt dort die Wassertiefe an.</span></div>
          <div class="help-item"><strong>📏 Messen</strong><span>Messen aktivieren, Startpunkt setzen und gedrückt bis zur Zielstelle ziehen. Währenddessen wird die Entfernung live angezeigt. Nach dem Loslassen erscheinen Entfernung und Wassertiefe am Ziel.</span></div>
-         <div class="help-item"><strong>💧 Wasser</strong><span>Blendet die animierte Wasseroberfläche ein oder aus. Die Tiefenkarte darunter bleibt erhalten.</span></div>
-         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte. Luftbild und Umgebung werden mit sinkendem Sonnenstand neutral dunkler. Die farbige Tiefenkarte behält nachts bewusst ihre kräftigen Tiefenfarben und ausreichend Resthelligkeit, damit Farbstufen und Konturen klar lesbar bleiben. Bei „Aus“ wird eine neutrale helle Darstellung ohne sichtbare Sonne oder Mondscheibe verwendet.</span></div>
+         <div class="help-item"><strong>💧 Wasser</strong><span>Blendet die animierte Wasseroberfläche ein oder aus. Bei aktivem Wasser sind deutlich wandernde blau-türkise Oberflächenzüge und Wellenkämme sichtbar, die sich optisch klar von Wolkenspiegelungen unterscheiden. Wolken am Himmel und ihre Spiegelungen auf dem Wasser verwenden jetzt denselben Welt-Versatz und ziehen deshalb exakt gemeinsam in derselben Richtung und Geschwindigkeit; die Winddaten stammen aus dem gemeldeten Wetter; ihre Dichte entspricht dem gemeldeten Bewölkungsgrad. Sonne und Mond spiegeln sich zusätzlich abhängig von Blickrichtung und Himmelsposition. Die Tiefenkarte bleibt darunter bewusst sichtbar.</span></div>
+         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte. Luftbild und Umgebung werden mit sinkendem Sonnenstand neutral dunkler. Die farbige Tiefenkarte behält nachts bewusst ihre kräftigen Tiefenfarben und ausreichend Resthelligkeit, damit Farbstufen und Konturen klar lesbar bleiben. Bei „Aus“ zeigt die Karte unabhängig von Uhrzeit und Wetter einen klaren, sonnigen Tag mit blauem Himmel und einer sichtbaren Sonne; Mond, Regen und Nachtwirkung sind dann deaktiviert.</span></div>
          <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Sonnenauf- und -untergang sowie die aktuelle Mondphase werden angezeigt. Der Mond ist nachts größer sichtbar, zeigt die aktuelle zunehmende oder abnehmende Phase mit entsprechender beleuchteter Seite und erzeugt einen dezenten kühlen Lichtschein auf Gelände und Karte.</span></div>
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Temperatur, Wind und Bewölkung stehen in der Infoanzeige.</span></div>
          <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; die Windgeschwindigkeit steht kompakt oberhalb der Kompassrose.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetter-/Astronomiefenster, Tiefenlegende und Kompass gemeinsam ein oder aus. So kann die Karte bei Bedarf völlig frei und ohne zusätzliche Anzeigen betrachtet werden.</span></div>
          <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die angezeigten Tiefen stammen aus der Vermessung des Vereinsweihers.</span></div>
          <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Fußgänger und Fahrräder bewegen sich ausschließlich auf der fest eingemessenen Radweg-Trasse entlang der Mosel. Fußgänger und Fahrräder werden ausschließlich in der 3D-Ansicht dargestellt und bewegen sich dort auf der fest eingemessenen Radweg-Trasse. In der 2D-Karte ist der Publikumsverkehr ausgeblendet. Die Route und Positionen sind in beiden Ansichten identisch.</span></div>
-         <div class="help-item"><strong>🐦 Vögel</strong><span>In der 3D-Ansicht fliegen gelegentlich einzelne Vögel mit zufälliger Flugrichtung über die Karte. Bei sichtbarer Sonne wird ihr Schatten abhängig von Sonnenstand und Flughöhe auf die Karten-/Wasseroberfläche projiziert. In 2D sind die Vögel ausgeblendet.</span></div>
+         <div class="help-item"><strong>🐦 Vögel</strong><span>In der 3D-Ansicht fliegen tagsüber gelegentlich unterschiedlich große und gefärbte Vögel mit variierendem Flugstil und zufälliger Flugrichtung über die Karte; manchmal erscheint ein kleines Paar. Nachts gibt es keine Vögel. Bei sichtbarer Sonne wird ihr Schatten abhängig von Sonnenstand und Flughöhe gut sichtbar auf das Satellitenbild bzw. die Wasser-/Tiefenkarte projiziert. Auf dem weißen Außenbereich wird kein Schatten dargestellt. In 2D sind die Vögel ausgeblendet.</span></div>
        </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
 Tiefenkarte und Darstellung: AC 1956 Zewen-Oberkirch e. V.<br>
@@ -1367,11 +1367,12 @@ const sunDisc=new THREE.Sprite(
    })(),
    transparent:true,
    depthWrite:false,
+   depthTest:false,
    blending:THREE.AdditiveBlending
  })
 );
 sunDisc.position.copy(sun.position);
-sunDisc.scale.set(28,28,1);
+sunDisc.scale.set(38,38,1);
 scene.add(sunDisc);
 
 const moonLight=new THREE.DirectionalLight(0xa8c8ff,0.0);
@@ -1556,6 +1557,106 @@ addCloud(D.sceneW*.42,-D.sceneH*.31,45,7.2);
 addCloud(-D.sceneW*.20,-D.sceneH*.46,57,6.0);
 addCloud(D.sceneW*.05,D.sceneH*.12,61,5.1);
 addCloud(-D.sceneW*.33,D.sceneH*.39,58,4.8);
+// V72: zusätzliche echte Wolkenfelder für stark bewölktes Wetter.
+// Sie werden nur entsprechend dem gemeldeten Bewölkungsgrad eingeblendet.
+addCloud(-D.sceneW*.08, D.sceneH*.30,50,6.6);
+addCloud( D.sceneW*.30, D.sceneH*.19,56,7.4);
+addCloud(-D.sceneW*.42, D.sceneH*.05,48,6.1);
+addCloud( D.sceneW*.09,-D.sceneH*.23,53,6.9);
+addCloud(-D.sceneW*.29,-D.sceneH*.31,59,7.1);
+addCloud( D.sceneW*.36,-D.sceneH*.08,47,5.8);
+addCloud(-D.sceneW*.16, D.sceneH*.47,55,6.3);
+addCloud( D.sceneW*.47, D.sceneH*.42,52,7.0);
+addCloud(-D.sceneW*.49,-D.sceneH*.43,49,6.5);
+addCloud( D.sceneW*.22,-D.sceneH*.49,58,7.5);
+
+
+// V69: Ausgangspositionen für windgetriebene Himmelswolken merken.
+cloudGroup.children.forEach((c,i)=>{
+  c.userData.windBase=c.position.clone();
+  c.userData.windPhase=i/cloudGroup.children.length;
+});
+
+// V71: direkte Spiegelung der tatsächlich vorhandenen Himmelswolken.
+const cloudReflectionGroup=new THREE.Group();
+scene.add(cloudReflectionGroup);
+
+function makeCloudReflectionTexture(){
+  const c=document.createElement('canvas');
+  c.width=256; c.height=128;
+  const ctx=c.getContext('2d');
+  const blobs=[[62,70,38],[100,56,48],[142,62,51],[184,72,36],[126,79,58]];
+  blobs.forEach(([x,y,r])=>{
+    const g=ctx.createRadialGradient(x,y,3,x,y,r);
+    g.addColorStop(0,'rgba(242,247,250,.78)');
+    g.addColorStop(.48,'rgba(220,231,237,.48)');
+    g.addColorStop(1,'rgba(205,220,228,0)');
+    ctx.fillStyle=g;
+    ctx.fillRect(x-r,y-r,r*2,r*2);
+  });
+  return new THREE.CanvasTexture(c);
+}
+const cloudReflectionTex=makeCloudReflectionTexture();
+
+cloudGroup.children.forEach((cloud,i)=>{
+  const mat=new THREE.SpriteMaterial({
+    map:cloudReflectionTex,
+    transparent:true,
+    depthWrite:false,
+    depthTest:false,
+    opacity:.26,
+    blending:THREE.NormalBlending
+  });
+  const s=new THREE.Sprite(mat);
+  s.renderOrder=205;
+  s.position.z=.24;
+  s.userData.sourceCloud=cloud;
+  s.userData.phase=i*.71;
+  cloudReflectionGroup.add(s);
+});
+
+function pointInsideWaterMask(x,y){
+  // Weltkoordinate -> Rasterzelle der ReefMaster-Maske.
+  const u=(x + D.pondW/2)/D.pondW;
+  const v=(y + D.pondH/2)/D.pondH;
+  if(u<0 || u>1 || v<0 || v>1) return false;
+  const c=Math.max(0,Math.min(D.ncols-1,Math.round(u*(D.ncols-1))));
+  const r=Math.max(0,Math.min(D.nrows-1,Math.round((1-v)*(D.nrows-1))));
+  return !!D.mask[r][c];
+}
+
+function updateRealCloudReflections(){
+  const enabled=waterVisible && !is2D && simulationEnabled && cloudGroup.visible;
+  cloudReflectionGroup.visible=enabled;
+  if(!enabled) return;
+
+  const cloudPct=(liveWeather && Number(liveWeather.cloud)) || 0;
+  const cloudFactor=Math.max(0,Math.min(1,cloudPct/100));
+
+  cloudReflectionGroup.children.forEach(s=>{
+    const cloud=s.userData.sourceCloud;
+    if(!cloud){ s.visible=false; return; }
+
+    // Exakt die Position der echten Wolke, keine eigene Bewegungsrechnung.
+    const x=cloud.position.x;
+    const y=cloud.position.y;
+    const onWater=pointInsideWaterMask(x,y);
+
+    // Nur eine am Himmel tatsächlich sichtbare Wolke darf sich spiegeln.
+    s.visible=cloud.visible && onWater;
+    if(!cloud.visible || !onWater) return;
+
+    s.position.set(x,y,.24);
+
+    // Nur optische Wellenbrechung. X/Y bleiben unangetastet.
+    const wobble=Math.sin(waterUniforms.time.value*1.12+s.userData.phase);
+    s.rotation=wobble*.025;
+    const sx=cloud.scale.x || 1;
+    s.scale.set(17.5*sx*(1+wobble*.025),7.2*sx*(1-wobble*.018),1);
+    s.material.opacity=.14+cloudFactor*.34;
+  });
+}
+
 
 
 // ---------------- Live-Wetter / Niederschlag ----------------
@@ -1563,6 +1664,12 @@ const weatherSub=document.getElementById('weatherSub');
 const simBtn=document.getElementById('simBtn');
 
 let simulationEnabled=true;
+const TEST_DAY_RAIN=false; // FINAL: echtes Wetter aktiv
+// V69: eine gemeinsame Welt-Windrichtung für echte Wolken und Wasserspiegelung.
+// Kartenkoordinaten: +Y = Norden, +X = Osten.
+const cloudWindWorld=new THREE.Vector2(0,-1);
+let cloudWindWorldSpeed=0;
+
 let liveWeather={
   temperature:null,
   cloud:0,
@@ -1573,6 +1680,21 @@ let liveWeather={
   weatherCode:0,
   humidity:null
 };
+if(TEST_DAY_RAIN){
+  liveWeather={
+    temperature:21,
+    cloud:72,
+    precipitation:3.2,
+    rain:3.2,
+    windSpeed:14,
+    windDirection:20,
+    weatherCode:63,
+    humidity:84
+  };
+}
+
+
+
 
 const maxRainDrops=850;
 const rainPositions=new Float32Array(maxRainDrops*3);
@@ -1586,19 +1708,33 @@ function resetRainDrop(i,randomZ=true){
 }
 for(let i=0;i<maxRainDrops;i++) resetRainDrop(i,true);
 
+// FINAL: Regen als längliche Fallstriche statt Punkte.
+const rainLinePositions=new Float32Array(maxRainDrops*2*3);
+for(let i=0;i<maxRainDrops;i++){
+  const x=rainPositions[i*3];
+  const y=rainPositions[i*3+1];
+  const z=rainPositions[i*3+2];
+  const k=i*6;
+  rainLinePositions[k]=x;
+  rainLinePositions[k+1]=y;
+  rainLinePositions[k+2]=z;
+  rainLinePositions[k+3]=x;
+  rainLinePositions[k+4]=y;
+  rainLinePositions[k+5]=z+3.8; // wird im Renderloop passend zum Wind geneigt
+}
+
 const rainGeo=new THREE.BufferGeometry();
-rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPositions,3));
+rainGeo.setAttribute('position',new THREE.BufferAttribute(rainLinePositions,3));
 rainGeo.setDrawRange(0,0);
 
-const rainMat=new THREE.PointsMaterial({
-  color:0xa9c9df,
-  size:0.28,
+const rainMat=new THREE.LineBasicMaterial({
+  color:0x9bb8ca,
   transparent:true,
-  opacity:0.66,
-  depthWrite:false,
-  sizeAttenuation:true
+  opacity:0.76,
+  depthWrite:false
 });
-const rainSystem=new THREE.Points(rainGeo,rainMat);
+
+const rainSystem=new THREE.LineSegments(rainGeo,rainMat);
 rainSystem.visible=false;
 rainSystem.renderOrder=50;
 scene.add(rainSystem);
@@ -1663,10 +1799,15 @@ function applyWeatherScene(){
 
   // Wolkenmenge an reale Bewölkung koppeln.
   const cloudChildren=cloudGroup.children;
-  const visibleCount=Math.round(fraction*cloudChildren.length);
+
+  // V72: gemeldeter Bewölkungsgrad wird sichtbar deutlicher umgesetzt.
+  // Bei starker Bewölkung erscheinen fast alle vorhandenen Wolkenfelder,
+  // bei geringer Bewölkung bleiben nur wenige übrig.
+  const cloudVisibility=Math.pow(fraction,0.72);
+  const visibleCount=Math.round(cloudVisibility*cloudChildren.length);
   cloudChildren.forEach((c,i)=>c.visible=i<visibleCount);
   cloudGroup.visible=!is2D && visibleCount>0;
-  cloudMat.opacity=.28+.54*fraction;
+  cloudMat.opacity=.30+.62*fraction;
 
   // Direkte Sonne bei dichter Bewölkung abschwächen.
   if(typeof SunCalc!=='undefined'){
@@ -1678,7 +1819,7 @@ function applyWeatherScene(){
   const precip=Math.max(liveWeather.precipitation||0,liveWeather.rain||0);
   const rainFactor=Math.min(1,precip/4);
   const dropCount=Math.round(maxRainDrops*rainFactor);
-  rainGeo.setDrawRange(0,dropCount);
+  rainGeo.setDrawRange(0,dropCount*2);
   rainSystem.visible=!is2D && dropCount>0;
 
   // Nebel nur bei gemeldeten Nebelcodes.
@@ -1817,20 +1958,41 @@ simBtn.onclick=()=>{
     applyWeatherScene();
     updateWeatherText();
   }else{
-    // V47: Neutrale helle Kartenansicht ohne astronomische Himmelskörper.
-    // Das Licht bleibt erhalten, aber die sichtbare Sonnen-/Mondscheibe wird ausgeblendet.
-    // Dadurch entsteht beim Ausschalten nicht mehr der Eindruck von zwei Sonnen.
+    // V62: Wettermodell AUS = bewusst schöner, klarer Sonnentag.
+    // Keine reale Tageszeit, kein Mond, kein Regen/Nebel. Genau eine sichtbare Sonne.
     sun.visible=true;
-    sunDisc.visible=false;
+
+    // V65: künstliche Tagessonne sicher im sichtbaren Himmel der Nordansicht.
+    // Sie steht nordöstlich und deutlich über dem Horizont.
+    const sunnySpan=Math.max(D.sceneW,D.sceneH);
+    sun.position.set(sunnySpan*.28,sunnySpan*.62,sunnySpan*.82);
+    sun.target.position.set(0,0,-2);
+    sun.intensity=1.48;
+    sun.color.set(0xfff2cf);
+
+    // Sichtbare Sonne nur in 3D; in 2D gibt es keinen Himmel.
+    sunDisc.position.copy(sun.position);
+    sunDisc.visible=!is2D;
+    sunDisc.scale.set(38,38,1);
+    if(sunDisc.material){
+      sunDisc.material.opacity=1.0;
+      sunDisc.material.depthTest=false;
+    }
+
     moonDisc.visible=false;
     if(typeof moonGlow!=='undefined') moonGlow.visible=false;
     moonLight.intensity=0;
-    sun.position.set(-D.sceneW*.70,D.sceneH*.55,105);
-    sun.intensity=1.25;
-    hemi.intensity=.72;
-    skyMat.uniforms.topColor.value.set(0xb9dff2);
-    skyMat.uniforms.bottomColor.value.set(0xffffff);
-    scene.background.set(is2D ? 0xffffff : 0xf1f8fb);
+
+    // Freundlicher klarer Tageshimmel.
+    skyMat.uniforms.topColor.value.set(0x79c7ee);
+    skyMat.uniforms.bottomColor.value.set(0xf7fcff);
+    scene.background.set(is2D ? 0xffffff : 0xd9f1fb);
+
+    // Helles, aber nicht ausgewaschenes Umgebungslicht.
+    hemi.color.set(0xeaf8ff);
+    hemi.groundColor.set(0x87907f);
+    hemi.intensity=.88;
+
     applyDayLightLevel(1.0,0xffffff);
     applyWeatherScene();
     updateWeatherText();
@@ -1877,13 +2039,23 @@ for(let r=0;r<D.nrows-1;r++){
 waterGeo.setAttribute('position',new THREE.Float32BufferAttribute(wp,3));
 waterGeo.setIndex(wi);
 waterGeo.computeVertexNormals();
+waterGeo.computeBoundingBox();
 
 const waterUniforms={
  time:{value:0},
- opacity:{value:0.30},
- deepColor:{value:new THREE.Color(0x2f91c9)},
- lightColor:{value:new THREE.Color(0xaee7ff)},
- cameraPos:{value:new THREE.Vector3()}
+ opacity:{value:0.31},
+ deepColor:{value:new THREE.Color(0x237fb8)},
+ lightColor:{value:new THREE.Color(0xc6efff)},
+ cameraPos:{value:new THREE.Vector3()},
+ sunDir:{value:new THREE.Vector3(0,0,1)},
+ moonDir:{value:new THREE.Vector3(0,0,1)},
+ sunStrength:{value:0},
+ moonStrength:{value:0},
+ cloudAmount:{value:0},
+ windStrength:{value:0.25},
+ cloudWindDir:{value:new THREE.Vector2(1,0)},
+ cloudWindSpeed:{value:0.25},
+ cloudOffset:{value:new THREE.Vector2(0,0)}
 };
 
 const waterMat=new THREE.ShaderMaterial({
@@ -1893,47 +2065,156 @@ const waterMat=new THREE.ShaderMaterial({
  uniforms:waterUniforms,
  vertexShader:`
    uniform float time;
+   uniform float windStrength;
    varying vec3 vWorldPos;
    varying float vWave;
+   varying vec3 vNormalW;
 
    void main(){
      vec3 p=position;
 
-     float w1=sin(p.x*0.20 + time*1.55);
-     float w2=sin(p.y*0.27 - time*1.28);
-     float w3=sin((p.x+p.y)*0.115 + time*0.92);
-     float w4=sin((p.x-p.y)*0.38 - time*1.82);
+     float ws=mix(0.55,1.55,clamp(windStrength,0.0,1.0));
+     float amp=mix(0.13,0.30,clamp(windStrength,0.0,1.0));
+
+     float w1=sin(p.x*0.20 + time*1.55*ws);
+     float w2=sin(p.y*0.27 - time*1.28*ws);
+     float w3=sin((p.x+p.y)*0.115 + time*0.92*ws);
+     float w4=sin((p.x-p.y)*0.38 - time*1.82*ws);
 
      float wave=(w1*0.38 + w2*0.29 + w3*0.20 + w4*0.13);
-     p.z += wave*0.16;
+     p.z += wave*amp;
+
+     // Näherungs-Normale aus denselben Wellen. Damit wandern Reflexe beim Drehen korrekt mit.
+     float dx=0.20*cos(p.x*0.20 + time*1.55*ws)*0.38
+             +0.115*cos((p.x+p.y)*0.115 + time*0.92*ws)*0.20
+             +0.38*cos((p.x-p.y)*0.38 - time*1.82*ws)*0.13;
+     float dy=0.27*cos(p.y*0.27 - time*1.28*ws)*0.29
+             +0.115*cos((p.x+p.y)*0.115 + time*0.92*ws)*0.20
+             -0.38*cos((p.x-p.y)*0.38 - time*1.82*ws)*0.13;
+     vec3 n=normalize(vec3(-dx*amp,-dy*amp,1.0));
 
      vec4 world=modelMatrix*vec4(p,1.0);
      vWorldPos=world.xyz;
      vWave=wave;
+     vNormalW=normalize(mat3(modelMatrix)*n);
 
      gl_Position=projectionMatrix*viewMatrix*world;
    }
  `,
  fragmentShader:`
+   uniform float time;
    uniform float opacity;
    uniform vec3 deepColor;
    uniform vec3 lightColor;
    uniform vec3 cameraPos;
+   uniform vec3 sunDir;
+   uniform vec3 moonDir;
+   uniform float sunStrength;
+   uniform float moonStrength;
+   uniform float cloudAmount;
+   uniform vec2 cloudWindDir;
+   uniform float cloudWindSpeed;
+   uniform vec2 cloudOffset;
 
    varying vec3 vWorldPos;
    varying float vWave;
+   varying vec3 vNormalW;
+
+   float waveBands(vec2 p){
+     float a=sin(p.x*.46 + time*1.48);
+     float b=sin(p.y*.34 - time*1.22);
+     float c=sin((p.x+p.y)*.24 + time*.94);
+     float d=sin((p.x-p.y)*.18 - time*.74);
+     float e=sin(p.x*.82 + p.y*.21 + time*2.05);
+     return (a*.28+b*.24+c*.20+d*.14+e*.14);
+   }
+
+   float surfaceRipples(vec2 p){
+     // V64: deutlich sichtbare, wandernde Oberflächenzüge.
+     float r1=sin(p.x*.78 + p.y*.16 + time*1.85);
+     float r2=sin(p.y*.66 - p.x*.12 - time*1.42);
+     float r3=sin((p.x+p.y)*.41 + time*1.18);
+     float r4=sin((p.x-p.y)*.57 - time*1.67);
+     float n=(r1*.34+r2*.28+r3*.22+r4*.16);
+     return .5+.5*n;
+   }
+
+   float softCloud(vec2 p){
+     // V69: gesamte Wolkenstruktur wird als Ganzes in Windrichtung verschoben.
+     // Dadurch gibt es keinen diagonalen Scheindrift durch unterschiedlich orientierte Sinusfelder.
+     // V70: Kein eigener Wolken-Timer mehr.
+     // Die Reflexion benutzt exakt denselben Welt-Versatz wie die Himmelswolken.
+     vec2 adv=p-cloudOffset;
+
+     float a=sin(adv.x*.050)+sin(adv.y*.043);
+     float b=sin((adv.x+adv.y)*.027+1.7);
+     float c=sin((adv.x-adv.y)*.019-.8);
+     float d=sin(adv.x*.012+adv.y*.016+2.2);
+
+     float n=(a*.34+b*.28+c*.24+d*.14)/1.35;
+
+     float threshold=mix(.72,-.28,clamp(cloudAmount,0.0,1.0));
+     return smoothstep(threshold-.18,threshold+.18,n);
+   }
 
    void main(){
-     vec3 viewDir=normalize(cameraPos-vWorldPos);
-     float fresnel=pow(1.0-abs(viewDir.z),2.0);
-     float shimmer=0.5+0.5*vWave;
+     vec3 N=normalize(vNormalW);
+     vec3 V=normalize(cameraPos-vWorldPos);
+     float ndv=max(dot(N,V),0.0);
+     float fresnel=pow(1.0-ndv,2.1);
 
-     // Deutlich sichtbarer Wassercharakter mit hellen Wellenreflexen.
-     float sparkle=pow(max(shimmer,0.0),7.0);
-     vec3 color=mix(deepColor,lightColor,0.16 + fresnel*0.30 + sparkle*0.10);
+     // Deutlich wandernde Oberflächenstruktur.
+     float wb=waveBands(vWorldPos.xy);
+     float shimmer=.5+.5*wb;
+     float fine=sin(vWorldPos.x*.95 + vWorldPos.y*.71 + time*2.35)*.5+.5;
+     float ripples=surfaceRipples(vWorldPos.xy);
 
-     float alpha=opacity + fresnel*0.08 + sparkle*0.03;
-     gl_FragColor=vec4(color,clamp(alpha,0.0,0.46));
+     // V72: Wasserbewegung klar blau/türkis, nicht mehr weiß-wolkig.
+     // Damit sind Wasserstruktur und echte Wolkenspiegelung sofort unterscheidbar.
+     vec3 waterDark=vec3(.055,.28,.46);
+     vec3 waterMid =vec3(.10,.47,.68);
+     vec3 waterLight=vec3(.18,.64,.79);
+
+     vec3 color=mix(waterDark,waterMid,
+                    .46 + shimmer*.18 + fine*.055 + fresnel*.08);
+
+     float rippleLight=smoothstep(.58,.92,ripples);
+     float rippleDark=1.0-smoothstep(.18,.48,ripples);
+
+     // Lange türkise Wellenzüge, keine weißen Flächen.
+     color=mix(color,waterLight,rippleLight*.23);
+     color=mix(color,waterDark,rippleDark*.10);
+
+     // Schmale cyanfarbene Wellenkämme.
+     float crest=smoothstep(.60,.91,shimmer);
+     color += vec3(.08,.34,.42)*crest*.18;
+
+     // Sonnenreflex: breiter und deutlich sichtbarer.
+     vec3 Rs=reflect(-normalize(sunDir),N);
+     float sd=max(dot(Rs,V),0.0);
+     float sunCore=pow(sd,30.0)*sunStrength;
+     float sunGlow=pow(sd,6.0)*sunStrength;
+     color += vec3(1.0,.86,.54)*(sunCore*1.45 + sunGlow*.26);
+
+     // Mondreflex: kühler und klar erkennbar, aber schwächer.
+     vec3 Rm=reflect(-normalize(moonDir),N);
+     float md=max(dot(Rm,V),0.0);
+     float moonCore=pow(md,38.0)*moonStrength;
+     float moonGlow=pow(md,8.0)*moonStrength;
+     color += vec3(.58,.74,.98)*(moonCore*1.00 + moonGlow*.22);
+
+     // Bewegte Wolkenspiegelung.
+     // V71: künstliche Wolkenmuster entfernt.
+     float cloudRefl=0.0;
+
+     // Mehr sichtbare Bewegung, aber Tiefen-Shader bleibt darunter erhalten.
+     float alpha=opacity
+       + fresnel*.07
+       + crest*.035
+       + min(.08,sunGlow*.05+moonGlow*.04)
+       + cloudRefl*.035;
+
+     gl_FragColor=vec4(color,clamp(alpha,.26,.50));
    }
  `
 });
@@ -2021,9 +2302,16 @@ function set3D(){
     moonGlow.visible=moonDisc.visible;
   }
 
-  // V47: Bei ausgeschaltetem Wettermodell niemals sichtbare Sonne/Mond-Sprites.
+  // V62: Bei ausgeschaltetem Wettermodell bleibt genau eine künstliche
+  // Tagessonne in 3D sichtbar; Mond und Mondschein bleiben aus.
   if(typeof simulationEnabled!=='undefined' && !simulationEnabled){
-    sunDisc.visible=false;
+    sun.visible=true;
+    sunDisc.visible=!is2D;
+    sunDisc.position.copy(sun.position);
+    if(sunDisc.material){
+      sunDisc.material.opacity=1.0;
+      sunDisc.material.depthTest=false;
+    }
     moonDisc.visible=false;
     if(typeof moonGlow!=='undefined') moonGlow.visible=false;
   }
@@ -2430,6 +2718,7 @@ const windSpeed=document.getElementById('windSpeed');
 const SITE_LAT=49.70996681245;
 const SITE_LON=6.57746165865;
 
+
 function phaseName(phase){
   if(phase<0.03 || phase>0.97) return 'Neumond';
   if(phase<0.22) return 'zunehmende Sichel';
@@ -2477,6 +2766,8 @@ function updateAstronomy(){
     : '🌙 '+moonName+' · ☀️ Auf '+sunrise+' · Unter '+sunset;
 
   if(typeof simulationEnabled!=='undefined' && !simulationEnabled) return;
+
+
 
   const span=Math.max(D.sceneW,D.sceneH);
   const sunVec=celestialVector(sunPos,span*2.1);
@@ -3251,9 +3542,12 @@ let nextBirdSpawn=6+Math.random()*10;
 function makeBird(){
   const g=new THREE.Group();
 
+  // V61: leichte optische Variation statt identischer Klon-Vögel.
+  const birdPalette=[0x252b2f,0x39434a,0x4b4640,0x596067];
+  const birdColor=birdPalette[Math.floor(Math.random()*birdPalette.length)];
   const bodyMat=new THREE.MeshPhongMaterial({
-    color:0x2d3338,
-    shininess:12,
+    color:birdColor,
+    shininess:8+Math.random()*12,
     side:THREE.DoubleSide
   });
 
@@ -3316,8 +3610,8 @@ function makeBird(){
   sc.width=sc.height=128;
   const sctx=sc.getContext('2d');
   const sg=sctx.createRadialGradient(64,64,8,64,64,58);
-  sg.addColorStop(0,'rgba(0,0,0,.36)');
-  sg.addColorStop(.45,'rgba(0,0,0,.20)');
+  sg.addColorStop(0,'rgba(0,0,0,.62)');
+  sg.addColorStop(.45,'rgba(0,0,0,.34)');
   sg.addColorStop(1,'rgba(0,0,0,0)');
   sctx.fillStyle=sg;
   sctx.fillRect(0,0,128,128);
@@ -3328,10 +3622,11 @@ function makeBird(){
     transparent:true,
     depthWrite:false,
     depthTest:false,
-    opacity:.28
+    blending:THREE.NormalBlending,
+    opacity:.46
   }));
   shadow.scale.set(3.8,2.2,1);
-  shadow.renderOrder=70;
+  shadow.renderOrder=250;
   scene.add(shadow);
 
   return {
@@ -3344,13 +3639,25 @@ function makeBird(){
     vy:0,
     life:0,
     flap:Math.random()*Math.PI*2,
-    baseZ:0
+    baseZ:0,
+    glideBias:Math.random(),
+    bobSpeed:.65+Math.random()*.55
   };
 }
 
+function birdsAllowedNow(){
+  if(is2D) return false;
+  // Keine Vögel nachts. Maßgeblich ist die echte astronomische Sonne,
+  // nicht nur eine künstlich helle Kartenansicht.
+  if(typeof simulationEnabled!=='undefined' && simulationEnabled){
+    if(typeof sun==='undefined' || !sun.visible || sun.intensity<0.16) return false;
+  }
+  return true;
+}
+
 function spawnBird(){
-  // Nur in 3D. In 2D bleibt die Karte bewusst frei.
-  if(is2D) return;
+  // V61: nur in 3D und nur bei ausreichendem Tageslicht.
+  if(!birdsAllowedNow()) return;
 
   const b=makeBird();
   const span=Math.max(D.sceneW,D.sceneH);
@@ -3377,8 +3684,8 @@ function spawnBird(){
   b.obj.rotation.z=Math.atan2(-b.vx,b.vy);
   b.life=0;
 
-  // Unterschiedliche Vogelgröße
-  const scale=.8+Math.random()*.55;
+  // Unterschiedliche Vogelgröße: kleine und gelegentlich deutlich größere Exemplare.
+  const scale=.62+Math.random()*.88;
   b.obj.scale.setScalar(scale);
 
   birdGroup.add(b.obj);
@@ -3408,9 +3715,17 @@ function updateBirds(dt){
 
   nextBirdSpawn-=dt;
   if(nextBirdSpawn<=0){
-    // Höchstens zwei Vögel gleichzeitig, normalerweise nur einer.
-    if(!is2D && birdActors.length<2) spawnBird();
-    nextBirdSpawn=22+Math.random()*38;
+    // V61: tagsüber meist Einzelvogel, gelegentlich ein kleines Paar.
+    if(birdsAllowedNow() && birdActors.length<2){
+      spawnBird();
+      if(Math.random()<0.22 && birdActors.length<2) spawnBird();
+    }
+    nextBirdSpawn=24+Math.random()*46;
+  }
+
+  // Sobald Nacht einsetzt, vorhandene Vögel sauber entfernen.
+  if(!birdsAllowedNow() && birdActors.length){
+    for(let i=birdActors.length-1;i>=0;i--) removeBird(i);
   }
 
   const sunDir=new THREE.Vector3();
@@ -3431,12 +3746,11 @@ function updateBirds(dt){
     b.obj.position.x+=b.vx*dt;
     b.obj.position.y+=b.vy*dt;
 
-    // leichtes natürliches Auf-/Abgleiten
-    b.obj.position.z=b.baseZ+Math.sin(b.life*.85+b.flap)*1.15;
+    // V61: unterschiedliche Flugstile. Manche gleiten ruhiger, andere schlagen aktiver.
+    b.obj.position.z=b.baseZ+Math.sin(b.life*b.bobSpeed+b.flap)*(.55+b.glideBias*.95);
 
-    // Flügelschlag
-    b.flap+=dt*(5.4+Math.min(3,b.speed*.18));
-    const flap=Math.sin(b.flap)*0.72;
+    b.flap+=dt*(3.6+(1.0-b.glideBias)*4.8+Math.min(2.2,b.speed*.12));
+    const flap=Math.sin(b.flap)*(.38+(1.0-b.glideBias)*.48);
     b.leftWing.rotation.y=flap;
     b.rightWing.rotation.y=-flap;
 
@@ -3449,14 +3763,27 @@ function updateBirds(dt){
       const sx=b.obj.position.x+sunDir.x*t;
       const sy=b.obj.position.y+sunDir.y*t;
 
-      b.shadow.position.set(sx,sy,groundZ+.03);
+      // V58: Schatten nur auf der tatsächlichen Satelliten-/Kartenfläche.
+      // Der weiße Bereich außerhalb des Luftbild-Rechtecks ist keine Landschaft
+      // und bekommt deshalb konsequent keinen Vogelschatten.
+      const onMap=
+        sx>=-D.sceneW/2 && sx<=D.sceneW/2 &&
+        sy>=-D.sceneH/2 && sy<=D.sceneH/2;
 
-      // Bei tiefem Sonnenstand wird der Schatten länger, größer und weicher.
-      const altitudeFactor=Math.max(.10,Math.min(1,Math.abs(sunDir.z)));
-      const stretch=1+Math.min(2.4,(1-altitudeFactor)*2.2);
-      b.shadow.scale.set(3.6*stretch,2.0*(1+.45*(stretch-1)),1);
-      b.shadow.material.opacity=.10+.22*altitudeFactor;
-      b.shadow.visible=true;
+      if(onMap){
+        b.shadow.position.set(sx,sy,groundZ+.03);
+
+        // Bei tiefem Sonnenstand wird der Schatten länger, größer und weicher.
+        const altitudeFactor=Math.max(.10,Math.min(1,Math.abs(sunDir.z)));
+        const stretch=1+Math.min(2.4,(1-altitudeFactor)*2.2);
+        b.shadow.scale.set(3.2*stretch,1.8*(1+.42*(stretch-1)),1);
+        // V59: Auf Satellitenbild und Tiefenfarben deutlich sichtbar bleiben.
+        // Mindestdeckkraft bewusst höher, bei hoher Sonne etwas kräftiger.
+        b.shadow.material.opacity=.30+.24*altitudeFactor;
+        b.shadow.visible=true;
+      }else{
+        b.shadow.visible=false;
+      }
     }else{
       b.shadow.visible=false;
     }
@@ -3470,12 +3797,168 @@ function updateBirds(dt){
   }
 }
 
+
+let cloudTravel=0;
+
+function updateSkyClouds(dt){
+  if(!simulationEnabled || is2D || !cloudGroup.visible){
+    if(typeof waterUniforms!=='undefined' && waterUniforms.cloudOffset){
+      waterUniforms.cloudOffset.value.set(0,0);
+    }
+    return;
+  }
+
+  const speedKmh=(liveWeather && Number(liveWeather.windSpeed)) || 0;
+  // bewusst langsamer als reale Maßstabsgeschwindigkeit, damit es natürlich aussieht.
+  const visualSpeed=.35 + Math.min(2.6,speedKmh*.075);
+  cloudTravel += dt*visualSpeed;
+
+  // V70: Wasserspiegelung bekommt exakt denselben Wegvektor.
+  // Kein separates Tempo, kein separates Vorzeichen, kein Kameratrick.
+  if(typeof waterUniforms!=='undefined' && waterUniforms.cloudOffset){
+    waterUniforms.cloudOffset.value
+      .copy(cloudWindWorld)
+      .multiplyScalar(cloudTravel);
+  }
+
+  const wrapX=D.sceneW*1.35;
+  const wrapY=D.sceneH*1.35;
+
+  cloudGroup.children.forEach((c,i)=>{
+    const base=c.userData.windBase || c.position;
+    const phase=(c.userData.windPhase||0)*Math.max(D.sceneW,D.sceneH)*.42;
+
+    let x=base.x + cloudWindWorld.x*(cloudTravel+phase);
+    let y=base.y + cloudWindWorld.y*(cloudTravel+phase);
+
+    // torusartiges Wrapping, damit Wolken kontinuierlich nachströmen.
+    while(x>D.sceneW*.68) x-=wrapX;
+    while(x<-D.sceneW*.68) x+=wrapX;
+    while(y>D.sceneH*.68) y-=wrapY;
+    while(y<-D.sceneH*.68) y+=wrapY;
+
+    c.position.x=x;
+    c.position.y=y;
+  });
+}
+
+
+// FINAL: kleine Einschlagringe von Regentropfen ausschließlich auf dem Weiher.
+const rainRippleGroup=new THREE.Group();
+scene.add(rainRippleGroup);
+const rainRipples=[];
+
+function makeRainRippleTexture(){
+  const c=document.createElement('canvas');
+  c.width=128; c.height=128;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,128,128);
+  const g=ctx.createRadialGradient(64,64,35,64,64,58);
+  g.addColorStop(0,'rgba(185,225,245,0)');
+  g.addColorStop(.56,'rgba(185,225,245,0)');
+  g.addColorStop(.62,'rgba(190,232,250,.86)');
+  g.addColorStop(.86,'rgba(205,240,255,.50)');
+  g.addColorStop(1,'rgba(205,240,255,0)');
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,128,128);
+  return new THREE.CanvasTexture(c);
+}
+const rainRippleTex=makeRainRippleTexture();
+
+function spawnRainRipple(){
+  // Nur bei eingeschaltetem Wasser, 3D und tatsächlichem Regen.
+  const rainingNow=Number(liveWeather.precipitation||liveWeather.rain||0)>0.01;
+  if(!waterVisible || is2D || !rainingNow) return;
+
+  // Zufälligen Punkt innerhalb der echten ReefMaster-Wassermaske suchen.
+  let x=0,y=0,ok=false;
+  for(let tries=0;tries<18;tries++){
+    x=(Math.random()-.5)*D.pondW;
+    y=(Math.random()-.5)*D.pondH;
+
+    // V76: Einschlag minimal in Windrichtung versetzt.
+    const impactShift=Math.min(1.8,Number(liveWeather.windSpeed||0)*.035);
+    x+=cloudWindWorld.x*impactShift;
+    y+=cloudWindWorld.y*impactShift;
+
+    if(pointInsideWaterMask(x,y)){ ok=true; break; }
+  }
+  if(!ok) return;
+
+  // FINAL: Ring als echte horizontale Fläche statt kameraorientiertem Sprite.
+  // PlaneGeometry liegt standardmäßig in XY und damit exakt parallel zur Wasseroberfläche.
+  const mat=new THREE.MeshBasicMaterial({
+    map:rainRippleTex,
+    transparent:true,
+    depthWrite:false,
+    depthTest:true,
+    opacity:.42,
+    blending:THREE.NormalBlending,
+    side:THREE.DoubleSide
+  });
+  const s=new THREE.Mesh(new THREE.PlaneGeometry(1,1),mat);
+  s.position.set(x,y,.34);
+  s.scale.set(.62,.62,1);
+  s.renderOrder=215;
+  rainRippleGroup.add(s);
+  rainRipples.push({
+    sprite:s,
+    life:0,
+    maxLife:1.05+Math.random()*.65,
+    maxSize:2.6+Math.random()*3.0
+  });
+}
+
+let rainRippleAccumulator=0;
+function updateRainRipples(dt){
+  const rainingNow=Number(liveWeather.precipitation||liveWeather.rain||0)>0.01;
+  const active=waterVisible && !is2D && rainingNow;
+  rainRippleGroup.visible=active;
+
+  // vorhandene Ringe auslaufen lassen
+  for(let i=rainRipples.length-1;i>=0;i--){
+    const r=rainRipples[i];
+    r.life+=dt;
+    const p=r.life/r.maxLife;
+    if(p>=1){
+      rainRippleGroup.remove(r.sprite);
+      if(r.sprite.geometry) r.sprite.geometry.dispose();
+      r.sprite.material.dispose();
+      rainRipples.splice(i,1);
+      continue;
+    }
+    const size=.55+(r.maxSize-.55)*p;
+    r.sprite.scale.set(size,size,1);
+    r.sprite.material.opacity=.58*Math.sin(Math.PI*p)*(1-p*.18);
+  }
+
+  if(!active) return;
+
+  // Niederschlagsmenge bestimmt die Häufigkeit der sichtbaren Einschläge.
+  const mm=Math.max(0,Number(liveWeather.precipitation||liveWeather.rain||0));
+  const rate=Math.min(30,5.0+mm*4.5); // deutlich mehr Ringe, aber nicht bei jedem Tropfen
+  rainRippleAccumulator+=dt*rate;
+  while(rainRippleAccumulator>=1){
+    spawnRainRipple();
+    rainRippleAccumulator-=1;
+  }
+}
+
 const clock=new THREE.Clock();
 
 (function loop(){
  requestAnimationFrame(loop);
 
  const dt=clock.getDelta();
+
+  // V69: Himmelswolken und Wasserspiegelung nutzen dieselbe Windbewegung.
+  updateSkyClouds(dt);
+
+  // V71: echte Himmelswolken direkt auf dem Weiher spiegeln.
+  updateRealCloudReflections();
+
+  // FINAL: Regentropfen erzeugen kleine, kurzlebige Ringe auf der Wasseroberfläche.
+  updateRainRipples(dt);
 
   // V57: gelegentliche Vögel und sonnenabhängige Schatten.
   updateBirds(dt);
@@ -3485,20 +3968,84 @@ const clock=new THREE.Clock();
  if(waterVisible){
    waterUniforms.time.value += dt;
    waterUniforms.cameraPos.value.copy(camera.position);
+
+   // V60: Reflexionsrichtungen folgen echten Himmelskörpern und reagieren auf Kameradrehung.
+   if(typeof sun!=='undefined'){
+     waterUniforms.sunDir.value.copy(sun.position).sub(sun.target.position).normalize();
+     waterUniforms.sunStrength.value=sun.visible
+       ? Math.min(1.0,Math.max(0,sun.intensity/1.55))
+       : 0.0;
+   }
+   if(typeof moonLight!=='undefined'){
+     waterUniforms.moonDir.value.copy(moonLight.position).sub(moonLight.target.position).normalize();
+     waterUniforms.moonStrength.value=(moonDisc.visible && simulationEnabled)
+       ? Math.min(0.75,Math.max(0,moonLight.intensity))
+       : 0.0;
+   }
+
+   const cloudPct=(typeof liveWeather!=='undefined' ? (liveWeather.cloud||0) : 0);
+   waterUniforms.cloudAmount.value=simulationEnabled
+     ? Math.max(0,Math.min(1,cloudPct/100))
+     : 0.08; // künstlicher Sonnentag: nur sehr wenige harmlose Schönwetterwolken
+
+   const windKmh=(typeof liveWeather!=='undefined' ? (liveWeather.windSpeed||0) : 0);
+   waterUniforms.windStrength.value=Math.max(.26,Math.min(1,windKmh/20));
+
+   // V69: exakt dieselbe Weltbewegung wie die echten Wolken am Himmel.
+   // Open-Meteo liefert die Richtung, AUS DER der Wind kommt.
+   // +Y ist Norden, daher bedeutet Nordwind (0°) eine Bewegung nach -Y = Süden.
+   const windDeg=(typeof liveWeather!=='undefined' ? (liveWeather.windDirection||0) : 0);
+   const toDeg=(windDeg+180)%360;
+   const wrad=toDeg*Math.PI/180;
+
+   cloudWindWorld.set(Math.sin(wrad),Math.cos(wrad)).normalize();
+   cloudWindWorldSpeed=simulationEnabled
+     ? Math.max(.08,Math.min(1.25,windKmh/18))
+     : .16;
+
+   waterUniforms.cloudWindDir.value.copy(cloudWindWorld);
+   waterUniforms.cloudWindSpeed.value=cloudWindWorldSpeed;
  }
 
  if(simulationEnabled && rainSystem.visible){
    const pos=rainGeo.attributes.position;
    const precip=Math.max(liveWeather.precipitation||0,liveWeather.rain||0);
-   const speed=18+Math.min(42,precip*9);
-   for(let i=0;i<rainGeo.drawRange.count;i++){
-     const z=pos.getZ(i)-speed*dt;
-     if(z<0.1){
+   const speed=24+Math.min(52,precip*10);
+   const activeDrops=Math.floor(rainGeo.drawRange.count/2);
+
+   // FINAL: Regen übernimmt dieselbe meteorologische Windrichtung wie Wolken.
+   // cloudWindWorld zeigt bereits IN die Richtung, in die der Wind zieht.
+   const windKmh=Math.max(0,Number(liveWeather.windSpeed||0));
+   const driftSpeed=Math.min(15,windKmh*.34);       // seitliche Bewegung
+   const lineLean=Math.min(4.4,windKmh*.095);      // sichtbare Schrägstellung
+   const wx=cloudWindWorld.x;
+   const wy=cloudWindWorld.y;
+
+   for(let i=0;i<activeDrops;i++){
+     const k=i*2;
+     let x0=pos.getX(k)+wx*driftSpeed*dt;
+     let y0=pos.getY(k)+wy*driftSpeed*dt;
+     let z0=pos.getZ(k)-speed*dt;
+
+     if(z0<0.1 ||
+        x0<-D.sceneW*.65 || x0>D.sceneW*.65 ||
+        y0<-D.sceneH*.65 || y0>D.sceneH*.65){
        resetRainDrop(i,false);
-       pos.setXYZ(i,rainPositions[i*3],rainPositions[i*3+1],rainPositions[i*3+2]);
-     }else{
-       pos.setZ(i,z);
+       x0=rainPositions[i*3];
+       y0=rainPositions[i*3+1];
+       z0=rainPositions[i*3+2];
      }
+
+     // Unteres Ende ist der führende Tropfenkopf.
+     // Oberes Ende liegt entgegen der Bewegungsrichtung, dadurch zeigt der
+     // gesamte Strich dieselbe Windneigung wie seine tatsächliche Flugbahn.
+     pos.setXYZ(k,x0,y0,z0);
+     pos.setXYZ(
+       k+1,
+       x0-wx*lineLean,
+       y0-wy*lineLean,
+       z0+4.8
+     );
    }
    pos.needsUpdate=true;
  }
