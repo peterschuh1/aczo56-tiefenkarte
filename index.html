@@ -889,6 +889,26 @@ html,body{
   }
 }
 
+
+/* V55: Bedienfelder und Legenden bleiben nachts lesbar.
+   Die Karte wird weiterhin abgedunkelt, die UI selbst aber nicht mit ihr verschluckt. */
+.wrap.night-readable .legend,
+.wrap.night-readable .controls,
+.wrap.night-readable .weather-card,
+.wrap.night-readable .astro-card,
+.wrap.night-readable .help-panel,
+.wrap.night-readable .depth-info,
+.wrap.night-readable .status,
+.wrap.night-readable .control-hint{
+  filter:none !important;
+}
+.wrap.night-readable .legend,
+.wrap.night-readable .controls,
+.wrap.night-readable .weather-card,
+.wrap.night-readable .astro-card{
+  opacity:1 !important;
+}
+
 </style>
 </head>
 <body>
@@ -947,13 +967,14 @@ html,body{
          <div class="help-item"><strong>📌 Tiefe abfragen</strong><span>Am Computer genügt Mouseover. Auf dem Smartphone die gewünschte Stelle antippen. Ein kleiner Pin zeigt dort die Wassertiefe an.</span></div>
          <div class="help-item"><strong>📏 Messen</strong><span>Messen aktivieren, Startpunkt setzen und gedrückt bis zur Zielstelle ziehen. Währenddessen wird die Entfernung live angezeigt. Nach dem Loslassen erscheinen Entfernung und Wassertiefe am Ziel.</span></div>
          <div class="help-item"><strong>💧 Wasser</strong><span>Blendet die animierte Wasseroberfläche ein oder aus. Die Tiefenkarte darunter bleibt erhalten.</span></div>
-         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte. Luftbild und Umgebung werden mit sinkendem Sonnenstand neutral dunkler. Die farbige Tiefenkarte behält nachts bewusst ihre kräftigen Tiefenfarben und ausreichend Resthelligkeit, damit Farbstufen und Konturen klar lesbar bleiben. Bei „Aus“ wird eine neutrale helle Darstellung verwendet.</span></div>
+         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte. Luftbild und Umgebung werden mit sinkendem Sonnenstand neutral dunkler. Die farbige Tiefenkarte behält nachts bewusst ihre kräftigen Tiefenfarben und ausreichend Resthelligkeit, damit Farbstufen und Konturen klar lesbar bleiben. Bei „Aus“ wird eine neutrale helle Darstellung ohne sichtbare Sonne oder Mondscheibe verwendet.</span></div>
          <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Sonnenauf- und -untergang sowie die aktuelle Mondphase werden angezeigt. Der Mond ist nachts größer sichtbar, zeigt die aktuelle zunehmende oder abnehmende Phase mit entsprechender beleuchteter Seite und erzeugt einen dezenten kühlen Lichtschein auf Gelände und Karte.</span></div>
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Temperatur, Wind und Bewölkung stehen in der Infoanzeige.</span></div>
          <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; die Windgeschwindigkeit steht kompakt oberhalb der Kompassrose.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetter-/Astronomiefenster, Tiefenlegende und Kompass gemeinsam ein oder aus. So kann die Karte bei Bedarf völlig frei und ohne zusätzliche Anzeigen betrachtet werden.</span></div>
          <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die angezeigten Tiefen stammen aus der Vermessung des Vereinsweihers.</span></div>
-         <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Fußgänger und Fahrräder bewegen sich ausschließlich auf der fest eingemessenen Radweg-Trasse entlang der Mosel. Fahrräder sind schneller, beide Bewegungsrichtungen werden dargestellt.</span></div>
+         <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Fußgänger und Fahrräder bewegen sich ausschließlich auf der fest eingemessenen Radweg-Trasse entlang der Mosel. Fußgänger und Fahrräder werden ausschließlich in der 3D-Ansicht dargestellt und bewegen sich dort auf der fest eingemessenen Radweg-Trasse. In der 2D-Karte ist der Publikumsverkehr ausgeblendet. Die Route und Positionen sind in beiden Ansichten identisch.</span></div>
+         <div class="help-item"><strong>🐦 Vögel</strong><span>In der 3D-Ansicht fliegen gelegentlich einzelne Vögel mit zufälliger Flugrichtung über die Karte. Bei sichtbarer Sonne wird ihr Schatten abhängig von Sonnenstand und Flughöhe auf die Karten-/Wasseroberfläche projiziert. In 2D sind die Vögel ausgeblendet.</span></div>
        </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
 Tiefenkarte und Darstellung: AC 1956 Zewen-Oberkirch e. V.<br>
@@ -980,24 +1001,36 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
 
-window.addEventListener('error',function(e){
+// V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
+// als "Script error.". Solange unser Viewer weiterläuft, ist das keine hilfreiche
+// rote Fehlermeldung. Echte Fehler mit verwertbarer Meldung werden weiterhin gezeigt.
+function showViewerError(message){
   const box=document.getElementById('runtimeError');
-  if(box){
-    box.style.display='block';
-    box.textContent='Viewer-Fehler: '+(e.message || 'unbekannter JavaScript-Fehler');
+  if(!box) return;
+  box.style.display='block';
+  box.textContent='Viewer-Fehler: '+message;
+}
+window.addEventListener('error',function(e){
+  const msg=String((e && e.message) || '');
+  if(!msg || msg==='Script error.'){
+    console.warn('Externer Safari-Scriptfehler ohne Detailangabe.',e);
+    return;
   }
+  showViewerError(msg);
 });
 window.addEventListener('unhandledrejection',function(e){
-  const box=document.getElementById('runtimeError');
-  if(box){
-    box.style.display='block';
-    box.textContent='Viewer-Fehler: '+String(e.reason || 'unbekannter Fehler');
+  const reason=e && e.reason;
+  const msg=reason && reason.message ? reason.message : String(reason || 'unbekannter Fehler');
+  if(msg==='Script error.'){
+    console.warn('Externe Promise-Fehlermeldung ohne Detailangabe.',e);
+    return;
   }
+  showViewerError(msg);
 });
 
 
@@ -1101,6 +1134,10 @@ controls.maxPolarAngle=Math.PI/2-0.055;
 let map2DRotation=0;
 let rotate2DPointer=null;
 let rotate2DLastX=0;
+// V47: Zwei-Finger-Drehung für 2D auf Touch-Geräten (iPhone/iPad).
+const touch2DPointers=new Map();
+let touch2DLastAngle=null;
+let touch2DRotating=false;
 
 let exaggeration=1;
 let is2D=false;
@@ -1595,7 +1632,7 @@ function applyDayLightLevel(level,skyColor){
   }
 
   // Auch der weiße Rahmen/Seitenbereich darf nachts nicht weiter leuchten.
-  const gray=Math.round(255*(0.18+0.82*l));
+  const gray=Math.round(255*(0.34+0.66*l));
   document.documentElement.style.backgroundColor=`rgb(${gray},${gray},${gray})`;
   document.body.style.backgroundColor=`rgb(${gray},${gray},${gray})`;
   const wrap=document.querySelector('.wrap');
@@ -1612,6 +1649,8 @@ function applyWeatherScene(){
   // Der genaue Tages-/Nachtfaktor der bestehenden Simulation bleibt erhalten.
 
   if(!simulationEnabled){
+    const viewerWrap=document.querySelector('.wrap');
+    if(viewerWrap) viewerWrap.classList.remove('night-readable');
     rainSystem.visible=false;
     scene.fog=null;
     cloudGroup.visible=false;
@@ -1663,13 +1702,16 @@ function applyWeatherScene(){
       }catch(e){}
     }
 
+    const viewerWrap=document.querySelector('.wrap');
+    if(viewerWrap) viewerWrap.classList.toggle('night-readable',neutralDark>0.35);
+
     // Neutral blau-grauer Himmel statt warmem Orange.
     const dayTop=new THREE.Color(0x9fd8f5);
     const duskTop=new THREE.Color(0x627181);
-    const nightTop=new THREE.Color(0x08111d);
+    const nightTop=new THREE.Color(0x111d2b);
     const dayBottom=new THREE.Color(0xfafdfd);
     const duskBottom=new THREE.Color(0x7b858e);
-    const nightBottom=new THREE.Color(0x121b25);
+    const nightBottom=new THREE.Color(0x202c38);
 
     if(skyMat && skyMat.uniforms){
       if(neutralDark<0.55){
@@ -1685,7 +1727,7 @@ function applyWeatherScene(){
 
     // Äußerer Szenenhintergrund ebenfalls neutral abdunkeln.
     const bgDay=new THREE.Color(0xeaf6fb);
-    const bgNight=new THREE.Color(0x090f17);
+    const bgNight=new THREE.Color(0x141d27);
     
     scene.background.copy(bgDay).lerp(bgNight,neutralDark);
 
@@ -1709,7 +1751,7 @@ function applyWeatherScene(){
 
     // Satellitenbild: nur Helligkeit reduzieren, keine Farbtönung.
     if(typeof satUniforms!=='undefined' && satUniforms.dayLight){
-      satUniforms.dayLight.value=THREE.MathUtils.lerp(1.0,0.12,neutralDark);
+      satUniforms.dayLight.value=THREE.MathUtils.lerp(1.0,0.22,neutralDark);
     }
   }
 }
@@ -1775,13 +1817,15 @@ simBtn.onclick=()=>{
     applyWeatherScene();
     updateWeatherText();
   }else{
-    // Neutrale helle Kartenansicht, ohne Tag/Nacht/Wettereffekte.
+    // V47: Neutrale helle Kartenansicht ohne astronomische Himmelskörper.
+    // Das Licht bleibt erhalten, aber die sichtbare Sonnen-/Mondscheibe wird ausgeblendet.
+    // Dadurch entsteht beim Ausschalten nicht mehr der Eindruck von zwei Sonnen.
     sun.visible=true;
-    sunDisc.visible=!is2D;
+    sunDisc.visible=false;
     moonDisc.visible=false;
+    if(typeof moonGlow!=='undefined') moonGlow.visible=false;
     moonLight.intensity=0;
     sun.position.set(-D.sceneW*.70,D.sceneH*.55,105);
-    sunDisc.position.copy(sun.position);
     sun.intensity=1.25;
     hemi.intensity=.72;
     skyMat.uniforms.topColor.value.set(0xb9dff2);
@@ -1793,7 +1837,14 @@ simBtn.onclick=()=>{
   }
 };
 
-setInterval(loadLiveWeather,10*60*1000);
+setInterval(()=>{
+  try{
+    const p=loadLiveWeather();
+    if(p && typeof p.catch==='function') p.catch(err=>console.warn('Wetteraktualisierung:',err));
+  }catch(err){
+    console.warn('Wetteraktualisierung:',err);
+  }
+},10*60*1000);
 loadLiveWeather();
 updateSimulationButton();
 
@@ -1928,6 +1979,11 @@ function updateDepthScale(){
 
 function set3D(){
  is2D=false;
+ if(typeof trafficGroup!=='undefined') trafficGroup.visible=true;
+ if(typeof traffic2DGroup!=='undefined') traffic2DGroup.visible=false;
+ if(typeof trafficActors!=='undefined'){
+   trafficActors.forEach(a=>a.obj.scale.setScalar(1));
+ }
  sky.visible=true;
  cloudGroup.visible=true;
  camera.fov=38;
@@ -1965,6 +2021,13 @@ function set3D(){
     moonGlow.visible=moonDisc.visible;
   }
 
+  // V47: Bei ausgeschaltetem Wettermodell niemals sichtbare Sonne/Mond-Sprites.
+  if(typeof simulationEnabled!=='undefined' && !simulationEnabled){
+    sunDisc.visible=false;
+    moonDisc.visible=false;
+    if(typeof moonGlow!=='undefined') moonGlow.visible=false;
+  }
+
   controls.update();
 
  if(controlHint){
@@ -1978,6 +2041,8 @@ function set3D(){
 
 function set2D(){
  is2D=true;
+ if(typeof trafficGroup!=='undefined') trafficGroup.visible=false;
+ if(typeof traffic2DGroup!=='undefined') traffic2DGroup.visible=false;
  sky.visible=false;
  cloudGroup.visible=false;
  camera.fov=34;
@@ -2007,11 +2072,54 @@ function set2D(){
  if(controlHint){
    controlHint.textContent=window.matchMedia('(pointer:fine)').matches
      ? '🖱️ links verschieben · rechts drehen · Rad zoomen'
-     : '☝️ verschieben · ✌️ zoomen';
+     : '☝️ verschieben · ✌️ zoomen & drehen';
  }
  if(typeof updateAstronomy==='function') updateAstronomy();
  if(typeof applyWeatherScene==='function') applyWeatherScene();
 }
+
+
+// V47: 2D auf Touch: 1 Finger verschiebt weiterhin über OrbitControls.
+// Zwei Finger dürfen zusätzlich wie bei einer Karten-App gegeneinander gedreht werden.
+function touch2DAngle(){
+  if(touch2DPointers.size<2) return null;
+  const pts=[...touch2DPointers.values()];
+  return Math.atan2(pts[1].y-pts[0].y,pts[1].x-pts[0].x);
+}
+renderer.domElement.addEventListener('pointerdown',e=>{
+  if(!is2D || e.pointerType==='mouse' || measureMode) return;
+  touch2DPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(touch2DPointers.size===2){
+    touch2DLastAngle=touch2DAngle();
+    touch2DRotating=true;
+  }
+},true);
+renderer.domElement.addEventListener('pointermove',e=>{
+  if(!is2D || e.pointerType==='mouse' || !touch2DPointers.has(e.pointerId) || measureMode) return;
+  touch2DPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(touch2DPointers.size===2 && touch2DRotating){
+    const a=touch2DAngle();
+    if(a!==null && touch2DLastAngle!==null){
+      let da=a-touch2DLastAngle;
+      if(da>Math.PI) da-=Math.PI*2;
+      if(da<-Math.PI) da+=Math.PI*2;
+      map2DRotation-=da;
+      camera.up.set(Math.sin(map2DRotation),Math.cos(map2DRotation),0);
+      camera.lookAt(controls.target);
+    }
+    touch2DLastAngle=a;
+  }
+},true);
+function endTouch2D(e){
+  if(e.pointerType==='mouse') return;
+  touch2DPointers.delete(e.pointerId);
+  if(touch2DPointers.size<2){
+    touch2DLastAngle=null;
+    touch2DRotating=false;
+  }
+}
+renderer.domElement.addEventListener('pointerup',endTouch2D,true);
+renderer.domElement.addEventListener('pointercancel',endTouch2D,true);
 
 // V36: Rechtsziehen dreht die 2D-Karte um ihren Mittelpunkt. Wir fangen das
 // Ereignis vor OrbitControls ab, damit es nicht gleichzeitig die Karte verschiebt.
@@ -2102,6 +2210,7 @@ const GEO={
 
 let locationWatchId=null;
 let locationVisible=false;
+let locationRequestActive=false;
 
 const locationGroup=new THREE.Group();
 locationGroup.visible=false;
@@ -2170,8 +2279,9 @@ function hideLocationStatus(){
 }
 
 function updateLocationButton(){
-  locBtn.classList.toggle('on',locationVisible);
-  locBtn.textContent=locationVisible ? '📍 Aus' : '📍 Ort';
+  const active=locationVisible || locationRequestActive;
+  locBtn.classList.toggle('on',active);
+  locBtn.textContent=active ? '📍 Aus' : '📍 Ort';
 }
 
 function startLocation(){
@@ -2181,7 +2291,8 @@ function startLocation(){
   }
 
   showLocationStatus('📍 Standort wird ermittelt …');
-  locationVisible=true;
+  locationRequestActive=true;
+  locationVisible=false;
   updateLocationButton();
 
   locationWatchId=navigator.geolocation.watchPosition(
@@ -2194,6 +2305,9 @@ function startLocation(){
       locationGroup.position.set(p.x,p.y,0);
       accuracyCircle.scale.set(accuracy,accuracy,1);
       locationGroup.visible=true;
+      locationVisible=true;
+      locationRequestActive=true;
+      updateLocationButton();
 
       if(p.inside){
         showLocationStatus('📍 Standort · Genauigkeit ±'+Math.round(accuracy)+' m');
@@ -2213,11 +2327,20 @@ function startLocation(){
       showLocationStatus('📍 '+msg,true);
       locationGroup.visible=false;
       locationVisible=false;
+
+      // V56: Nach einem GPS-Fehler bleibt der Schalter bewusst auf „Aus“,
+      // damit der Nutzer die Standortfunktion samt Hinweis jederzeit deaktivieren kann.
+      locationRequestActive=true;
       updateLocationButton();
+
       if(locationWatchId!==null){
         navigator.geolocation.clearWatch(locationWatchId);
         locationWatchId=null;
       }
+
+      // Falls niemand auf „Aus“ tippt, verschwindet die Fehlermeldung trotzdem automatisch.
+      clearTimeout(window.__locStatusTimer);
+      window.__locStatusTimer=setTimeout(()=>hideLocationStatus(),7000);
     },
     {
       enableHighAccuracy:true,
@@ -2233,13 +2356,15 @@ function stopLocation(){
     locationWatchId=null;
   }
   locationVisible=false;
+  locationRequestActive=false;
   locationGroup.visible=false;
+  clearTimeout(window.__locStatusTimer);
   hideLocationStatus();
   updateLocationButton();
 }
 
 locBtn.onclick=()=>{
-  if(locationVisible) stopLocation();
+  if(locationVisible || locationRequestActive) stopLocation();
   else startLocation();
 };
 
@@ -2460,9 +2585,13 @@ function updateCompass(){
 
 let windAnimPhase=0;
 setInterval(()=>{
-  updateAstronomy();
-  applyWeatherScene();
-  updateWeatherText();
+  try{
+    updateAstronomy();
+    applyWeatherScene();
+    updateWeatherText();
+  }catch(err){
+    console.warn('Periodische Kartenaktualisierung konnte einmalig nicht ausgeführt werden:',err);
+  }
 },30000);
 
 
@@ -2934,13 +3063,134 @@ function createBike(){
   return g;
 }
 
-const trafficGroup=new THREE.Group();
+var trafficGroup=new THREE.Group();
 trafficGroup.renderOrder=30;
 scene.add(trafficGroup);
 
+// V48: Eigene gut erkennbare Draufsicht-Symbole für 2D.
+// Die 3D-Figuren werden in 2D ausgeblendet, die Positionen bleiben exakt dieselben.
+var traffic2DGroup=new THREE.Group();
+traffic2DGroup.renderOrder=90;
+traffic2DGroup.visible=false;
+scene.add(traffic2DGroup);
+
+function make2DMarker(kind){
+  const c=document.createElement('canvas');
+  c.width=c.height=128;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,128,128);
+
+  // V51: freistehende 2D-Symbole ohne runden Karten-Pin.
+  // Ein kleiner Schatten sorgt nur dafür, dass sie auf hellem/dunklem Luftbild lesbar bleiben.
+  ctx.save();
+  ctx.translate(64,64);
+
+  ctx.shadowColor='rgba(0,0,0,.55)';
+  ctx.shadowBlur=6;
+  ctx.shadowOffsetX=1;
+  ctx.shadowOffsetY=2;
+
+  if(kind==='bike'){
+    // Fahrrad: schlichtes Linien-Piktogramm.
+    ctx.strokeStyle='#ffffff';
+    ctx.lineWidth=7;
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+
+    // Räder
+    ctx.beginPath();
+    ctx.arc(-27,22,20,0,Math.PI*2);
+    ctx.arc(28,22,20,0,Math.PI*2);
+    ctx.stroke();
+
+    // Rahmen
+    ctx.beginPath();
+    ctx.moveTo(-27,22);
+    ctx.lineTo(-7,-5);
+    ctx.lineTo(12,22);
+    ctx.lineTo(-27,22);
+    ctx.moveTo(-7,-5);
+    ctx.lineTo(28,22);
+    ctx.moveTo(-7,-5);
+    ctx.lineTo(3,-18);
+    ctx.moveTo(3,-18);
+    ctx.lineTo(16,-18);
+    ctx.stroke();
+
+    // Lenker / Sattel
+    ctx.beginPath();
+    ctx.moveTo(28,22);
+    ctx.lineTo(20,-16);
+    ctx.lineTo(30,-22);
+    ctx.moveTo(-12,-8);
+    ctx.lineTo(-24,-8);
+    ctx.stroke();
+
+    // dezenter dunkler Innenstrich für Kontrast
+    ctx.shadowColor='transparent';
+    ctx.strokeStyle='rgba(20,35,28,.9)';
+    ctx.lineWidth=2.3;
+    ctx.beginPath();
+    ctx.arc(-27,22,20,0,Math.PI*2);
+    ctx.arc(28,22,20,0,Math.PI*2);
+    ctx.stroke();
+  }else{
+    // Fußgänger: klare, schmale Personensilhouette.
+    ctx.fillStyle='#ffffff';
+    ctx.strokeStyle='#ffffff';
+    ctx.lineWidth=8;
+    ctx.lineCap='round';
+
+    // Kopf
+    ctx.beginPath();
+    ctx.arc(0,-29,10,0,Math.PI*2);
+    ctx.fill();
+
+    // Körper + Arme + Beine
+    ctx.beginPath();
+    ctx.moveTo(0,-17);
+    ctx.lineTo(0,16);
+    ctx.moveTo(0,-7);
+    ctx.lineTo(-18,5);
+    ctx.moveTo(0,-7);
+    ctx.lineTo(17,6);
+    ctx.moveTo(0,16);
+    ctx.lineTo(-13,38);
+    ctx.moveTo(0,16);
+    ctx.lineTo(15,37);
+    ctx.stroke();
+
+    // feiner dunkler Kern für Lesbarkeit
+    ctx.shadowColor='transparent';
+    ctx.fillStyle='rgba(25,35,32,.8)';
+    ctx.beginPath();
+    ctx.arc(0,-29,3.6,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+
+  const tex=new THREE.CanvasTexture(c);
+  tex.encoding=THREE.sRGBEncoding;
+
+  const spr=new THREE.Sprite(new THREE.SpriteMaterial({
+    map:tex,
+    transparent:true,
+    depthTest:false,
+    depthWrite:false
+  }));
+
+  // V52: 2D-Fahrräder und Fußgänger exakt 50 % kleiner als in V51.
+  if(kind==='bike') spr.scale.set(3.2,3.2,1);
+  else spr.scale.set(2.35,2.35,1);
+
+  spr.userData.kind=kind;
+  return spr;
+}
+
 // Geschwindigkeit in Modell-Einheiten pro Sekunde.
 // Fahrräder deutlich schneller als Fußgänger.
-const trafficActors=[
+var trafficActors=[
   {obj:createWalker(),t:.06,speed:1.10,dir: 1},
   {obj:createWalker(),t:.35,speed:.92,dir:-1},
   {obj:createWalker(),t:.69,speed:1.02,dir: 1},
@@ -2951,6 +3201,10 @@ const trafficActors=[
 
 for(const a of trafficActors){
   trafficGroup.add(a.obj);
+}
+for(const a of trafficActors){
+  a.marker2D=make2DMarker(a.obj.userData.kind);
+  traffic2DGroup.add(a.marker2D);
 }
 
 const _routePos=new THREE.Vector3();
@@ -2973,9 +3227,248 @@ function updateTraffic(dt){
 
     // Leicht über dem Luftbild, damit nichts im Boden verschwindet.
     a.obj.position.z=0.34;
+
+    // V48: 2D-Symbol folgt exakt derselben Route und Position.
+    if(a.marker2D){
+      a.marker2D.position.set(_routePos.x,_routePos.y,1.25);
+    }
   }
 }
 
+
+
+// =========================================================
+// V57 – gelegentliche Vögel in der 3D-Ansicht
+// Zufällige Flugrichtung, flatternde Flügel und Sonnenschatten.
+// =========================================================
+const birdGroup=new THREE.Group();
+birdGroup.visible=!is2D;
+scene.add(birdGroup);
+
+const birdActors=[];
+let nextBirdSpawn=6+Math.random()*10;
+
+function makeBird(){
+  const g=new THREE.Group();
+
+  const bodyMat=new THREE.MeshPhongMaterial({
+    color:0x2d3338,
+    shininess:12,
+    side:THREE.DoubleSide
+  });
+
+  // schlanker Körper
+  const body=new THREE.Mesh(
+    new THREE.CylinderGeometry(.16,.22,1.25,8),
+    bodyMat
+  );
+  body.rotation.x=Math.PI/2;
+  body.position.y=.05;
+  g.add(body);
+
+  // Kopf / Schnabel
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.20,10,8),bodyMat);
+  head.position.set(0,.68,.04);
+  g.add(head);
+
+  const beak=new THREE.Mesh(
+    new THREE.ConeGeometry(.08,.28,8),
+    new THREE.MeshPhongMaterial({color:0x6f6251})
+  );
+  beak.rotation.x=-Math.PI/2;
+  beak.position.set(0,.90,.03);
+  g.add(beak);
+
+  // Flügel als einzelne Meshes, damit sie schlagen können.
+  const wingGeo=new THREE.BufferGeometry();
+  wingGeo.setAttribute('position',new THREE.Float32BufferAttribute([
+     0,0,0,  -1.15,-.12,0,  -0.25,.32,0,
+  ],3));
+  wingGeo.setIndex([0,1,2]);
+  wingGeo.computeVertexNormals();
+
+  const left=new THREE.Mesh(wingGeo,bodyMat);
+  left.position.set(-.06,.05,.10);
+  g.add(left);
+
+  const wingGeoR=wingGeo.clone();
+  const pos=wingGeoR.attributes.position;
+  for(let i=0;i<pos.count;i++) pos.setX(i,-pos.getX(i));
+  pos.needsUpdate=true;
+  wingGeoR.computeVertexNormals();
+
+  const right=new THREE.Mesh(wingGeoR,bodyMat);
+  right.position.set(.06,.05,.10);
+  g.add(right);
+
+  // einfacher Schwanz
+  const tailGeo=new THREE.BufferGeometry();
+  tailGeo.setAttribute('position',new THREE.Float32BufferAttribute([
+    -.22,-.58,0, .22,-.58,0, 0,-1.02,.02
+  ],3));
+  tailGeo.setIndex([0,1,2]);
+  tailGeo.computeVertexNormals();
+  const tail=new THREE.Mesh(tailGeo,bodyMat);
+  g.add(tail);
+
+  // weicher Schatten auf Karten-/Wasseroberfläche
+  const sc=document.createElement('canvas');
+  sc.width=sc.height=128;
+  const sctx=sc.getContext('2d');
+  const sg=sctx.createRadialGradient(64,64,8,64,64,58);
+  sg.addColorStop(0,'rgba(0,0,0,.36)');
+  sg.addColorStop(.45,'rgba(0,0,0,.20)');
+  sg.addColorStop(1,'rgba(0,0,0,0)');
+  sctx.fillStyle=sg;
+  sctx.fillRect(0,0,128,128);
+
+  const shadowTex=new THREE.CanvasTexture(sc);
+  const shadow=new THREE.Sprite(new THREE.SpriteMaterial({
+    map:shadowTex,
+    transparent:true,
+    depthWrite:false,
+    depthTest:false,
+    opacity:.28
+  }));
+  shadow.scale.set(3.8,2.2,1);
+  shadow.renderOrder=70;
+  scene.add(shadow);
+
+  return {
+    obj:g,
+    leftWing:left,
+    rightWing:right,
+    shadow,
+    speed:0,
+    vx:0,
+    vy:0,
+    life:0,
+    flap:Math.random()*Math.PI*2,
+    baseZ:0
+  };
+}
+
+function spawnBird(){
+  // Nur in 3D. In 2D bleibt die Karte bewusst frei.
+  if(is2D) return;
+
+  const b=makeBird();
+  const span=Math.max(D.sceneW,D.sceneH);
+
+  // Startpunkt zufällig an einer der vier Außenseiten.
+  const side=Math.floor(Math.random()*4);
+  let x=0,y=0;
+  if(side===0){ x=-span*.72; y=(Math.random()-.5)*span*.95; }
+  if(side===1){ x= span*.72; y=(Math.random()-.5)*span*.95; }
+  if(side===2){ y=-span*.72; x=(Math.random()-.5)*span*.95; }
+  if(side===3){ y= span*.72; x=(Math.random()-.5)*span*.95; }
+
+  // Ziel grob gegenüber, aber nicht perfekt gerade.
+  const tx=-x+(Math.random()-.5)*span*.28;
+  const ty=-y+(Math.random()-.5)*span*.28;
+  const dx=tx-x, dy=ty-y;
+  const len=Math.hypot(dx,dy)||1;
+
+  b.speed=7.0+Math.random()*5.0;
+  b.vx=dx/len*b.speed;
+  b.vy=dy/len*b.speed;
+  b.baseZ=26+Math.random()*22;
+  b.obj.position.set(x,y,b.baseZ);
+  b.obj.rotation.z=Math.atan2(-b.vx,b.vy);
+  b.life=0;
+
+  // Unterschiedliche Vogelgröße
+  const scale=.8+Math.random()*.55;
+  b.obj.scale.setScalar(scale);
+
+  birdGroup.add(b.obj);
+  birdActors.push(b);
+}
+
+function removeBird(index){
+  const b=birdActors[index];
+  if(!b) return;
+  birdGroup.remove(b.obj);
+  scene.remove(b.shadow);
+
+  b.obj.traverse(o=>{
+    if(o.geometry) o.geometry.dispose();
+    if(o.material && o.material.map) o.material.map.dispose?.();
+    if(o.material) o.material.dispose?.();
+  });
+  if(b.shadow.material){
+    if(b.shadow.material.map) b.shadow.material.map.dispose?.();
+    b.shadow.material.dispose?.();
+  }
+  birdActors.splice(index,1);
+}
+
+function updateBirds(dt){
+  birdGroup.visible=!is2D;
+
+  nextBirdSpawn-=dt;
+  if(nextBirdSpawn<=0){
+    // Höchstens zwei Vögel gleichzeitig, normalerweise nur einer.
+    if(!is2D && birdActors.length<2) spawnBird();
+    nextBirdSpawn=22+Math.random()*38;
+  }
+
+  const sunDir=new THREE.Vector3();
+  let sunCanCast=false;
+
+  if(typeof sun!=='undefined' && sun.visible && sun.intensity>0.05){
+    // DirectionalLight leuchtet von seiner Position in Richtung target.
+    sunDir.copy(sun.target.position).sub(sun.position).normalize();
+    sunCanCast=Math.abs(sunDir.z)>0.04;
+  }
+
+  const span=Math.max(D.sceneW,D.sceneH);
+
+  for(let i=birdActors.length-1;i>=0;i--){
+    const b=birdActors[i];
+    b.life+=dt;
+
+    b.obj.position.x+=b.vx*dt;
+    b.obj.position.y+=b.vy*dt;
+
+    // leichtes natürliches Auf-/Abgleiten
+    b.obj.position.z=b.baseZ+Math.sin(b.life*.85+b.flap)*1.15;
+
+    // Flügelschlag
+    b.flap+=dt*(5.4+Math.min(3,b.speed*.18));
+    const flap=Math.sin(b.flap)*0.72;
+    b.leftWing.rotation.y=flap;
+    b.rightWing.rotation.y=-flap;
+
+    // Sonnenschatten nur in 3D und nur bei echter sichtbarer Sonne.
+    if(!is2D && sunCanCast){
+      // Projektion entlang der Sonnenstrahlen auf die Karten-/Wasseroberfläche z≈0.12.
+      const groundZ=.12;
+      const dz=b.obj.position.z-groundZ;
+      const t=(-dz)/sunDir.z;
+      const sx=b.obj.position.x+sunDir.x*t;
+      const sy=b.obj.position.y+sunDir.y*t;
+
+      b.shadow.position.set(sx,sy,groundZ+.03);
+
+      // Bei tiefem Sonnenstand wird der Schatten länger, größer und weicher.
+      const altitudeFactor=Math.max(.10,Math.min(1,Math.abs(sunDir.z)));
+      const stretch=1+Math.min(2.4,(1-altitudeFactor)*2.2);
+      b.shadow.scale.set(3.6*stretch,2.0*(1+.45*(stretch-1)),1);
+      b.shadow.material.opacity=.10+.22*altitudeFactor;
+      b.shadow.visible=true;
+    }else{
+      b.shadow.visible=false;
+    }
+
+    // Außerhalb des sichtbaren Kartenbereichs wieder entfernen.
+    if(Math.abs(b.obj.position.x)>span*.92 ||
+       Math.abs(b.obj.position.y)>span*.92 ||
+       b.life>45){
+      removeBird(i);
+    }
+  }
+}
 
 const clock=new THREE.Clock();
 
@@ -2983,6 +3476,9 @@ const clock=new THREE.Clock();
  requestAnimationFrame(loop);
 
  const dt=clock.getDelta();
+
+  // V57: gelegentliche Vögel und sonnenabhängige Schatten.
+  updateBirds(dt);
 
   // V40: Personen und Fahrräder ausschließlich auf der markierten Radwegroute.
   updateTraffic(dt);
