@@ -296,6 +296,275 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
   }
 }
 
+
+.astro-info{position:absolute;left:8px;top:8px;z-index:9;min-width:138px;padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.88);border:1px solid rgba(36,75,42,.18);color:#203b2b;box-shadow:0 2px 8px rgba(0,0,0,.12);backdrop-filter:blur(4px);pointer-events:none}
+.astro-time{font-size:11px;font-weight:900;line-height:1.2}
+.astro-sub{margin-top:3px;font-size:9px;line-height:1.25;color:#506359}
+.compass{position:absolute;left:8px;bottom:8px;z-index:9;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.90);border:1px solid rgba(36,75,42,.20);box-shadow:0 2px 8px rgba(0,0,0,.12);pointer-events:none}
+.compass-ring{position:absolute;inset:4px;border:1px solid #71867a;border-radius:50%}
+.compass-n{position:absolute;left:50%;top:2px;transform:translateX(-50%);font-size:9px;font-weight:900;color:#b52b27}
+.compass-arrow{position:absolute;left:50%;top:50%;width:2px;height:27px;margin-left:-1px;margin-top:-13.5px;transform-origin:50% 50%}
+.compass-arrow::before{content:"";position:absolute;left:-4px;top:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:11px solid #b52b27}
+.compass-arrow::after{content:"";position:absolute;left:-3px;bottom:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:10px solid #50645a}
+@media(max-width:650px){.astro-info{left:5px;top:44px;min-width:118px;padding:5px 6px}.astro-time{font-size:10px}.astro-sub{font-size:8px}.compass{left:5px;bottom:5px;width:38px;height:38px}.compass-arrow{height:23px;margin-top:-11.5px}.compass-n{font-size:8px}}
+
+
+@media(max-width:520px){
+  .controls button{font-size:7.8px;padding-left:1px;padding-right:1px}
+}
+
+
+.help-overlay{
+  position:absolute;
+  inset:0;
+  z-index:100;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:14px;
+  background:rgba(10,20,15,.48);
+  backdrop-filter:blur(3px);
+}
+.help-overlay.open{display:flex}
+.help-card{
+  position:relative;
+  width:min(560px,94%);
+  max-height:88%;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  background:rgba(255,255,255,.98);
+  color:#24372d;
+  border-radius:16px;
+  box-shadow:0 14px 45px rgba(0,0,0,.28);
+  padding:18px 18px 16px;
+  text-align:left;
+}
+.help-card h2{
+  margin:0 34px 5px 0;
+  font-size:18px;
+  line-height:1.15;
+  color:#214d31;
+}
+.help-card .help-intro{
+  margin:0 0 13px;
+  font-size:11px;
+  line-height:1.45;
+  color:#596a60;
+}
+.help-close{
+  position:absolute;
+  right:10px;
+  top:9px;
+  width:30px;
+  height:30px;
+  border:0;
+  border-radius:50%;
+  background:#edf3ef;
+  color:#294b36;
+  font-size:18px;
+  font-weight:900;
+  cursor:pointer;
+}
+.help-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.help-item{
+  border:1px solid #e0e9e3;
+  background:#f7faf8;
+  border-radius:10px;
+  padding:9px 10px;
+}
+.help-item strong{
+  display:block;
+  margin-bottom:3px;
+  font-size:11px;
+  color:#214d31;
+}
+.help-item span{
+  display:block;
+  font-size:10px;
+  line-height:1.35;
+  color:#52645a;
+}
+.help-note{
+  margin-top:10px;
+  padding:8px 10px;
+  border-radius:9px;
+  background:#edf5ef;
+  font-size:9.5px;
+  line-height:1.4;
+  color:#486052;
+}
+@media(max-width:650px){
+  .help-overlay{padding:7px}
+  .help-card{
+    width:96%;
+    max-height:91%;
+    padding:14px 12px 12px;
+    border-radius:13px;
+  }
+  .help-card h2{font-size:15px}
+  .help-card .help-intro{font-size:10px}
+  .help-grid{grid-template-columns:1fr;gap:6px}
+  .help-item{padding:7px 8px}
+  .help-item strong{font-size:10px}
+  .help-item span{font-size:9px}
+}
+
+
+/* V27: kompaktere Bedienleiste */
+.controls{gap:3px}
+.controls button{
+  font-size:10px !important;
+  padding:5px 6px !important;
+  min-height:28px;
+  line-height:1.05;
+}
+@media(max-width:650px){
+  .controls{gap:2px}
+  .controls button{
+    font-size:7.5px !important;
+    padding:4px 2px !important;
+    min-height:25px;
+  }
+}
+@media(max-width:390px){
+  .controls button{
+    font-size:7px !important;
+    padding:4px 1px !important;
+  }
+}
+
+/* Wetter-/Astronomiefenster stärker durchsichtig */
+.astro-info{
+  background:rgba(255,255,255,.62) !important;
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+.astro-info:hover{background:rgba(255,255,255,.82) !important}
+
+/* Tiefenlegende transparenter */
+.legend,
+.depth-legend,
+#legend{
+  background:rgba(255,255,255,.58) !important;
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+
+/* richtige kleine Kompassrose */
+.compass{
+  background:rgba(255,255,255,.66) !important;
+  width:54px !important;
+  height:54px !important;
+}
+.compass-ring{inset:5px !important}
+.compass-e,.compass-s,.compass-w{
+  position:absolute;
+  font-size:7px;
+  font-weight:800;
+  color:#50645a;
+}
+.compass-e{right:3px;top:50%;transform:translateY(-50%)}
+.compass-s{bottom:1px;left:50%;transform:translateX(-50%)}
+.compass-w{left:3px;top:50%;transform:translateY(-50%)}
+.compass-center{
+  position:absolute;
+  left:50%;top:50%;
+  width:5px;height:5px;
+  margin:-2.5px 0 0 -2.5px;
+  border-radius:50%;
+  background:#294b36;
+}
+@media(max-width:650px){
+  .compass{
+    width:46px !important;
+    height:46px !important;
+  }
+  .compass-e,.compass-s,.compass-w{font-size:6px}
+}
+
+
+/* V28: Kompass unten rechts */
+.compass{
+  left:auto !important;
+  right:8px !important;
+  bottom:8px !important;
+}
+@media(max-width:650px){
+  .compass{
+    left:auto !important;
+    right:5px !important;
+    bottom:5px !important;
+  }
+}
+
+/* Windanzeige innerhalb der Kompassrose */
+.wind-arrow{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:2px;
+  height:34px;
+  margin-left:-1px;
+  margin-top:-17px;
+  transform-origin:50% 50%;
+  pointer-events:none;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.22));
+}
+.wind-arrow::before{
+  content:"";
+  position:absolute;
+  left:-4px;
+  top:-1px;
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-bottom:11px solid #1686d9;
+}
+.wind-arrow::after{
+  content:"";
+  position:absolute;
+  left:-1px;
+  top:9px;
+  width:2px;
+  height:17px;
+  background:#1686d9;
+  border-radius:2px;
+}
+.wind-arrow.active{
+  animation:windPulse 1.25s ease-in-out infinite;
+}
+@keyframes windPulse{
+  0%,100%{opacity:.62}
+  50%{opacity:1}
+}
+.wind-speed{
+  position:absolute;
+  left:50%;
+  bottom:-15px;
+  transform:translateX(-50%);
+  min-width:46px;
+  text-align:center;
+  font-size:7px;
+  font-weight:800;
+  color:#1269a7;
+  white-space:nowrap;
+  pointer-events:none;
+}
+@media(max-width:650px){
+  .wind-arrow{
+    height:28px;
+    margin-top:-14px;
+  }
+  .wind-arrow::after{height:13px}
+  .wind-speed{
+    bottom:-13px;
+    font-size:6px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -307,6 +576,8 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
   <button id="locBtn" aria-label="Mein Standort">📍 Ort</button>
   <button id="measureBtn" aria-label="Entfernung messen">📏 Messen</button>
   <button id="waterBtn" aria-label="Wasser ein- oder ausblenden">💧 Wasser</button>
+  <button id="simBtn" class="on" aria-label="Tag-Nacht- und Wettersimulation">🌦️ Auto</button>
+  <button id="helpBtn" aria-label="Hilfe und Bedienung">❔ Hilfe</button>
   <button id="s1" class="on">1:1</button>
   <button id="s2">2× Tiefe</button>
  </div>
@@ -330,11 +601,52 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
    <div id="runtimeError" class="runtime-error"></div>
    <div id="depthPinLabel" class="depth-pin-label"></div>
    <div id="measureLabel" class="measure-label"></div>
+   <div id="astroInfo" class="astro-info">
+     <div id="astroTime" class="astro-time">--.--.---- · --:--</div>
+     <div id="astroSub" class="astro-sub">Sonne wird berechnet …</div>
+     <div id="weatherSub" class="astro-sub" title="Live-Wetter: Open-Meteo">🌦️ Wetter wird geladen …</div>
+   </div>
+
+   <div id="helpOverlay" class="help-overlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+     <div class="help-card">
+       <button id="helpClose" class="help-close" aria-label="Hilfe schließen">×</button>
+       <h2 id="helpTitle">🗺️ Bedienung der Tiefenkarte</h2>
+       <p class="help-intro">Die interaktive Karte zeigt den Vereinsweiher in 2D und 3D. Sie kann auf Computer, Tablet und Smartphone direkt mit Maus oder Fingern bedient werden.</p>
+       <div class="help-grid">
+         <div class="help-item"><strong>🗺️ 2D / 3D</strong><span>Wechselt zwischen klassischer Draufsicht und frei drehbarem 3D-Modell des Gewässergrundes.</span></div>
+         <div class="help-item"><strong>🖱️ Drehen & Zoomen</strong><span>Desktop: linke Maustaste halten und ziehen. Mit dem Mausrad zoomen. Mobil: mit einem Finger drehen, mit zwei Fingern zoomen und verschieben.</span></div>
+         <div class="help-item"><strong>↻ Reset</strong><span>Stellt die Karte wieder auf die festgelegte Ausgangsansicht zurück und entfernt eine aktive Messung.</span></div>
+         <div class="help-item"><strong>📍 Ort</strong><span>Zeigt nach Standortfreigabe die eigene Position am Weiher. Die Genauigkeit hängt vom GPS-Empfang des Gerätes ab.</span></div>
+         <div class="help-item"><strong>📌 Tiefe abfragen</strong><span>Am Computer genügt Mouseover. Auf dem Smartphone die gewünschte Stelle antippen. Ein kleiner Pin zeigt dort die Wassertiefe an.</span></div>
+         <div class="help-item"><strong>📏 Messen</strong><span>Messen aktivieren, Startpunkt setzen und gedrückt bis zur Zielstelle ziehen. Währenddessen wird die Entfernung live angezeigt. Nach dem Loslassen erscheinen Entfernung und Wassertiefe am Ziel.</span></div>
+         <div class="help-item"><strong>💧 Wasser</strong><span>Blendet die animierte Wasseroberfläche ein oder aus. Die Tiefenkarte darunter bleibt erhalten.</span></div>
+         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Sonnen- und Mondposition sowie Wettereffekte. Bei „Aus“ wird eine neutrale helle Darstellung verwendet.</span></div>
+         <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Sonnenauf- und -untergang sowie die aktuelle Mondphase werden angezeigt.</span></div>
+         <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Temperatur, Wind und Bewölkung stehen in der Infoanzeige.</span></div>
+         <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; darunter steht die Windgeschwindigkeit.</span></div>
+         <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die angezeigten Tiefen stammen aus der Vermessung des Vereinsweihers.</span></div>
+       </div>
+       <div class="help-note">Hinweis: GPS-, Tiefen- und Entfernungsmessungen dienen der Orientierung. Standortgenauigkeit und Kartendaten können technisch bedingte Abweichungen enthalten.</div>
+     </div>
+   </div>
+
+   <div class="compass" aria-label="Kompass">
+     <div class="compass-ring"></div>
+     <div class="compass-n">N</div>
+     <div id="compassArrow" class="compass-arrow"></div>
+     <div class="compass-e">O</div>
+     <div class="compass-s">S</div>
+     <div class="compass-w">W</div>
+     <div class="compass-center"></div>
+     <div id="windArrow" class="wind-arrow" title="Windrichtung"></div>
+     <div id="windSpeed" class="wind-speed">Wind --</div>
+   </div>
    <div id="controlHint" class="control-hint">☝️ drehen · ✌️ zoomen/verschieben</div>
    </div>
  </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
@@ -628,7 +940,7 @@ texLoader.load(D.wms,(tex)=>{
 const hemi=new THREE.HemisphereLight(0xeaf8ff,0x7a8174,0.82);
 scene.add(hemi);
 
-const sun=new THREE.DirectionalLight(0xfff1cf,1.85);
+const sun=new THREE.DirectionalLight(0xfff1cf,1.55);
 sun.position.set(-D.sceneW*0.72,D.sceneH*0.58,105);
 sun.target.position.set(0,0,-2);
 scene.add(sun.target);
@@ -660,6 +972,58 @@ sunDisc.position.copy(sun.position);
 sunDisc.scale.set(28,28,1);
 scene.add(sunDisc);
 
+const moonLight=new THREE.DirectionalLight(0xa8c8ff,0.0);
+moonLight.target.position.set(0,0,-1);
+scene.add(moonLight.target);
+scene.add(moonLight);
+
+const moonCanvas=document.createElement('canvas');
+moonCanvas.width=moonCanvas.height=256;
+const moonTex=new THREE.CanvasTexture(moonCanvas);
+moonTex.encoding=THREE.sRGBEncoding;
+const moonDisc=new THREE.Sprite(new THREE.SpriteMaterial({map:moonTex,transparent:true,depthWrite:false}));
+moonDisc.scale.set(14,14,1);
+scene.add(moonDisc);
+
+function drawMoonPhase(phase){
+  const ctx=moonCanvas.getContext('2d');
+  ctx.clearRect(0,0,256,256);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(128,128,92,0,Math.PI*2);
+  ctx.clip();
+  ctx.fillStyle='#17202d';
+  ctx.fillRect(0,0,256,256);
+
+  const illum=(1-Math.cos(phase*Math.PI*2))/2;
+  const waxing=phase<0.5;
+
+  if(illum>0.001){
+    ctx.fillStyle='#f4f1d5';
+    if(illum>=0.5){
+      ctx.beginPath();
+      ctx.arc(128,128,92,-Math.PI/2,Math.PI/2,!waxing);
+      ctx.fill();
+      const k=(illum-.5)/.5;
+      ctx.beginPath();
+      ctx.ellipse(128,128,92*k,92,0,0,Math.PI*2);
+      ctx.fill();
+    }else{
+      const k=1-illum/.5;
+      ctx.beginPath();
+      ctx.arc(128,128,92,-Math.PI/2,Math.PI/2,!waxing);
+      ctx.fill();
+      ctx.fillStyle='#17202d';
+      ctx.beginPath();
+      ctx.ellipse(128,128,92*k,92,0,0,Math.PI*2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+  moonTex.needsUpdate=true;
+}
+
+
 // Wenige stilisierte, halbtransparente Wolken hoch über der Karte.
 const cloudGroup=new THREE.Group();
 scene.add(cloudGroup);
@@ -681,6 +1045,197 @@ function addCloud(x,y,z,s){
 addCloud(-D.sceneW*.40,D.sceneH*.24,42,7);
 addCloud(D.sceneW*.34,D.sceneH*.34,48,6);
 addCloud(D.sceneW*.18,-D.sceneH*.40,55,5.5);
+addCloud(-D.sceneW*.10,D.sceneH*.46,46,5.8);
+addCloud(D.sceneW*.48,D.sceneH*.02,51,6.5);
+addCloud(-D.sceneW*.47,-D.sceneH*.19,52,5.2);
+addCloud(D.sceneW*.42,-D.sceneH*.31,45,7.2);
+addCloud(-D.sceneW*.20,-D.sceneH*.46,57,6.0);
+addCloud(D.sceneW*.05,D.sceneH*.12,61,5.1);
+addCloud(-D.sceneW*.33,D.sceneH*.39,58,4.8);
+
+
+// ---------------- Live-Wetter / Niederschlag ----------------
+const weatherSub=document.getElementById('weatherSub');
+const simBtn=document.getElementById('simBtn');
+
+let simulationEnabled=true;
+let liveWeather={
+  temperature:null,
+  cloud:0,
+  precipitation:0,
+  rain:0,
+  windSpeed:0,
+  windDirection:0,
+  weatherCode:0,
+  humidity:null
+};
+
+const maxRainDrops=850;
+const rainPositions=new Float32Array(maxRainDrops*3);
+
+function resetRainDrop(i,randomZ=true){
+  const spanX=D.sceneW*1.05;
+  const spanY=D.sceneH*1.05;
+  rainPositions[i*3]=(Math.random()-.5)*spanX;
+  rainPositions[i*3+1]=(Math.random()-.5)*spanY;
+  rainPositions[i*3+2]=randomZ ? (8+Math.random()*70) : (62+Math.random()*18);
+}
+for(let i=0;i<maxRainDrops;i++) resetRainDrop(i,true);
+
+const rainGeo=new THREE.BufferGeometry();
+rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPositions,3));
+rainGeo.setDrawRange(0,0);
+
+const rainMat=new THREE.PointsMaterial({
+  color:0xa9c9df,
+  size:0.28,
+  transparent:true,
+  opacity:0.66,
+  depthWrite:false,
+  sizeAttenuation:true
+});
+const rainSystem=new THREE.Points(rainGeo,rainMat);
+rainSystem.visible=false;
+rainSystem.renderOrder=50;
+scene.add(rainSystem);
+
+function weatherDescription(code){
+  if(code===0) return ['☀️','klar'];
+  if(code===1) return ['🌤️','überwiegend klar'];
+  if(code===2) return ['⛅','teilweise bewölkt'];
+  if(code===3) return ['☁️','bedeckt'];
+  if(code===45 || code===48) return ['🌫️','Nebel'];
+  if([51,53,55,56,57].includes(code)) return ['🌦️','Nieselregen'];
+  if([61,63,65,66,67].includes(code)) return ['🌧️','Regen'];
+  if([71,73,75,77].includes(code)) return ['🌨️','Schnee'];
+  if([80,81,82].includes(code)) return ['🌧️','Regenschauer'];
+  if([85,86].includes(code)) return ['🌨️','Schneeschauer'];
+  if([95,96,99].includes(code)) return ['⛈️','Gewitter'];
+  return ['🌦️','Wetter'];
+}
+
+function applyWeatherScene(){
+  if(!simulationEnabled){
+    rainSystem.visible=false;
+    scene.fog=null;
+    cloudGroup.visible=false;
+    cloudMat.opacity=.45;
+    return;
+  }
+
+  const cloud=Math.max(0,Math.min(100,liveWeather.cloud||0));
+  const fraction=cloud/100;
+
+  // Wolkenmenge an reale Bewölkung koppeln.
+  const cloudChildren=cloudGroup.children;
+  const visibleCount=Math.round(fraction*cloudChildren.length);
+  cloudChildren.forEach((c,i)=>c.visible=i<visibleCount);
+  cloudGroup.visible=!is2D && visibleCount>0;
+  cloudMat.opacity=.28+.54*fraction;
+
+  // Direkte Sonne bei dichter Bewölkung abschwächen.
+  if(typeof SunCalc!=='undefined'){
+    sun.intensity*=Math.max(.28,1-fraction*.68);
+    if(sunDisc.material) sunDisc.material.opacity=Math.max(.18,1-fraction*.78);
+  }
+
+  // Regenintensität in sichtbare Tropfenzahl umsetzen.
+  const precip=Math.max(liveWeather.precipitation||0,liveWeather.rain||0);
+  const rainFactor=Math.min(1,precip/4);
+  const dropCount=Math.round(maxRainDrops*rainFactor);
+  rainGeo.setDrawRange(0,dropCount);
+  rainSystem.visible=!is2D && dropCount>0;
+
+  // Nebel nur bei gemeldeten Nebelcodes.
+  if(liveWeather.weatherCode===45 || liveWeather.weatherCode===48){
+    scene.fog=new THREE.FogExp2(0xd9e3e4,0.0052);
+  }else{
+    scene.fog=null;
+  }
+}
+
+function updateWeatherText(){
+  if(!simulationEnabled){
+    weatherSub.textContent='🌦️ Simulation ausgeschaltet';
+    return;
+  }
+
+  const [icon,desc]=weatherDescription(liveWeather.weatherCode);
+  const t=Number.isFinite(liveWeather.temperature) ? Math.round(liveWeather.temperature)+' °C' : '';
+  const cloud=Math.round(liveWeather.cloud||0)+' % Wolken';
+  const wind=Math.round(liveWeather.windSpeed||0)+' km/h';
+  const rain=(liveWeather.precipitation||0)>0 ? ' · '+Number(liveWeather.precipitation).toFixed(1)+' mm' : '';
+
+  weatherSub.textContent=icon+' '+t+' · '+desc+' · '+cloud+' · 💨 '+wind+rain;
+}
+
+async function loadLiveWeather(){
+  try{
+    const url='https://api.open-meteo.com/v1/forecast'
+      +'?latitude=49.7099668&longitude=6.5774617'
+      +'&current=temperature_2m,relative_humidity_2m,precipitation,rain,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m'
+      +'&timezone=Europe%2FBerlin';
+
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok) throw new Error('HTTP '+response.status);
+    const data=await response.json();
+    const c=data.current||{};
+
+    liveWeather={
+      temperature:Number(c.temperature_2m),
+      humidity:Number(c.relative_humidity_2m),
+      precipitation:Number(c.precipitation)||0,
+      rain:Number(c.rain)||0,
+      weatherCode:Number(c.weather_code)||0,
+      cloud:Number(c.cloud_cover)||0,
+      windSpeed:Number(c.wind_speed_10m)||0,
+      windDirection:Number(c.wind_direction_10m)||0
+    };
+
+    updateWeatherText();
+    updateAstronomy();
+    applyWeatherScene();
+  }catch(err){
+    weatherSub.textContent='🌦️ Wetterdaten momentan nicht verfügbar';
+    console.warn('Wetterdaten:',err);
+  }
+}
+
+function updateSimulationButton(){
+  simBtn.classList.toggle('on',simulationEnabled);
+  simBtn.textContent=simulationEnabled ? '🌦️ Auto' : '🌦️ Aus';
+}
+
+simBtn.onclick=()=>{
+  simulationEnabled=!simulationEnabled;
+  updateSimulationButton();
+
+  if(simulationEnabled){
+    updateAstronomy();
+    applyWeatherScene();
+    updateWeatherText();
+  }else{
+    // Neutrale helle Kartenansicht, ohne Tag/Nacht/Wettereffekte.
+    sun.visible=true;
+    sunDisc.visible=!is2D;
+    moonDisc.visible=false;
+    moonLight.intensity=0;
+    sun.position.set(-D.sceneW*.70,D.sceneH*.55,105);
+    sunDisc.position.copy(sun.position);
+    sun.intensity=1.25;
+    hemi.intensity=.72;
+    skyMat.uniforms.topColor.value.set(0xb9dff2);
+    skyMat.uniforms.bottomColor.value.set(0xffffff);
+    scene.background.set(is2D ? 0xffffff : 0xf1f8fb);
+    applyWeatherScene();
+    updateWeatherText();
+  }
+};
+
+setInterval(loadLiveWeather,10*60*1000);
+loadLiveWeather();
+updateSimulationButton();
+
 
 // Bewegte, transparente Wasseroberfläche auf Höhe 0.
 // Sie liegt nur innerhalb der ReefMaster-Gewässermaske.
@@ -814,7 +1369,6 @@ function set3D(){
  is2D=false;
  sky.visible=true;
  cloudGroup.visible=true;
- sunDisc.visible=true;
  scene.background.set(0xeaf6fb);
  camera.fov=38;
  camera.updateProjectionMatrix();
@@ -833,13 +1387,14 @@ function set3D(){
  controls.touches.ONE=THREE.TOUCH.ROTATE;
  controls.touches.TWO=THREE.TOUCH.DOLLY_PAN;
  controls.update();
+ if(typeof updateAstronomy==='function') updateAstronomy();
+ if(typeof applyWeatherScene==='function') applyWeatherScene();
 }
 
 function set2D(){
  is2D=true;
  sky.visible=false;
  cloudGroup.visible=false;
- sunDisc.visible=false;
  scene.background.set(0xffffff);
  camera.fov=34;
  camera.updateProjectionMatrix();
@@ -855,6 +1410,8 @@ function set2D(){
  controls.touches.ONE=THREE.TOUCH.PAN;
  controls.touches.TWO=THREE.TOUCH.DOLLY_PAN;
  controls.update();
+ if(typeof updateAstronomy==='function') updateAstronomy();
+ if(typeof applyWeatherScene==='function') applyWeatherScene();
 }
 
 function updateButtons(){
@@ -1037,6 +1594,182 @@ locBtn.onclick=()=>{
 };
 
 
+
+
+
+
+// ---------------- Hilfe ----------------
+const helpBtn=document.getElementById('helpBtn');
+const helpOverlay=document.getElementById('helpOverlay');
+const helpClose=document.getElementById('helpClose');
+
+function openHelp(){
+  helpOverlay.classList.add('open');
+  controls.enabled=false;
+}
+function closeHelp(){
+  helpOverlay.classList.remove('open');
+  controls.enabled=true;
+}
+helpBtn.onclick=openHelp;
+helpClose.onclick=closeHelp;
+helpOverlay.addEventListener('click',e=>{
+  if(e.target===helpOverlay) closeHelp();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && helpOverlay.classList.contains('open')) closeHelp();
+});
+
+
+// ---------------- Astronomie ----------------
+const astroTime=document.getElementById('astroTime');
+const astroSub=document.getElementById('astroSub');
+const compassArrow=document.getElementById('compassArrow');
+const windArrow=document.getElementById('windArrow');
+const windSpeed=document.getElementById('windSpeed');
+
+const SITE_LAT=49.70996681245;
+const SITE_LON=6.57746165865;
+
+function phaseName(phase){
+  if(phase<0.03 || phase>0.97) return 'Neumond';
+  if(phase<0.22) return 'zunehmende Sichel';
+  if(phase<0.28) return 'erstes Viertel';
+  if(phase<0.47) return 'zunehmender Mond';
+  if(phase<0.53) return 'Vollmond';
+  if(phase<0.72) return 'abnehmender Mond';
+  if(phase<0.78) return 'letztes Viertel';
+  return 'abnehmende Sichel';
+}
+
+function fmtTime(d){
+  return (!d || isNaN(d.getTime())) ? '--:--' : d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+}
+
+function celestialVector(pos,radius){
+  const ca=Math.cos(pos.altitude);
+  return new THREE.Vector3(
+    -Math.sin(pos.azimuth)*ca,
+    -Math.cos(pos.azimuth)*ca,
+    Math.sin(pos.altitude)
+  ).multiplyScalar(radius);
+}
+
+function updateAstronomy(){
+  if(typeof SunCalc==='undefined') return;
+
+  const now=new Date();
+  const sunPos=SunCalc.getPosition(now,SITE_LAT,SITE_LON);
+  const moonPos=SunCalc.getMoonPosition(now,SITE_LAT,SITE_LON);
+  const moonIll=SunCalc.getMoonIllumination(now);
+  const times=SunCalc.getTimes(now,SITE_LAT,SITE_LON);
+
+  // Datum/Uhrzeit und astronomische Zeiten werden immer berechnet.
+  // Die Szene selbst wird nur bei aktivierter Automatik angepasst.
+  astroTime.textContent=now.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})
+    +' · '+now.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+
+  const sunrise=fmtTime(times.sunrise);
+  const sunset=fmtTime(times.sunset);
+  const moonName=phaseName(moonIll.phase);
+
+  astroSub.textContent=sunPos.altitude>0
+    ? '☀️ Auf '+sunrise+' · Unter '+sunset+' · 🌙 '+moonName
+    : '🌙 '+moonName+' · ☀️ Auf '+sunrise+' · Unter '+sunset;
+
+  if(typeof simulationEnabled!=='undefined' && !simulationEnabled) return;
+
+  const span=Math.max(D.sceneW,D.sceneH);
+  const sunVec=celestialVector(sunPos,span*2.1);
+  const moonVec=celestialVector(moonPos,span*1.9);
+
+  sun.position.copy(sunVec);
+  sunDisc.position.copy(sunVec);
+  moonLight.position.copy(moonVec);
+  moonDisc.position.copy(moonVec);
+
+  const sunUp=sunPos.altitude>0;
+  const twilight=sunPos.altitude>-0.12;
+
+  sun.visible=sunUp;
+  sunDisc.visible=sunUp && !is2D;
+  moonDisc.visible=(moonPos.altitude>0) && !is2D;
+
+  const altNorm=Math.max(0,Math.min(1,Math.sin(Math.max(0,sunPos.altitude))));
+  sun.intensity=sunUp ? (0.72+0.95*altNorm) : 0;
+  moonLight.intensity=(!sunUp && moonPos.altitude>0) ? 0.10+0.35*moonIll.fraction : 0;
+
+  if(!is2D){
+    if(sunUp){
+      skyMat.uniforms.topColor.value.set(0x9fd8f5);
+      skyMat.uniforms.bottomColor.value.set(0xfafdfd);
+      scene.background.set(0xeaf6fb);
+      hemi.intensity=0.82;
+      cloudGroup.visible=true;
+    }else if(twilight){
+      skyMat.uniforms.topColor.value.set(0x476a8a);
+      skyMat.uniforms.bottomColor.value.set(0xe9a777);
+      scene.background.set(0x6d8294);
+      hemi.intensity=0.34;
+      cloudGroup.visible=true;
+    }else{
+      skyMat.uniforms.topColor.value.set(0x081226);
+      skyMat.uniforms.bottomColor.value.set(0x17233a);
+      scene.background.set(0x081226);
+      hemi.intensity=0.17;
+      cloudGroup.visible=false;
+    }
+  }
+
+  drawMoonPhase(moonIll.phase);
+
+  if(typeof applyWeatherScene==='function') applyWeatherScene();
+}
+
+
+function updateCompass(){
+  if(!compassArrow) return;
+
+  // Blickrichtung der Kamera auf die horizontale Ebene projizieren.
+  const forward=new THREE.Vector3();
+  camera.getWorldDirection(forward);
+  forward.z=0;
+
+  let headingDeg=0;
+  if(forward.lengthSq()>=0.0001){
+    forward.normalize();
+    const heading=Math.atan2(forward.x,forward.y);
+    headingDeg=heading*180/Math.PI;
+  }
+
+  // Nordpfeil bleibt relativ zur gedrehten Karte korrekt.
+  compassArrow.style.transform='rotate('+(-headingDeg)+'deg)';
+
+  if(windArrow && windSpeed){
+    const speed=Number(liveWeather && liveWeather.windSpeed);
+    const fromDeg=Number(liveWeather && liveWeather.windDirection);
+
+    if(Number.isFinite(fromDeg) && Number.isFinite(speed)){
+      // Wetterdaten geben die Richtung an, AUS der der Wind kommt.
+      // Visualisiert wird die tatsächliche Bewegungsrichtung des Windes.
+      const toDeg=(fromDeg+180)%360;
+
+      // Kamera-/Kartendrehung berücksichtigen.
+      const screenDeg=toDeg-headingDeg;
+      windArrow.style.transform='rotate('+screenDeg+'deg)';
+      windArrow.classList.toggle('active',speed>0.5);
+
+      windSpeed.textContent='💨 '+Math.round(speed)+' km/h';
+      windArrow.title='Wind aus '+Math.round(fromDeg)+'° · '+Math.round(speed)+' km/h';
+    }else{
+      windArrow.classList.remove('active');
+      windSpeed.textContent='Wind --';
+    }
+  }
+}
+
+let windAnimPhase=0;
+setInterval(updateAstronomy,30000);
 
 
 // ---------------- Messfunktion ----------------
@@ -1375,6 +2108,7 @@ if(window.visualViewport){
   window.visualViewport.addEventListener('resize',resize);
 }
 resize();
+updateAstronomy();
 set3D();
 waterUniforms.cameraPos.value.copy(camera.position);
 updateButtons();
@@ -1392,6 +2126,22 @@ const clock=new THREE.Clock();
  if(waterVisible){
    waterUniforms.time.value += dt;
    waterUniforms.cameraPos.value.copy(camera.position);
+ }
+
+ if(simulationEnabled && rainSystem.visible){
+   const pos=rainGeo.attributes.position;
+   const precip=Math.max(liveWeather.precipitation||0,liveWeather.rain||0);
+   const speed=18+Math.min(42,precip*9);
+   for(let i=0;i<rainGeo.drawRange.count;i++){
+     const z=pos.getZ(i)-speed*dt;
+     if(z<0.1){
+       resetRainDrop(i,false);
+       pos.setXYZ(i,rainPositions[i*3],rainPositions[i*3+1],rainPositions[i*3+2]);
+     }else{
+       pos.setZ(i,z);
+     }
+   }
+   pos.needsUpdate=true;
  }
 
  if(locationGroup.visible){
@@ -1413,6 +2163,16 @@ const clock=new THREE.Clock();
  }
 
  controls.update();
+
+ if(windArrow && windArrow.classList.contains('active')){
+   windAnimPhase += dt * Math.max(0.6,Math.min(3.2,(liveWeather.windSpeed||0)/8));
+   const s=1 + Math.sin(windAnimPhase*4.0)*0.045;
+   windArrow.style.scale=String(s);
+ }else if(windArrow){
+   windArrow.style.scale='1';
+ }
+
+ updateCompass();
  renderer.render(scene,camera);
 })();
 </script>
