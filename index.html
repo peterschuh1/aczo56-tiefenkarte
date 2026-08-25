@@ -1069,13 +1069,13 @@ html,body{
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Die Wolken bestehen aus unregelmäßigen, halbtransparenten Feldern auf mehreren Höhen. Der gemeldete Bewölkungsgrad steuert vor allem die tatsächlich bedeckte Himmelsfläche: bei hoher Bewölkung entstehen große, teilweise zusammenhängende Felder mit sichtbaren Lücken. Nachts werden sie dunkel-blaugrau statt weiß; dünne Bereiche bleiben transparent und können bei sichtbarem Mond dezent silbrig aufgehellt werden. Alle Wolkenschichten ziehen in derselben Windrichtung, höhere Schichten bewegen sich nur leicht schneller. Ihre Spiegelungen auf dem Wasser folgen den tatsächlichen Wolkenpositionen 1:1.</span></div>
          <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; die Windgeschwindigkeit steht kompakt oberhalb der Kompassrose.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetter-/Astronomiefenster, Tiefenlegende und Kompass gemeinsam ein oder aus. So kann die Karte bei Bedarf völlig frei und ohne zusätzliche Anzeigen betrachtet werden.</span></div>
-         <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die Konturlinien bleiben immer gleich dünn, nahezu schwarz und mit voller Deckkraft sichtbar. Sie werden als oberste kartografische Ebene gerendert und reagieren nicht auf Wetter, Sonne, Mond, Wasser oder Tageszeit. Im Auto-Nachtmodus werden ausschließlich die farbigen Tiefenfüllungen durch eine farbtreue additive Nachtanhebung weniger stark abgedunkelt, damit die dunklen Linien weiterhin ausreichend Kontrast besitzen. Bei „Wetter Aus“ erscheinen die Füllungen in ihren definierten Originalfarben.</span></div>
+         <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die Konturlinien bleiben immer gleich dünn und tiefschwarz. Für eine kräftige Darstellung auf mobilen Displays wird derselbe 1-Pixel-Strich zweimal exakt deckungsgleich gerendert; die geometrische Linienstärke wird dadurch nicht verändert. Die Konturen liegen als oberste kartografische Ebene über den Tiefenfüllungen und reagieren nicht auf Wetter, Sonne, Mond, Wasser oder Tageszeit. Im Auto-Nachtmodus werden ausschließlich die farbigen Tiefenfüllungen durch eine farbtreue additive Nachtanhebung weniger stark abgedunkelt, damit die dunklen Linien weiterhin ausreichend Kontrast besitzen. Bei „Wetter Aus“ erscheinen die Füllungen in ihren definierten Originalfarben.</span></div>
          <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Fußgänger und Fahrräder bewegen sich ausschließlich auf der fest eingemessenen Radweg-Trasse entlang der Mosel. Fußgänger und Fahrräder werden ausschließlich in der 3D-Ansicht dargestellt und bewegen sich dort auf der fest eingemessenen Radweg-Trasse. In der 2D-Karte ist der Publikumsverkehr ausgeblendet. Die Route und Positionen sind in beiden Ansichten identisch.</span></div>
          <div class="help-item"><strong>🐦 Vögel</strong><span>In der 3D-Ansicht fliegen tagsüber gelegentlich unterschiedlich große und gefärbte Vögel mit variierendem Flugstil und zufälliger Flugrichtung über die Karte; manchmal erscheint ein kleines Paar. Nachts gibt es keine Vögel. Bei sichtbarer Sonne wird ihr Schatten abhängig von Sonnenstand und Flughöhe gut sichtbar auf das Satellitenbild bzw. die Wasser-/Tiefenkarte projiziert. Auf dem weißen Außenbereich wird kein Schatten dargestellt. In 2D sind die Vögel ausgeblendet.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-FINAL V4.3 · 25.08.2026 · 03:42 Uhr<br>
-Nacht-Tiefenfarben korrigiert · realistischere transparente Wolken · Konturlinien garantiert dunkel · UI nachts unverändert hell · Wasser/Wetter/Touch optimiert
+FINAL V4.4 · 25.08.2026 · 03:47 Uhr<br>
+Nacht-Tiefenfarben korrigiert · transparente Wetterwolken · Wolkenfehler behoben · Konturlinien mit schwarzem Doppelpass · UI nachts unverändert hell · Wasser/Wetter/Touch optimiert
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
 Tiefenkarte und Darstellung: AC 1956 Zewen-Oberkirch e. V.<br>
@@ -1106,8 +1106,8 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V4.3';
-const VIEWER_BUILD='25.08.2026 03:42';
+const VIEWER_VERSION='FINAL V4.4';
+const VIEWER_BUILD='25.08.2026 03:47';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
 // als "Script error.". Solange unser Viewer weiterläuft, ist das keine hilfreiche
@@ -1333,13 +1333,20 @@ scene.add(pondNightLift);
 
 const contourGroup=new THREE.Group();
 scene.add(contourGroup);
+
+// FINAL V4.4: Zweiter exakt deckungsgleicher Schwarzdruck.
+// Keine zusätzliche Linienbreite: dieselbe Geometrie wird nur ein zweites Mal
+// gezeichnet, damit die mobile WebGL-Kantenglättung den 1-Pixel-Strich nicht grau erscheinen lässt.
+const contourInkGroup=new THREE.Group();
+scene.add(contourInkGroup);
+
 for(const seg of D.contours){
  const arr=[];
  for(let i=0;i<seg.x.length;i++) arr.push(seg.x[i],seg.y[i],-seg.level+.035);
  const g=new THREE.BufferGeometry();
  g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
  const m=new THREE.LineBasicMaterial({
-   color:0x090d0f,
+   color:0x000000,
    transparent:false,
    opacity:1,
    depthTest:false,
@@ -1350,6 +1357,20 @@ for(const seg of D.contours){
  line.renderOrder=230;
  line.userData={level:seg.level,major:seg.major};
  contourGroup.add(line);
+
+ // Identischer zweiter Pass auf derselben Geometrie.
+ const inkMat=new THREE.LineBasicMaterial({
+   color:0x000000,
+   transparent:false,
+   opacity:1,
+   depthTest:false,
+   depthWrite:false,
+   toneMapped:false
+ });
+ const inkLine=new THREE.Line(g,inkMat);
+ inkLine.renderOrder=231;
+ inkLine.userData={level:seg.level,major:seg.major};
+ contourInkGroup.add(inkLine);
 }
 
 
@@ -2062,7 +2083,8 @@ function applyWeatherScene(){
     rainSystem.visible=false;
     scene.fog=null;
     cloudGroup.visible=false;
-    cloudMat.opacity=.45;
+    // FINAL V4.4: Das alte gemeinsame Wolkenmaterial existiert seit V4.3 nicht mehr.
+    // Die neuen Wolkenfelder besitzen eigene Materialien und sind hier bereits ausgeblendet.
     return;
   }
 
@@ -2550,6 +2572,7 @@ function updateDepthScale(){
  pos.needsUpdate=true;
  pond.geometry.computeVertexNormals();
 
+ // contourInkGroup teilt exakt dieselben Geometry-Objekte und folgt dadurch automatisch.
  contourGroup.children.forEach(line=>{
    const p=line.geometry.attributes.position,lev=line.userData.level;
    for(let i=0;i<p.count;i++) p.setZ(i,-lev*exaggeration+.035);
