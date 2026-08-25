@@ -1063,13 +1063,13 @@ html,body{
          <div class="help-item"><strong>📍 Ort</strong><span>Zeigt nach Standortfreigabe die eigene Position am Weiher. Die Genauigkeit hängt vom GPS-Empfang des Gerätes ab.</span></div>
          <div class="help-item"><strong>📌 Tiefe abfragen</strong><span>Am Computer genügt Mouseover. Auf dem Smartphone die gewünschte Stelle antippen. Ein kleiner Pin zeigt dort die Wassertiefe an.</span></div>
          <div class="help-item"><strong>📏 Messen</strong><span>Messen aktivieren, Startpunkt setzen und gedrückt bis zur Zielstelle ziehen. Währenddessen wird die Entfernung live angezeigt. Nach dem Loslassen erscheinen Entfernung und Wassertiefe am Ziel.</span></div>
-         <div class="help-item"><strong>💧 Wasser</strong><span>Blendet die animierte Wasseroberfläche ein oder aus. Ab FINAL V4.7 ziehen kurze, leicht gebogene und gegeneinander versetzte Windrippel sichtbar in der aktuellen Windrichtung von Ufer zu Ufer. Die Rippeln sind bewusst unterbrochen, damit keine starren geraden Linien quer über der Tiefenkarte entstehen. Wolkenreflexionen bleiben davon optisch getrennt und folgen weiterhin den tatsächlichen Wolkenpositionen. Ihre Wirkung auf der Wasseroberfläche ist um 10 % kräftiger, bleibt aber transparent, damit Tiefenfarben und Konturen sichtbar bleiben. Sonne und Mond spiegeln sich abhängig von Blickrichtung und Himmelsposition.</span></div>
+         <div class="help-item"><strong>💧 Wasser</strong><span>Blendet die animierte Wasseroberfläche ein oder aus. Ab FINAL V4.7 ziehen kurze, leicht gebogene und gegeneinander versetzte Windrippel sichtbar in der aktuellen Windrichtung von Ufer zu Ufer. Die Rippeln sind bewusst unterbrochen, damit keine starren geraden Linien quer über der Tiefenkarte entstehen. Wolkenreflexionen bleiben davon optisch getrennt und folgen weiterhin den tatsächlichen Wolkenpositionen. Ihre Wirkung auf der Wasseroberfläche ist um 10 % kräftiger, bleibt aber transparent. Sonnenlicht verändert die darunter sichtbaren Tiefenfarben an der Reflexionsstelle leicht warm und hell; Mondlicht wirkt deutlich schwächer und etwas kühler. Eine feste Begrenzung verhindert, dass Orange, Blau oder Lila weiß überstrahlen. Position und Form der Reflexion reagieren auf Kamera, Blickrichtung und bewegte Wasseroberfläche.</span></div>
          <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte automatisch. Luftbild und Umgebung werden nachts deutlich dunkler; die farbigen Tiefenfüllungen werden bewusst weniger stark abgedunkelt, damit die Karte lesbar bleibt. Die vorhandenen Tiefenlinien wechseln nachts stufenlos von Dunkelgrau zu einem gedämpften Hellblau und bleiben dadurch auch in tiefblauen und violetten Bereichen erkennbar. Bedienelemente, Wetterbox, Tiefenlegende, Kompass, Windanzeige und Kartenhinweise bleiben Tag und Nacht gleich hell und kontrastreich. Bei „Aus“ erscheinen Tiefenfüllungen und Linien als neutrale Referenz.</span></div>
          <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Die Sonnenscheibe bleibt am Tag und die Mondscheibe in der Nacht in 3D immer sichtbar – unabhängig von der Bewölkung. Befindet sich der echte Mond nachts unter dem Horizont, wird er als dezenter Orientierungsmond knapp über dem Horizont dargestellt. Wolken beeinflussen weiterhin die Lichtstimmung, können Sonne oder Mond aber nicht verdecken. Mondphase und kühles Mondlicht werden weiterhin berücksichtigt.</span></div>
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Die Wolken bestehen aus unregelmäßigen, halbtransparenten Feldern auf mehreren Höhen. Der gemeldete Bewölkungsgrad steuert vor allem die tatsächlich bedeckte Himmelsfläche: bei hoher Bewölkung entstehen große, teilweise zusammenhängende Felder mit sichtbaren Lücken. Nachts werden sie dunkel-blaugrau statt weiß; dünne Bereiche bleiben transparent und können bei sichtbarem Mond dezent silbrig aufgehellt werden. Alle Wolkenschichten ziehen in derselben Windrichtung, höhere Schichten bewegen sich nur leicht schneller. Ihre Spiegelungen auf dem Wasser folgen den tatsächlichen Wolkenpositionen 1:1.</span></div>
          <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; die Windgeschwindigkeit steht kompakt oberhalb der Kompassrose.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetter-/Astronomiefenster, Tiefenlegende und Kompass gemeinsam ein oder aus. So kann die Karte bei Bedarf völlig frei und ohne zusätzliche Anzeigen betrachtet werden.</span></div>
-         <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Pro Tiefenstufe wird weiterhin genau eine einzelne, feine und geometrisch am Gewässergrund verankerte Linie verwendet. Es gibt kein Karten-Overlay und keinen zweiten Linienpass; deshalb können in 3D weder Doppelkonturen noch frei schwebende Linien entstehen. Im Auto-Nachtmodus werden dieselben vorhandenen Linien lediglich heller eingefärbt: Hauptkonturen etwas deutlicher, Zwischenkonturen zurückhaltender. Die geometrische Linienstärke und Position bleiben unverändert.</span></div>
+         <div class="help-item"><strong>🎨 Tiefenfarben, Licht & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Wie in den frühen Viewer-Versionen reagiert die echte 3D-Tiefengeometrie über verstärkte Geländenormalen auf das gerichtete Sonnen- und Mondlicht: dem Licht zugewandte Böschungen werden leicht heller, abgewandte Seiten etwas dunkler. Dadurch entsteht Reliefwirkung, ohne die Tiefenfarben weiß zu überstrahlen. Es gibt keine zusätzliche Licht- oder Schattenfläche. Pro Tiefenstufe wird weiterhin genau eine einzelne, feine und geometrisch am Gewässergrund verankerte Linie verwendet; deshalb können weder Doppelkonturen noch frei schwebende Linien entstehen. Im Auto-Nachtmodus werden dieselben Linien lediglich heller eingefärbt.</span></div>
          <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Fußgänger und Fahrräder bewegen sich ausschließlich auf der fest eingemessenen Radweg-Trasse entlang der Mosel. Fußgänger und Fahrräder werden ausschließlich in der 3D-Ansicht dargestellt und bewegen sich dort auf der fest eingemessenen Radweg-Trasse. In der 2D-Karte ist der Publikumsverkehr ausgeblendet. Die Route und Positionen sind in beiden Ansichten identisch.</span></div>
          <div class="help-item"><strong>🐦 Vögel</strong><span>In der 3D-Ansicht fliegen tagsüber gelegentlich unterschiedlich große und gefärbte Vögel mit variierendem Flugstil und zufälliger Flugrichtung über die Karte; manchmal erscheint ein kleines Paar. Nachts gibt es keine Vögel. Bei sichtbarer Sonne wird ihr Schatten abhängig von Sonnenstand und Flughöhe gut sichtbar auf das Satellitenbild bzw. die Wasser-/Tiefenkarte projiziert. Auf dem weißen Außenbereich wird kein Schatten dargestellt. In 2D sind die Vögel ausgeblendet.</span></div>
        </div>
@@ -1287,11 +1287,30 @@ pondGeo.setAttribute('position',new THREE.Float32BufferAttribute(pondPos,3));
 pondGeo.setAttribute('color',new THREE.Float32BufferAttribute(pondCol,3));
 pondGeo.setIndex(pondIdx);
 pondGeo.computeVertexNormals();
+
+// FINAL V5.0: Das Relieflicht der frühen Phong-Versionen wieder sichtbar machen.
+// Die Gewässertiefen ändern sich nicht; nur die X/Y-Anteile der bereits aus der
+// echten Tiefengeometrie berechneten Normalen werden moderat verstärkt.
+function enhancePondReliefNormals(){
+  const normals=pondGeo.getAttribute('normal');
+  if(!normals) return;
+  const relief=2.25;
+  for(let i=0;i<normals.count;i++){
+    let nx=normals.getX(i)*relief;
+    let ny=normals.getY(i)*relief;
+    let nz=normals.getZ(i);
+    const len=Math.hypot(nx,ny,nz)||1;
+    normals.setXYZ(i,nx/len,ny/len,nz/len);
+  }
+  normals.needsUpdate=true;
+}
+enhancePondReliefNormals();
+
 const pondMat=new THREE.MeshPhongMaterial({
  vertexColors:true,
  side:THREE.DoubleSide,
- shininess:8,
- specular:new THREE.Color(0x33464e),
+ shininess:10,
+ specular:new THREE.Color(0x283d49),
  // V45: eigene Resthelligkeit der Tiefenkarte bei Nacht.
  emissive:new THREE.Color(0x182238),
  emissiveIntensity:0
@@ -2164,8 +2183,9 @@ function applyWeatherScene(){
       updateCloudAppearance(fraction,neutralDark);
     }
     if(typeof pondNightLiftMat!=='undefined'){
-      // Bei voller Nacht 30 % der Originalfarbe additiv zurückgeben.
-      pondNightLiftMat.opacity=0.30*neutralDark;
+      // Genug Farberhalt bei Nacht, aber weniger additive Aufhellung als zuvor,
+      // damit die gerichtete Mondbeleuchtung und das Böschungsrelief sichtbar bleiben.
+      pondNightLiftMat.opacity=0.22*neutralDark;
       pondNightLift.visible=true;
     }
 
@@ -2203,17 +2223,17 @@ function applyWeatherScene(){
     if(typeof moonLight!=='undefined'){
       const moonStrength=THREE.MathUtils.smoothstep(neutralDark,0.42,1.0);
       let moonFraction=0;
-      let moonAbove=false;
       try{
         moonFraction=SunCalc.getMoonIllumination(now).fraction;
-        moonAbove=SunCalc.getMoonPosition(now,SITE_LAT,SITE_LON).altitude>0;
       }catch(e){}
       const cloudTransmission=Math.max(.10,1-fraction*.88);
 
       moonLight.color.set(0xb8d2ff);
-      moonLight.intensity=moonAbove
-        ? moonStrength*(.08+.64*moonFraction)*cloudTransmission
-        : 0;
+      // Nachts beleuchtet auch der garantierte Orientierungsmond die echte
+      // Tiefengeometrie sehr dezent. Bewölkung dämpft das Licht weiterhin.
+      moonLight.intensity=moonStrength
+        *(.055+.46*moonFraction)
+        *cloudTransmission;
     }
     if(typeof hemi!=='undefined'){
       // Ein wenig Restlicht verhindert, dass die Karte nachts vollständig absäuft.
@@ -2554,21 +2574,25 @@ const waterMat=new THREE.ShaderMaterial({
      float crest=smoothstep(.60,.91,shimmer);
      color += vec3(.06,.27,.34)*crest*.145;
 
-     // Sonnenreflex: breiter und deutlich sichtbarer.
+     // FINAL V4.9: farbtreue, begrenzte Lichtmodulation statt weißer Addition.
+     // Die transparente Wasserfläche färbt die darunter sichtbaren Tiefenfarben
+     // lokal leicht mit, lässt Orange, Blau und Violett aber klar erhalten.
      vec3 Rs=reflect(-normalize(sunDir),N);
      float sd=max(dot(Rs,V),0.0);
      float sunCore=pow(sd,30.0)*sunStrength;
      float sunGlow=pow(sd,6.0)*sunStrength;
-     vec3 sunReflection=vec3(1.0,.86,.54)*(sunCore*1.45 + sunGlow*.26);
-     color += min(sunReflection,vec3(.34));
+     float sunTint=clamp(sunCore*.52+sunGlow*.15,0.0,.16);
+     vec3 sunColored=color*vec3(1.10,1.055,.97)+vec3(.025,.014,.002);
+     color=mix(color,sunColored,sunTint);
 
-     // Mondreflex: kühler und klar erkennbar, aber schwächer.
+     // Mondreflex: deutlich schwächer und leicht kühler, ebenfalls ohne Weißpunkt.
      vec3 Rm=reflect(-normalize(moonDir),N);
      float md=max(dot(Rm,V),0.0);
      float moonCore=pow(md,38.0)*moonStrength;
      float moonGlow=pow(md,8.0)*moonStrength;
-     vec3 moonReflection=vec3(.58,.74,.98)*(moonCore*1.00 + moonGlow*.22);
-     color += min(moonReflection,vec3(.24));
+     float moonTint=clamp(moonCore*.34+moonGlow*.085,0.0,.075);
+     vec3 moonColored=color*vec3(.985,1.025,1.09)+vec3(.002,.007,.018);
+     color=mix(color,moonColored,moonTint);
 
      // FINAL V4: Wasser wird nachts nur moderat dunkler.
      // Gleichzeitig wird es minimal transparenter, damit Tiefenfarben/Konturen lesbar bleiben.
@@ -2582,7 +2606,7 @@ const waterMat=new THREE.ShaderMaterial({
      float alpha=(opacity-nightFactor*.035)
        + fresnel*.06
        + crest*.030
-       + min(.055,sunGlow*.035+moonGlow*.028)
+       + min(.030,sunGlow*.020+moonGlow*.010)
        + cloudRefl*.025;
 
      // Harte Obergrenze schützt die darunterliegende Tiefeninformation.
@@ -2620,6 +2644,7 @@ function updateDepthScale(){
  for(let i=0;i<pondDepth.length;i++) pos.setZ(i,-pondDepth[i]*exaggeration);
  pos.needsUpdate=true;
  pond.geometry.computeVertexNormals();
+ enhancePondReliefNormals();
 
  contourGroup.children.forEach(line=>{
    const p=line.geometry.attributes.position,lev=line.userData.level;
