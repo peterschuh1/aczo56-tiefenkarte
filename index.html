@@ -1216,7 +1216,7 @@ html,body{
          <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.5 · 25.08.2026<br>
+  FINAL V5.6 · 25.08.2026<br>
 Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1248,7 +1248,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.5 ONLINE';
+const VIEWER_VERSION='FINAL V5.6 ONLINE';
 const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
@@ -6159,7 +6159,8 @@ function buildFishWorld(){
 function enterFishView(){
   if(fishMode) return;
   fishWheelThrust=0;
-  fishTouchPointers.clear();fishTouchForward=0;fishTouchStrafe=0;fishTouchTwoLast=null;
+  fishTouchPointers.clear();fishTouchForward=0;fishTouchStrafe=0;
+  fishTouchImpulseForward=0;fishTouchImpulseStrafe=0;fishTouchTwoLast=null;
   if(is2D) set3D();
   buildFishWorld();
   if(fishEntryTargets.length){
@@ -6247,7 +6248,8 @@ function leaveFishView(){
 function finishLeavingFishView(){
   fishMode=false;
   fishWheelThrust=0;
-  fishTouchPointers.clear();fishTouchForward=0;fishTouchStrafe=0;fishTouchTwoLast=null;
+  fishTouchPointers.clear();fishTouchForward=0;fishTouchStrafe=0;
+  fishTouchImpulseForward=0;fishTouchImpulseStrafe=0;fishTouchTwoLast=null;
   fishMiniMap.style.display='none';
   hideFishIdentify();
   document.querySelector('.wrap').classList.remove('fish-mode');
@@ -6319,6 +6321,7 @@ window.addEventListener('keyup',e=>{fishKeys[e.code]=false;});
 let fishLookPointer=null,fishLookX=0,fishLookY=0;
 let fishLookStartX=0,fishLookStartY=0,fishLookMoved=false,fishLookStartedAt=0;
 let fishTouchForward=0,fishTouchStrafe=0,fishTouchTwoLast=null;
+let fishTouchImpulseForward=0,fishTouchImpulseStrafe=0;
 const fishTouchPointers=new Map();
 function fishTouchCentroid(){
   const points=[...fishTouchPointers.values()];
@@ -6330,6 +6333,7 @@ function resetRemainingFishTouch(){
   const remaining=[...fishTouchPointers.values()][0];
   if(remaining){
     remaining.startX=remaining.x;remaining.startY=remaining.y;
+    remaining.lastX=remaining.x;remaining.lastY=remaining.y;
     remaining.startedAt=performance.now();remaining.moved=true;
   }
 }
@@ -6339,9 +6343,11 @@ renderer.domElement.addEventListener('pointerdown',e=>{
   if(e.pointerType==='touch'){
     fishTouchPointers.set(e.pointerId,{
       x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,
+      lastX:e.clientX,lastY:e.clientY,
       startedAt:performance.now(),moved:false
     });
     fishTouchForward=0;fishTouchStrafe=0;
+    if(fishTouchPointers.size>=2){fishTouchImpulseForward=0;fishTouchImpulseStrafe=0;}
     fishTouchTwoLast=fishTouchPointers.size>=2?fishTouchCentroid():null;
     try{renderer.domElement.setPointerCapture(e.pointerId);}catch(err){}
     return;
@@ -6356,14 +6362,24 @@ renderer.domElement.addEventListener('pointermove',e=>{
   e.preventDefault();e.stopImmediatePropagation();
   if(e.pointerType==='touch'&&fishTouchPointers.has(e.pointerId)){
     const touch=fishTouchPointers.get(e.pointerId);
+    const dx=e.clientX-touch.lastX,dy=e.clientY-touch.lastY;
     touch.x=e.clientX;touch.y=e.clientY;
+    touch.lastX=touch.x;touch.lastY=touch.y;
     if(Math.hypot(touch.x-touch.startX,touch.y-touch.startY)>7) touch.moved=true;
     if(fishTouchPointers.size===1){
       fishTouchStrafe=THREE.MathUtils.clamp((touch.x-touch.startX)/68,-1,1);
       fishTouchForward=THREE.MathUtils.clamp((touch.startY-touch.y)/68,-1,1);
+      // Ein echter Wisch erzeugt zusätzlich einen kurzen Bewegungsimpuls.
+      // Dadurch bleibt die Geste auf iOS auch dann wirksam, wenn der Finger
+      // direkt nach dem Wischen wieder angehoben wird.
+      if(touch.moved){
+        fishTouchImpulseStrafe=THREE.MathUtils.clamp(fishTouchImpulseStrafe+dx/34,-1.65,1.65);
+        fishTouchImpulseForward=THREE.MathUtils.clamp(fishTouchImpulseForward-dy/34,-1.65,1.65);
+      }
       fishTouchTwoLast=null;
     }else{
       fishTouchForward=0;fishTouchStrafe=0;
+      fishTouchImpulseForward=0;fishTouchImpulseStrafe=0;
       const center=fishTouchCentroid();
       if(fishTouchTwoLast){
         fishYaw-=(center.x-fishTouchTwoLast.x)*.0050;
@@ -6491,7 +6507,13 @@ function updateFishView(dt){
   if(fishKeys.KeyA||fishKeys.ArrowLeft||fishPad.left) move.sub(right);
   if(Math.abs(fishTouchForward)>.02) move.addScaledVector(forward,fishTouchForward);
   if(Math.abs(fishTouchStrafe)>.02) move.addScaledVector(right,fishTouchStrafe);
+  if(Math.abs(fishTouchImpulseForward)>.015) move.addScaledVector(forward,fishTouchImpulseForward);
+  if(Math.abs(fishTouchImpulseStrafe)>.015) move.addScaledVector(right,fishTouchImpulseStrafe);
   if(Math.abs(fishWheelThrust)>.02) move.addScaledVector(forward,fishWheelThrust);
+  fishTouchImpulseForward*=Math.exp(-dt*2.75);
+  fishTouchImpulseStrafe*=Math.exp(-dt*2.75);
+  if(Math.abs(fishTouchImpulseForward)<.006) fishTouchImpulseForward=0;
+  if(Math.abs(fishTouchImpulseStrafe)<.006) fishTouchImpulseStrafe=0;
   fishWheelThrust*=Math.exp(-dt*3.45);
   if(Math.abs(fishWheelThrust)<.006) fishWheelThrust=0;
   if(move.lengthSq()){
