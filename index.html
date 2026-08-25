@@ -927,6 +927,85 @@ html,body{
   opacity:1 !important;
 }
 
+
+/* FINAL V4.2: UI bleibt Tag und Nacht visuell identisch.
+   Nur die eigentliche Karte/3D-Szene reagiert auf Nacht. */
+.wrap.night-readable .controls,
+.wrap.night-readable .controls button,
+.wrap.night-readable .legend,
+.wrap.night-readable .astro-info,
+.wrap.night-readable .compass,
+.wrap.night-readable .control-hint,
+.wrap.night-readable .depth-tip,
+.wrap.night-readable .depth-pin-label,
+.wrap.night-readable .measure-label,
+.wrap.night-readable .runtime-error,
+.wrap.night-readable #locStatus,
+.wrap.night-readable .wind-speed{
+  filter:none !important;
+  opacity:1 !important;
+  mix-blend-mode:normal !important;
+}
+
+/* Wetter-/Astronomiebox: nachts dieselbe helle Oberfläche wie tagsüber */
+.wrap.night-readable .astro-info{
+  background:rgba(244,248,247,.88) !important;
+  border-color:rgba(24,54,43,.18) !important;
+  color:#18362b !important;
+}
+.wrap.night-readable .astro-time{
+  color:#17362b !important;
+  text-shadow:none !important;
+}
+.wrap.night-readable .astro-sub{
+  color:#4d5e57 !important;
+  text-shadow:none !important;
+}
+
+/* Tiefenlegende: feste Tagdarstellung */
+.wrap.night-readable .legend{
+  background:rgba(246,248,247,.92) !important;
+  border-color:rgba(0,0,0,.12) !important;
+  color:#26332e !important;
+}
+.wrap.night-readable .legend-ticks span{
+  color:#25322d !important;
+  text-shadow:none !important;
+}
+
+/* Kompass und Windanzeige nicht abdunkeln */
+.wrap.night-readable .compass{
+  opacity:1 !important;
+  filter:none !important;
+}
+.wrap.night-readable .compass-ring{
+  background:rgba(236,241,238,.86) !important;
+}
+.wrap.night-readable .compass-n,
+.wrap.night-readable .compass-e,
+.wrap.night-readable .compass-s,
+.wrap.night-readable .compass-w{
+  opacity:1 !important;
+  filter:none !important;
+}
+.wrap.night-readable .wind-speed{
+  background:rgba(235,243,248,.92) !important;
+  color:#2a5878 !important;
+}
+
+/* Karteninfos bleiben ebenfalls hell und klar */
+.wrap.night-readable .depth-pin-label,
+.wrap.night-readable .measure-label,
+.wrap.night-readable .depth-tip{
+  filter:none !important;
+  opacity:1 !important;
+}
+
+/* Buttons: keinerlei Nacht-Tönung */
+.wrap.night-readable .controls button{
+  box-shadow:inherit !important;
+}
+
 </style>
 </head>
 <body>
@@ -985,15 +1064,19 @@ html,body{
          <div class="help-item"><strong>📌 Tiefe abfragen</strong><span>Am Computer genügt Mouseover. Auf dem Smartphone die gewünschte Stelle antippen. Ein kleiner Pin zeigt dort die Wassertiefe an.</span></div>
          <div class="help-item"><strong>📏 Messen</strong><span>Messen aktivieren, Startpunkt setzen und gedrückt bis zur Zielstelle ziehen. Währenddessen wird die Entfernung live angezeigt. Nach dem Loslassen erscheinen Entfernung und Wassertiefe am Ziel.</span></div>
          <div class="help-item"><strong>💧 Wasser</strong><span>Blendet die animierte Wasseroberfläche ein oder aus. Blau-türkise Wellen reagieren auf den Wind; Wolken am Himmel und ihre Spiegelungen ziehen gemeinsam nach den gemeldeten Winddaten. Sonne und Mond spiegeln sich abhängig von Blickrichtung und Himmelsposition. Nachts wird das Wasser nur moderat dunkler und etwas transparenter. Die maximale Stärke aller Reflexionen ist begrenzt, damit Tiefenfarben und Konturlinien darunter immer lesbar bleiben.</span></div>
-         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte automatisch. Luftbild und Umgebung werden nachts deutlich dunkler; die farbigen Tiefenfüllungen werden bewusst weniger stark abgedunkelt, damit die Karte lesbar bleibt. Die Tiefenlinien selbst reagieren nicht auf Wetter oder Tageszeit. Bei „Aus“ erscheinen die Tiefenfüllungen als neutrale Referenz in ihren unveränderten Originalfarben ohne Licht- oder Wettereinfluss.</span></div>
+         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte automatisch. Luftbild und Umgebung werden nachts deutlich dunkler; die farbigen Tiefenfüllungen werden bewusst weniger stark abgedunkelt, damit die Karte lesbar bleibt. Die Tiefenlinien selbst reagieren nicht auf Wetter oder Tageszeit. Bedienelemente, Wetterbox, Tiefenlegende, Kompass, Windanzeige und Kartenhinweise bleiben Tag und Nacht gleich hell und kontrastreich. Bei „Aus“ erscheinen die Tiefenfüllungen als neutrale Referenz in ihren unveränderten Originalfarben ohne Licht- oder Wettereinfluss.</span></div>
          <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Sonnenauf- und -untergang sowie die aktuelle Mondphase werden angezeigt. Das kühle Mondlicht richtet sich zusätzlich nach Mondphase und Bewölkung: Ein heller Mond wirkt bei klarem Himmel stärker, dichte Wolken schwächen sein Licht deutlich ab.</span></div>
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Temperatur, Wind und Bewölkung stehen in der Infoanzeige.</span></div>
          <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; die Windgeschwindigkeit steht kompakt oberhalb der Kompassrose.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetter-/Astronomiefenster, Tiefenlegende und Kompass gemeinsam ein oder aus. So kann die Karte bei Bedarf völlig frei und ohne zusätzliche Anzeigen betrachtet werden.</span></div>
-         <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die Konturlinien bleiben immer gleich dünn, gleich dunkel und gleich kräftig – unabhängig von Wetter, Sonne, Mond, Wasser und Tageszeit. Im Auto-Nachtmodus werden ausschließlich die farbigen Tiefenfüllungen weniger stark abgedunkelt, damit die dunklen Linien weiterhin ausreichend Kontrast besitzen. Bei „Wetter Aus“ erscheinen die Füllungen in ihren definierten Originalfarben.</span></div>
+         <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die Konturlinien bleiben immer gleich dünn, gleich dunkel und gleich kräftig – unabhängig von Wetter, Sonne, Mond, Wasser und Tageszeit. Im Auto-Nachtmodus werden ausschließlich die farbigen Tiefenfüllungen durch eine farbtreue additive Nachtanhebung weniger stark abgedunkelt, damit die dunklen Linien weiterhin ausreichend Kontrast besitzen. Bei „Wetter Aus“ erscheinen die Füllungen in ihren definierten Originalfarben.</span></div>
          <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Fußgänger und Fahrräder bewegen sich ausschließlich auf der fest eingemessenen Radweg-Trasse entlang der Mosel. Fußgänger und Fahrräder werden ausschließlich in der 3D-Ansicht dargestellt und bewegen sich dort auf der fest eingemessenen Radweg-Trasse. In der 2D-Karte ist der Publikumsverkehr ausgeblendet. Die Route und Positionen sind in beiden Ansichten identisch.</span></div>
          <div class="help-item"><strong>🐦 Vögel</strong><span>In der 3D-Ansicht fliegen tagsüber gelegentlich unterschiedlich große und gefärbte Vögel mit variierendem Flugstil und zufälliger Flugrichtung über die Karte; manchmal erscheint ein kleines Paar. Nachts gibt es keine Vögel. Bei sichtbarer Sonne wird ihr Schatten abhängig von Sonnenstand und Flughöhe gut sichtbar auf das Satellitenbild bzw. die Wasser-/Tiefenkarte projiziert. Auf dem weißen Außenbereich wird kein Schatten dargestellt. In 2D sind die Vögel ausgeblendet.</span></div>
        </div>
+       <div class="help-note"><strong>Version</strong><br>
+FINAL V4.2 · 25.08.2026 · 03:27 Uhr<br>
+Nacht-Tiefenfarben korrigiert · UI/Legenden nachts unverändert hell · Konturlinien wetterunabhängig · Wasser/Wetter/Touch optimiert
+</div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
 Tiefenkarte und Darstellung: AC 1956 Zewen-Oberkirch e. V.<br>
 Luftbild/Kartengrundlage: © GeoBasis-DE / LVermGeoRP (2026), dl-de/by-2-0<br>
@@ -1023,6 +1106,8 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
+const VIEWER_VERSION='FINAL V4.2';
+const VIEWER_BUILD='25.08.2026 03:27';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
 // als "Script error.". Solange unser Viewer weiterläuft, ist das keine hilfreiche
@@ -1224,16 +1309,19 @@ pondNeutral.renderOrder=2;
 pondNeutral.visible=false;
 scene.add(pondNeutral);
 
-// FINAL V4: Nacht-Lesbarkeit der Tiefenfüllungen.
-// Diese unbeleuchtete Farbkopie wird bei Nacht nur schwach eingeblendet.
-// Dadurch bleiben die Original-Farbtöne erhalten, ohne die Umgebung aufzuhellen.
+// FINAL V4.1: Nacht-Lesbarkeit der Tiefenfüllungen.
+// Diese unbeleuchtete Farbkopie wird bei Nacht ADDITIV eingeblendet.
+// Normale Alpha-Überblendung derselben Farbe würde kaum heller wirken.
+// Additiv bleiben Blau/Violett erhalten und werden sichtbar lesbarer, ohne die Umgebung aufzuhellen.
 const pondNightLiftMat=new THREE.MeshBasicMaterial({
   vertexColors:true,
   side:THREE.DoubleSide,
   transparent:true,
   opacity:0,
   depthWrite:false,
+  depthTest:true,
   toneMapped:false,
+  blending:THREE.AdditiveBlending,
   polygonOffset:true,
   polygonOffsetFactor:-1,
   polygonOffsetUnits:-1
@@ -1894,8 +1982,8 @@ function applyWeatherScene(){
 
     sceneNightFactor=neutralDark;
     if(typeof pondNightLiftMat!=='undefined'){
-      // Bei voller Nacht 28 % der unveränderten Originalfarbe zurückmischen.
-      pondNightLiftMat.opacity=0.28*neutralDark;
+      // Bei voller Nacht 30 % der Originalfarbe additiv zurückgeben.
+      pondNightLiftMat.opacity=0.30*neutralDark;
       pondNightLift.visible=true;
     }
 
