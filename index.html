@@ -1216,7 +1216,7 @@ html,body{
          <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.6 · 25.08.2026<br>
+  FINAL V5.8 · 25.08.2026<br>
 Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1248,7 +1248,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.6 ONLINE';
+const VIEWER_VERSION='FINAL V5.8 ONLINE';
 const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
@@ -2050,6 +2050,13 @@ moonDisc.renderOrder=1000;
 moonDisc.scale.set(22,22,1);
 
 scene.add(moonDisc);
+// Die astronomischen Lichtquellen arbeiten auch unter Wasser weiter. Ihre
+// sichtbaren Scheiben werden in der Fischsicht jedoch vollständig verborgen.
+let hideCelestialDiscsForFishMode=false;
+let underwaterLookUpFactor=0;
+function celestialDiscAllowedForView(){
+  return !hideCelestialDiscsForFishMode||underwaterLookUpFactor>.08;
+}
 
 // V42: weicher Lichtschein um den Mond
 const moonGlowCanvas=document.createElement('canvas');
@@ -2711,7 +2718,8 @@ simBtn.onclick=()=>{
 
     // Sichtbare Sonne nur in 3D; in 2D gibt es keinen Himmel.
     sunDisc.position.copy(sun.position);
-    sunDisc.visible=!is2D;
+    sunDisc.userData.astronomicallyVisible=true;
+    sunDisc.visible=!is2D&&celestialDiscAllowedForView();
     sunDisc.scale.set(38,38,1);
     if(sunDisc.material){
       sunDisc.material.opacity=1.0;
@@ -3099,7 +3107,8 @@ function set3D(){
   // Tagessonne in 3D sichtbar; Mond und Mondschein bleiben aus.
   if(typeof simulationEnabled!=='undefined' && !simulationEnabled){
     sun.visible=true;
-    sunDisc.visible=!is2D;
+    sunDisc.userData.astronomicallyVisible=true;
+    sunDisc.visible=!is2D&&celestialDiscAllowedForView();
     sunDisc.position.copy(sun.position);
     if(sunDisc.material){
       sunDisc.material.opacity=1.0;
@@ -3579,9 +3588,11 @@ function updateAstronomy(){
   const twilight=sunPos.altitude>-0.12;
 
   sun.visible=sunUp;
-  sunDisc.visible=sunUp && !is2D;
+  sunDisc.userData.astronomicallyVisible=sunUp;
+  moonDisc.userData.astronomicallyVisible=(!sunUp||moonPos.altitude>0);
+  sunDisc.visible=sunUp && !is2D && celestialDiscAllowedForView();
   // Tagsüber nur bei echter astronomischer Sichtbarkeit, nachts garantiert.
-  moonDisc.visible=(!is2D) && (!sunUp || moonPos.altitude>0);
+  moonDisc.visible=(!is2D) && celestialDiscAllowedForView() && (!sunUp || moonPos.altitude>0);
   if(sunDisc.material) sunDisc.material.opacity=1.0;
   if(moonDisc.material) moonDisc.material.opacity=1.0;
 
@@ -3632,8 +3643,8 @@ function updateAstronomy(){
 
   // Wetter darf die Scheiben nicht ausblenden. Diese Zuweisung steht bewusst
   // nach applyWeatherScene(), da dort nur die Beleuchtung gedämpft werden soll.
-  sunDisc.visible=sunUp && !is2D;
-  moonDisc.visible=(!is2D) && (!sunUp || moonPos.altitude>0);
+  sunDisc.visible=sunUp && !is2D && celestialDiscAllowedForView();
+  moonDisc.visible=(!is2D) && celestialDiscAllowedForView() && (!sunUp || moonPos.altitude>0);
   if(sunDisc.material) sunDisc.material.opacity=1.0;
   if(moonDisc.material) moonDisc.material.opacity=1.0;
   if(typeof moonGlow!=='undefined'){
@@ -6156,6 +6167,27 @@ function buildFishWorld(){
   addFishPopulation('goby',160,{schools:18});
 }
 
+// Sicherer Einstieg nahe der Weihermitte. Die Blickrichtung zeigt zusätzlich
+// eher ins Zentrum, sodass die erste Vorwärtsbewegung nie direkt am Ufer endet.
+function centralFishStart(out){
+  let best=null;
+  for(let tries=0;tries<350;tries++){
+    const x=(Math.random()-.5)*D.pondW*.24;
+    const y=(Math.random()-.5)*D.pondH*.24;
+    const d=pondDepthAt(x,y);
+    if(d==null||d<1.65) continue;
+    best={x,y,d};break;
+  }
+  if(!best){
+    const d=pondDepthAt(0,0);
+    best={x:0,y:0,d:d==null?2.2:d};
+  }
+  const bottom=-best.d*exaggeration;
+  out.set(best.x,best.y,THREE.MathUtils.lerp(bottom+.62,-.48,.48));
+  out.z=THREE.MathUtils.clamp(out.z,bottom+.42,-.35);
+  return out;
+}
+
 function enterFishView(){
   if(fishMode) return;
   fishWheelThrust=0;
@@ -6169,6 +6201,16 @@ function enterFishView(){
   rebuildFishPlants();
   rebuildUnderwaterObjects();
   fishMode=true;
+  hideCelestialDiscsForFishMode=true;
+  underwaterLookUpFactor=0;
+  sunDisc.visible=false;moonDisc.visible=false;
+  if(typeof moonGlow!=='undefined') moonGlow.visible=false;
+  [sunDisc,moonDisc,moonGlow].forEach(disc=>{
+    if(!disc||!disc.material) return;
+    disc.material.depthTest=true;
+    disc.material.fog=false;
+    disc.material.needsUpdate=true;
+  });
   document.querySelector('.wrap').classList.add('fish-mode');
   fishMiniMap.style.display='block';
   fishViewBtn.classList.add('on');
@@ -6217,14 +6259,10 @@ function enterFishView(){
   camera.fov=56;
   camera.updateProjectionMatrix();
   const start=new THREE.Vector3();
-  fishYaw=0;
-  if(fishEntryFocus){
-    start.copy(fishEntryFocus);start.y-=3.2;
-    let d=pondDepthAt(start.x,start.y);
-    if(d==null){start.copy(fishEntryFocus);start.y+=3.2;fishYaw=Math.PI;d=pondDepthAt(start.x,start.y);}
-    if(d!=null) start.z=THREE.MathUtils.clamp(fishEntryFocus.z+.05,-d*exaggeration+.38,-.35);
-  }else randomUnderwaterPoint(start,1.4);
-  start.z=Math.min(-.35,start.z);
+  centralFishStart(start);
+  fishYaw=Math.hypot(start.x,start.y)>.35
+    ? Math.atan2(-start.x,-start.y)
+    : Math.random()*Math.PI*2;
   fishLastSafeCameraPosition.copy(start);
   fishTransition={
     type:'enter',time:0,duration:1.8,
@@ -6247,6 +6285,15 @@ function leaveFishView(){
 
 function finishLeavingFishView(){
   fishMode=false;
+  hideCelestialDiscsForFishMode=false;
+  underwaterLookUpFactor=0;
+  [sunDisc,moonDisc,moonGlow].forEach(disc=>{
+    if(!disc||!disc.material) return;
+    disc.material.depthTest=false;
+    disc.material.fog=true;
+    disc.material.opacity=1;
+    disc.material.needsUpdate=true;
+  });
   fishWheelThrust=0;
   fishTouchPointers.clear();fishTouchForward=0;fishTouchStrafe=0;
   fishTouchImpulseForward=0;fishTouchImpulseStrafe=0;fishTouchTwoLast=null;
@@ -6282,6 +6329,7 @@ function finishLeavingFishView(){
   underwaterStones.visible=false;
   northWood.visible=false;
   applyWeatherScene();
+  if(typeof updateAstronomy==='function') updateAstronomy();
   camera.near=.1;
   camera.fov=38;
   camera.updateProjectionMatrix();
@@ -6373,8 +6421,8 @@ renderer.domElement.addEventListener('pointermove',e=>{
       // Dadurch bleibt die Geste auf iOS auch dann wirksam, wenn der Finger
       // direkt nach dem Wischen wieder angehoben wird.
       if(touch.moved){
-        fishTouchImpulseStrafe=THREE.MathUtils.clamp(fishTouchImpulseStrafe+dx/34,-1.65,1.65);
-        fishTouchImpulseForward=THREE.MathUtils.clamp(fishTouchImpulseForward-dy/34,-1.65,1.65);
+        fishTouchImpulseStrafe=THREE.MathUtils.clamp(fishTouchImpulseStrafe+dx/25,-2.05,2.05);
+        fishTouchImpulseForward=THREE.MathUtils.clamp(fishTouchImpulseForward-dy/25,-2.05,2.05);
       }
       fishTouchTwoLast=null;
     }else{
@@ -6510,8 +6558,8 @@ function updateFishView(dt){
   if(Math.abs(fishTouchImpulseForward)>.015) move.addScaledVector(forward,fishTouchImpulseForward);
   if(Math.abs(fishTouchImpulseStrafe)>.015) move.addScaledVector(right,fishTouchImpulseStrafe);
   if(Math.abs(fishWheelThrust)>.02) move.addScaledVector(forward,fishWheelThrust);
-  fishTouchImpulseForward*=Math.exp(-dt*2.75);
-  fishTouchImpulseStrafe*=Math.exp(-dt*2.75);
+  fishTouchImpulseForward*=Math.exp(-dt*2.15);
+  fishTouchImpulseStrafe*=Math.exp(-dt*2.15);
   if(Math.abs(fishTouchImpulseForward)<.006) fishTouchImpulseForward=0;
   if(Math.abs(fishTouchImpulseStrafe)<.006) fishTouchImpulseStrafe=0;
   fishWheelThrust*=Math.exp(-dt*3.45);
@@ -6519,8 +6567,13 @@ function updateFishView(dt){
   if(move.lengthSq()){
     const inputStrength=Math.min(1.22,move.length());
     const boost=1+Math.min(.30,Math.abs(fishWheelThrust)*.24);
+    const touchStrength=Math.max(
+      Math.abs(fishTouchForward),Math.abs(fishTouchStrafe),
+      Math.abs(fishTouchImpulseForward),Math.abs(fishTouchImpulseStrafe)
+    );
+    const touchBoost=1+Math.min(.65,touchStrength*.48);
     // Ruhige Schwimmgeschwindigkeit statt schneller Kamerafahrt durch den Weiher.
-    move.normalize().multiplyScalar(dt*1.72*boost*inputStrength);
+    move.normalize().multiplyScalar(dt*1.72*boost*touchBoost*inputStrength);
     const next=camera.position.clone().add(move);
     const d=pondDepthAt(next.x,next.y);
     if(d!=null&&d>.65){
@@ -6532,6 +6585,24 @@ function updateFishView(dt){
   enforceFishCameraBounds();
   camera.up.set(0,0,1);
   camera.lookAt(camera.position.clone().add(forward));
+  // Himmelskörper sind unter Wasser nur durch die Oberfläche beim Aufblicken
+  // sichtbar. Tiefentest verhindert ein Durchscheinen durch Böschung/Boden.
+  underwaterLookUpFactor=fishPitch;
+  if(hideCelestialDiscsForFishMode){
+    const lookingUp=underwaterLookUpFactor>.08;
+    const sunAstronomical=simulationEnabled
+      ? !!sunDisc.userData.astronomicallyVisible
+      : true;
+    const moonAstronomical=simulationEnabled
+      ? !!moonDisc.userData.astronomicallyVisible
+      : false;
+    sunDisc.visible=lookingUp&&sunAstronomical;
+    moonDisc.visible=lookingUp&&moonAstronomical;
+    if(typeof moonGlow!=='undefined') moonGlow.visible=moonDisc.visible;
+    if(sunDisc.material) sunDisc.material.opacity=.66;
+    if(moonDisc.material) moonDisc.material.opacity=.72;
+    if(typeof moonGlow!=='undefined'&&moonGlow.material) moonGlow.material.opacity=.52;
+  }
   updateFishMiniMap();
 }
 
@@ -6828,7 +6899,9 @@ const clock=new THREE.Clock();
      const moonCloud=1-Math.max(0,Math.min(1,(liveWeather.cloud||0)/100))*.68;
      // Die Wasserreflexion bleibt auch bei dichter Bewölkung erkennbar.
      // Ihre Stärke ist getrennt vom sehr schwachen Gelände-Mondlicht.
-     waterUniforms.moonStrength.value=(moonDisc.visible && simulationEnabled)
+     // Sichtbarkeit der Mondscheibe hängt unter Wasser vom Blickwinkel ab;
+     // die physikalische Reflexion bleibt davon unabhängig aktiv.
+     waterUniforms.moonStrength.value=(moonDisc.userData.astronomicallyVisible && simulationEnabled)
        ? Math.min(.46,(.20+.38*moonFraction)*moonCloud)
        : 0.0;
    }
