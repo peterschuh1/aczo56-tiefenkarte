@@ -1203,10 +1203,11 @@ html,body{
          <div class="help-item"><strong>📍 Ort</strong><span>Zeigt nach Standortfreigabe die eigene Position am Weiher.</span></div>
          <div class="help-item"><strong>📌 Tiefe</strong><span>Am Computer mit dem Mauszeiger, mobil durch Antippen abfragen.</span></div>
          <div class="help-item"><strong>📏 Messen</strong><span>Startpunkt setzen und bis zum Ziel ziehen. Entfernung und Zieltiefe werden angezeigt.</span></div>
-         <div class="help-item"><strong>💧 Wasser</strong><span>Schaltet die bewegte Wasseroberfläche mit Wetter- und Lichtreflexionen ein oder aus.</span></div>
+        <div class="help-item"><strong>💧 Wasser</strong><span>Weiher und Mosel zeigen standardmäßig bewegte Wellen sowie Wetter- und Lichtreflexionen. Der Schalter blendet beide Wasserflächen aus.</span></div>
          <div class="help-item"><strong>🐟 Fischsicht</strong><span>Fische anklicken und alle Arten farbig freischalten. Desktop: Maus/Mausrad. Mobil: ein Finger schwimmt, zwei Finger steuern den Blick.</span></div>
          <div class="help-item"><strong>🌦️ Auto</strong><span>Schaltet die automatische Tageszeit- und Wettersimulation ein oder aus.</span></div>
-         <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Folgen automatisch Datum, Uhrzeit und Standort und beeinflussen Licht und Reflexionen.</span></div>
+        <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Folgen automatisch Datum, Uhrzeit und Standort und beeinflussen Licht und Reflexionen.</span></div>
+        <div class="help-item"><strong>✨ Sternenhimmel</strong><span>Die hellen Sterne stehen astronomisch passend zu Datum, Uhrzeit und Standort. So lassen sich auch bekannte Sternbilder suchen; helle Sterne spiegeln sich bei klarem Himmel im Wasser.</span></div>
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Steuert Bewölkung, Wind, Regen, Nebel und Lichtstimmung mit aktuellen Wetterdaten.</span></div>
          <div class="help-item"><strong>🧭 Kompass & Wind</strong><span>Zeigt Himmelsrichtungen, Windrichtung und Windgeschwindigkeit.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetterfenster, Tiefenlegende und Kompass gemeinsam ein oder aus.</span></div>
@@ -1216,7 +1217,7 @@ html,body{
          <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.21 · 25.08.2026<br>
+  FINAL V5.23 · 25.08.2026<br>
 Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1248,7 +1249,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.21 ONLINE';
+const VIEWER_VERSION='FINAL V5.23 ONLINE';
 const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
@@ -2991,9 +2992,9 @@ const waterMat=new THREE.ShaderMaterial({
      // als sehr kleine, gebrochene Lichtreflexe erkennbar.
      for(int i=0;i<32;i++){
        float alignment=dot(d,realStarDirs[i]);
-       result+=smoothstep(.9976,.99972,alignment)*realStarBrightness[i];
+       result+=smoothstep(.9895,.99920,alignment)*realStarBrightness[i]*2.10;
      }
-     return min(result,1.0);
+     return min(result,2.15);
    }
 
    void main(){
@@ -3057,7 +3058,11 @@ const waterMat=new THREE.ShaderMaterial({
 
      float stars=reflectedStars(reflectedView)*nightFactor
        *(1.0-cloudAmount*.92)*surfaceOnly;
-     color+=vec3(.76,.87,1.0)*stars*(.86+.44*fresnel);
+     // Einzelne, durch die Wellen gebrochene Sternpunkte statt einer glatten
+     // Aufhellung. Die Position folgt weiterhin dem echten reflektierten Himmelsstrahl.
+     float starBreak=.32+.68*smoothstep(.57,.92,
+       .52*fine+.48*ripples);
+     color+=vec3(.88,.95,1.0)*stars*starBreak*(1.75+.85*fresnel);
 
      float rippleLight=smoothstep(.58,.92,ripples);
      float rippleDark=1.0-smoothstep(.18,.48,ripples);
@@ -3073,7 +3078,11 @@ const waterMat=new THREE.ShaderMaterial({
      // FINAL V4.9: farbtreue, begrenzte Lichtmodulation statt weißer Addition.
      // Die transparente Wasserfläche färbt die darunter sichtbaren Tiefenfarben
      // lokal leicht mit, lässt Orange, Blau und Violett aber klar erhalten.
-     vec3 Rs=reflect(-normalize(sunDir),N);
+     // Für Sonne und Mond wird die großräumige Reflexionsachse etwas weniger
+     // von einer einzelnen Windwellen-Normale abgelenkt. Die Reflexe bleiben
+     // bewegt, liegen aber optisch sauberer auf der Himmelskörperachse.
+     vec3 celestialN=normalize(mix(vec3(0.0,0.0,1.0),N,.52));
+     vec3 Rs=reflect(-normalize(sunDir),celestialN);
      float sd=max(dot(Rs,V),0.0);
      float sunCore=pow(sd,13.0)*sunStrength;
      float sunGlow=pow(sd,2.7)*sunStrength*(.68+ripples*.32);
@@ -3085,7 +3094,7 @@ const waterMat=new THREE.ShaderMaterial({
 
      // Mondreflex: eine breitere, kühle Reflexionsbahn. Die Richtung bleibt
      // vollständig von Mondposition, Kameraposition und Wellennormale bestimmt.
-     vec3 Rm=reflect(-normalize(moonDir),N);
+     vec3 Rm=reflect(-normalize(moonDir),celestialN);
      float md=max(dot(Rm,V),0.0);
      float moonCore=pow(md,14.0)*moonStrength;
      float moonGlow=pow(md,2.35)*moonStrength*(.70+ripples*.30);
@@ -3106,7 +3115,7 @@ const waterMat=new THREE.ShaderMaterial({
      float alpha=(opacity-nightFactor*.035)
        + fresnel*.06
        + crest*.030
-       + min(.14,sunGlow*.055+moonGlow*.060+stars*.075)
+       + min(.19,sunGlow*.055+moonGlow*.060+stars*.105)
        + cloudRefl*.025;
 
      // Von unten: mehrere wandernde Brechungsmuster statt einer glatten Scheibe.
@@ -3125,34 +3134,76 @@ const waterMat=new THREE.ShaderMaterial({
 });
 
 const waterSurface=new THREE.Mesh(waterGeo,waterMat);
-waterSurface.visible=false;
+waterSurface.visible=true;
 waterSurface.renderOrder=4;
 scene.add(waterSurface);
 
-// FINAL V5.21: sichtbarer Moselabschnitt unterhalb des Radwegs.
-// Das Polygon wurde aus der unverzerrten 1600×1600-Satellitenansicht
-// abgegrenzt. Als Kind der Weiheroberfläche folgt es automatisch demselben
-// Wasser-Schalter und benutzt exakt denselben bewegten Reflexionsshader.
-const moselImagePolygon=[
-  [1005,1600],[1070,1562],[1140,1525],[1215,1490],[1290,1458],
-  [1370,1423],[1450,1388],[1528,1354],[1600,1323],[1600,1600]
-];
-const moselShape=new THREE.Shape();
-moselImagePolygon.forEach((p,i)=>{
-  const x=p[0]/1600*D.sceneW-D.sceneW/2;
-  const y=D.sceneH/2-p[1]/1600*D.sceneH;
-  if(i===0) moselShape.moveTo(x,y); else moselShape.lineTo(x,y);
-});
-moselShape.closePath();
-const moselWaterGeo=new THREE.ShapeGeometry(moselShape);
+// FINAL V5.22: sichtbarer Moselabschnitt unterhalb des Radwegs.
+// Ein fein unterteiltes, aufwärts orientiertes Gitter verhindert die dunklen
+// Dreiecksflächen und das Flackern der früheren groben ShapeGeometry.
+// Exakt vom Nutzer auf der unverzerrten 2D-Karte markierte Uferlinie.
+const moselWorldPolygon=[
+  [1.367,-99.891],[99.376,-100.596],[99.376,-51.300],[94.593,-57.055],
+  [87.754,-60.036],[87.020,-59.682],[82.443,-62.124],[80.778,-63.713],
+  [78.536,-66.286],[72.788,-68.428],[68.395,-68.348],[64.083,-68.936],
+  [62.359,-68.039],[63.138,-70.648],[61.767,-72.641],[59.873,-72.222],
+  [58.150,-71.327],[54.772,-73.820],[51.514,-75.391],[51.427,-76.530],
+  [50.348,-78.928],[48.623,-79.837],[47.182,-81.157],[45.968,-80.648],
+  [41.960,-81.642],[39.591,-82.862],[39.479,-83.775],[39.593,-84.657],
+  [37.682,-87.605],[36.503,-89.107],[33.939,-88.784],[31.622,-86.860],
+  [31.368,-86.670],[30.779,-87.422],[30.212,-86.603]
+].map(p=>new THREE.Vector2(p[0],p[1]));
+function pointInMosel(x,y){
+  let inside=false;
+  for(let i=0,j=moselWorldPolygon.length-1;i<moselWorldPolygon.length;j=i++){
+    const a=moselWorldPolygon[i],b=moselWorldPolygon[j];
+    if(((a.y>y)!==(b.y>y)) &&
+       x<(b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x) inside=!inside;
+  }
+  return inside;
+}
+const moselBox=new THREE.Box2().setFromPoints(moselWorldPolygon);
+const moselCols=56,moselRows=24,moselVerts=[],moselIndices=[];
+for(let r=0;r<=moselRows;r++){
+  const y=THREE.MathUtils.lerp(moselBox.min.y,moselBox.max.y,r/moselRows);
+  for(let c=0;c<=moselCols;c++){
+    const x=THREE.MathUtils.lerp(moselBox.min.x,moselBox.max.x,c/moselCols);
+    moselVerts.push(x,y,.10);
+  }
+}
+for(let r=0;r<moselRows;r++) for(let c=0;c<moselCols;c++){
+  const cx=THREE.MathUtils.lerp(moselBox.min.x,moselBox.max.x,(c+.5)/moselCols);
+  const cy=THREE.MathUtils.lerp(moselBox.min.y,moselBox.max.y,(r+.5)/moselRows);
+  if(!pointInMosel(cx,cy)) continue;
+  const a=r*(moselCols+1)+c,b=a+1,d=(r+1)*(moselCols+1)+c,e=d+1;
+  moselIndices.push(a,b,d,b,e,d);
+}
+const moselWaterGeo=new THREE.BufferGeometry();
+moselWaterGeo.setAttribute('position',new THREE.Float32BufferAttribute(moselVerts,3));
+moselWaterGeo.setIndex(moselIndices);
 moselWaterGeo.computeVertexNormals();
 const moselWaterSurface=new THREE.Mesh(moselWaterGeo,waterMat);
-moselWaterSurface.position.z=.055;
+// Die Satellitenkarte liegt hier nahezu auf z=0. Die zusätzliche Höhe hält
+// selbst die tiefsten animierten Wellentäler sicher darüber und verhindert
+// dadurch Z-Fighting, schwarze Streifen und Flackern.
+moselWaterSurface.position.z=.34;
 moselWaterSurface.renderOrder=4;
 moselWaterSurface.frustumCulled=false;
 waterSurface.add(moselWaterSurface);
 
-let waterVisible=false;
+// Eine dezente Mosel-Grundtönung gleicht den sehr dunklen Satellitenuntergrund
+// an den Weiher an, ohne Spiegelung oder Wellen zu überdecken.
+const moselWaterBaseMat=new THREE.MeshBasicMaterial({
+  color:0x176081,transparent:true,opacity:.30,depthWrite:false,
+  side:THREE.DoubleSide
+});
+const moselWaterBase=new THREE.Mesh(moselWaterGeo,moselWaterBaseMat);
+moselWaterBase.position.z=.045;
+moselWaterBase.renderOrder=3;
+moselWaterBase.frustumCulled=false;
+waterSurface.add(moselWaterBase);
+
+let waterVisible=true;
 
 
 function refreshPinnedPointHeight(){
@@ -3668,8 +3719,8 @@ function starColorFromBV(bv){
 for(let i=0;i<starCount;i++){
   const s=starCatalog[i],c=starColorFromBV(s[3]);
   starColors.set(c,i*3);
-  starSizes[i]=Math.min(5.4,1.85+(3.4-s[2])*.78);
-  starAlphas[i]=Math.min(1.0,.72+(3.4-s[2])*.085);
+  starSizes[i]=Math.min(8.2,3.15+(3.4-s[2])*1.05);
+  starAlphas[i]=Math.min(1.0,.90+(3.4-s[2])*.055);
 }
 const starGeo=new THREE.BufferGeometry();
 starGeo.setAttribute('position',new THREE.BufferAttribute(starPositions,3));
@@ -3704,7 +3755,7 @@ const starMat=new THREE.ShaderMaterial({
       float d=length(gl_PointCoord-vec2(.5));
       float halo=1.0-smoothstep(.18,.50,d);
       float core=1.0-smoothstep(.02,.18,d);
-      float a=(halo*.48+core*.52)*vStarAlpha*opacity*vHorizon;
+      float a=(halo*.58+core*.78)*vStarAlpha*opacity*vHorizon;
       if(a<.015) discard;
       gl_FragColor=vec4(vStarColor,a);
     }
@@ -3730,19 +3781,31 @@ function updateAstronomicalStars(now,sunAltitude){
     starPositions[i*3+1]=north*radius;
     starPositions[i*3+2]=up*radius;
   }
+  // Für die Spiegelung werden nicht pauschal die global hellsten Sterne
+  // verwendet, sondern die derzeit tatsächlich über Zewens Horizont stehenden.
+  // So bleiben alle 32 Reflexionsplätze nachts sinnvoll belegt.
+  const visibleReflectionStars=starCatalog.map((s,i)=>({
+    i,mag:s[2],up:starPositions[i*3+2]
+  })).filter(x=>x.up>0).sort((a,b)=>a.mag-b.mag).slice(0,32);
   for(let k=0;k<32;k++){
-    const i=reflectionStarIndices[k];
+    const item=visibleReflectionStars[k];
+    if(!item){
+      waterUniforms.realStarDirs.value[k].set(0,0,-1);
+      waterUniforms.realStarBrightness.value[k]=0;
+      continue;
+    }
+    const i=item.i;
     waterUniforms.realStarDirs.value[k].set(
       starPositions[i*3],starPositions[i*3+1],starPositions[i*3+2]
     ).normalize();
     waterUniforms.realStarBrightness.value[k]=THREE.MathUtils.clamp(
-      (3.5-starCatalog[i][2])/4.94,.16,1.0
+      (4.0-starCatalog[i][2])/3.35,.46,1.55
     );
   }
   starGeo.attributes.position.needsUpdate=true;
   const darkness=THREE.MathUtils.clamp((-sunAltitude-.055)/.13,0,1);
   const clouds=(typeof liveWeather!=='undefined'?(liveWeather.cloud||0):0)/100;
-  starMat.uniforms.opacity.value=simulationEnabled ? darkness*(1-clouds*.94) : 0;
+  starMat.uniforms.opacity.value=simulationEnabled ? darkness*(1-clouds*.76) : 0;
   starField.visible=!is2D && starMat.uniforms.opacity.value>.01;
 }
 
