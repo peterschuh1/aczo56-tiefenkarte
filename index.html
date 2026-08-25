@@ -1216,7 +1216,7 @@ html,body{
          <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.17 · 25.08.2026<br>
+  FINAL V5.19 · 25.08.2026<br>
 Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1248,7 +1248,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.17 ONLINE';
+const VIEWER_VERSION='FINAL V5.19 ONLINE';
 const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
@@ -2838,7 +2838,7 @@ waterGeo.computeBoundingBox();
 
 const waterUniforms={
  time:{value:0},
- opacity:{value:0.31},
+ opacity:{value:0.49},
  deepColor:{value:new THREE.Color(0x237fb8)},
  lightColor:{value:new THREE.Color(0xc6efff)},
  cameraPos:{value:new THREE.Vector3()},
@@ -2852,7 +2852,9 @@ const waterUniforms={
  cloudWindSpeed:{value:0.25},
  cloudOffset:{value:new THREE.Vector2(0,0)},
  nightFactor:{value:0},
- underwaterView:{value:0}
+ underwaterView:{value:0},
+ realStarDirs:{value:Array.from({length:24},()=>new THREE.Vector3(0,0,-1))},
+ realStarBrightness:{value:new Float32Array(24)}
 };
 
 const waterMat=new THREE.ShaderMaterial({
@@ -2920,6 +2922,8 @@ const waterMat=new THREE.ShaderMaterial({
    uniform vec2 cloudOffset;
    uniform float nightFactor;
    uniform float underwaterView;
+   uniform vec3 realStarDirs[24];
+   uniform float realStarBrightness[24];
 
    varying vec3 vWorldPos;
    varying float vWave;
@@ -2979,24 +2983,15 @@ const waterMat=new THREE.ShaderMaterial({
      return smoothstep(threshold-.18,threshold+.18,n);
    }
 
-   float hash21(vec2 p){
-     p=fract(p*vec2(123.34,456.21));
-     p+=dot(p,p+45.32);
-     return fract(p.x*p.y);
-   }
-
    float reflectedStars(vec3 d){
-     // Fest am Himmel verankertes Sternfeld. Es hängt nur von der reflektierten
-     // Blickrichtung ab und wandert deshalb nicht auf der Wassertextur mit.
-     vec2 suv=vec2(atan(d.y,d.x)/6.2831853+.5,
-                   asin(clamp(d.z,-1.0,1.0))/3.1415927+.5);
-     vec2 grid=suv*vec2(310.0,155.0);
-     vec2 cell=floor(grid);
-     vec2 local=fract(grid);
-     float seed=hash21(cell);
-     vec2 point=vec2(hash21(cell+vec2(7.1,2.3)),hash21(cell+vec2(3.7,9.2)));
-     float dotStar=1.0-smoothstep(.018,.085,length(local-point));
-     return dotStar*step(.9825,seed)*(.55+.75*hash21(cell+11.4));
+     float result=0.0;
+     // Auf bewegtem Wasser bleiben realistisch nur die 24 hellsten Sterne
+     // als sehr kleine, gebrochene Lichtreflexe erkennbar.
+     for(int i=0;i<24;i++){
+       float alignment=dot(d,realStarDirs[i]);
+       result+=smoothstep(.99945,.99994,alignment)*realStarBrightness[i];
+     }
+     return min(result,1.0);
    }
 
    void main(){
@@ -3024,7 +3019,7 @@ const waterMat=new THREE.ShaderMaterial({
      vec3 daySky=mix(vec3(.58,.76,.90),vec3(.16,.47,.76),pow(reflectedHeight,.62));
      vec3 nightSky=mix(vec3(.075,.13,.20),vec3(.012,.035,.085),pow(reflectedHeight,.72));
      vec3 reflectedSky=mix(daySky,nightSky,clamp(nightFactor,0.0,1.0));
-     float mirrorAmount=(.10+fresnel*.34)*(1.0-clamp(underwaterView,0.0,1.0));
+     float mirrorAmount=(.24+fresnel*.36)*(1.0-clamp(underwaterView,0.0,1.0));
 
      vec2 cloudMirrorPos=vWorldPos.xy
        +reflectedView.xy/max(.16,reflectedView.z)*32.0;
@@ -3055,8 +3050,8 @@ const waterMat=new THREE.ShaderMaterial({
        *(1.0-smoothstep(48.0,68.0,abs(sunAlong)));
      float sunGlints=smoothstep(.48,.88,
        .52+.26*sin(sunAlong*1.34-time*1.7)+.22*sin(sunAlong*2.71+sunAcross*.58+time*.9));
-     float sunPath=sunRibbon*(.12+.88*glitter)*(.35+.65*broken)
-       *(.30+.70*sunGlints)*sunStrength*surfaceOnly;
+     float sunPath=sunRibbon*(.52+.48*glitter)*(.68+.32*broken)
+       *(.34+.66*sunGlints)*sunStrength*surfaceOnly;
 
      vec2 moonPathDir=length(moonDir.xy)>.001 ? normalize(moonDir.xy) : vec2(0.0,1.0);
      vec2 moonPathSide=vec2(-moonPathDir.y,moonPathDir.x);
@@ -3068,8 +3063,8 @@ const waterMat=new THREE.ShaderMaterial({
        *(1.0-smoothstep(48.0,68.0,abs(moonAlong)));
      float moonGlints=smoothstep(.46,.86,
        .52+.27*sin(moonAlong*1.48-time*1.45)+.21*sin(moonAlong*3.06+moonAcross*.67+time*.78));
-     float moonPath=moonRibbon*(.10+.90*glitter)*(.32+.68*broken)
-       *(.26+.74*moonGlints)*moonStrength*surfaceOnly;
+     float moonPath=moonRibbon*(.50+.50*glitter)*(.66+.34*broken)
+       *(.32+.68*moonGlints)*moonStrength*surfaceOnly;
 
      // V72: Wasserbewegung klar blau/türkis, nicht mehr weiß-wolkig.
      // Damit sind Wasserstruktur und echte Wolkenspiegelung sofort unterscheidbar.
@@ -3083,7 +3078,7 @@ const waterMat=new THREE.ShaderMaterial({
 
      float stars=reflectedStars(reflectedView)*nightFactor
        *(1.0-cloudAmount*.92)*surfaceOnly;
-     color+=vec3(.62,.76,1.0)*stars*(.12+.28*fresnel);
+     color+=vec3(.72,.83,1.0)*stars*(.48+.34*fresnel);
 
      float rippleLight=smoothstep(.58,.92,ripples);
      float rippleDark=1.0-smoothstep(.18,.48,ripples);
@@ -3106,7 +3101,7 @@ const waterMat=new THREE.ShaderMaterial({
      float sunTint=clamp(sunCore*.68+sunGlow*.30+sunPath*.62,0.0,.48);
      vec3 sunColored=color*vec3(1.13,1.075,.96)+vec3(.040,.024,.004);
      color=mix(color,sunColored,sunTint);
-     color+=vec3(.30,.22,.075)*sunPath*.62
+     color+=vec3(.38,.29,.10)*sunPath*.82
            +vec3(.055,.040,.012)*sunGlow*.22;
 
      // Mondreflex: eine breitere, kühle Reflexionsbahn. Die Richtung bleibt
@@ -3118,7 +3113,7 @@ const waterMat=new THREE.ShaderMaterial({
      float moonTint=clamp(moonCore*.92+moonGlow*.58+moonPath*.70,0.0,.50);
      vec3 moonColored=color*vec3(.94,1.13,1.34)+vec3(.012,.043,.095);
      color=mix(color,moonColored,moonTint);
-     color+=vec3(.25,.38,.58)*moonPath*.72
+     color+=vec3(.42,.56,.78)*moonPath*1.08
            +vec3(.018,.050,.095)*moonGlow*.32;
 
      // FINAL V4: Wasser wird nachts nur moderat dunkler.
@@ -3145,7 +3140,7 @@ const waterMat=new THREE.ShaderMaterial({
      color=mix(color,undersideTint,underwaterView*(.29+fresnel*.15));
      color+=vec3(.06,.25,.30)*underNet*underwaterView*.31;
      alpha+=underwaterView*(.23+fresnel*.11+underNet*.055);
-     gl_FragColor=vec4(color,clamp(alpha,.22,mix(.43,.76,underwaterView)));
+     gl_FragColor=vec4(color,clamp(alpha,.34,mix(.66,.82,underwaterView)));
    }
  `
 });
@@ -3650,28 +3645,68 @@ const windSpeed=document.getElementById('windSpeed');
 const SITE_LAT=49.70996681245;
 const SITE_LON=6.57746165865;
 
-// FINAL V5.17: sparsamer echter Sternhimmel. Die Sterne besitzen feste
-// Rektaszension/Deklination und werden über die lokale Sternzeit für Zewen
-// geografisch korrekt auf die Himmelskugel gesetzt.
-const starCount=380;
+// FINAL V5.18: reale helle Sterne aus HYG 4.1 (J2000, CC BY-SA 4.0).
+// Datenfelder: [Rektaszension rad, Deklination rad, visuelle Magnitude, B-V].
+const starCatalog=[[0.0365972,0.5077238,2.07,-0.04],[0.0400257,1.0323584,2.28,0.38],[0.0577524,0.2650037,2.83,-0.19],[0.1120281,-1.348341,2.82,0.62],[0.1146828,-0.7383787,2.4,1.08],[0.1715996,0.5386265,3.27,1.27],[0.176745,0.9867626,2.24,1.17],[0.1901946,-0.3139255,2.04,1.02],[0.2474379,1.059707,2.15,-0.05],[0.2883477,-0.8153901,3.32,0.89],[0.3042617,0.621696,2.07,1.58],[0.3744297,1.051304,2.66,0.16],[0.426355,-0.9989699,0.45,-0.16],[0.4991425,1.1112529,3.35,-0.15],[0.5002117,0.3631687,2.64,0.17],[0.5182191,-1.0745968,2.86,0.29],[0.5406115,0.7387931,2.1,1.37],[0.5548982,0.4094965,2.01,1.15],[0.5652401,0.6106435,3.0,0.14],[0.662287,1.5579526,1.97,0.64],[0.777812,-0.7034492,2.88,0.13],[0.7953444,0.0713793,2.54,1.63],[0.8063269,0.9338635,2.91,0.72],[0.8079836,0.6778907,3.32,1.53],[0.8210416,0.7148109,2.09,-0.0],[0.8915259,0.8702418,1.79,0.48],[0.9726936,0.8340501,3.01,-0.12],[0.9915115,-1.2957143,3.26,1.59],[0.9925888,0.420714,2.85,-0.09],[1.0215936,0.5564744,2.84,0.27],[1.037833,0.69831,2.9,-0.2],[1.0385993,-0.2357681,2.97,1.59],[1.1101352,-1.0903745,3.33,0.92],[1.1722604,0.2769992,3.4,0.18],[1.1955326,-0.9607161,3.3,-0.08],[1.2039308,0.2881417,0.87,1.54],[1.2646662,0.1214972,3.19,0.48],[1.2958792,0.5788575,2.69,1.49],[1.3175879,0.764861,3.03,0.54],[1.3328254,-0.3904482,3.19,1.46],[1.3374231,0.7196773,3.18,-0.15],[1.3432479,-0.0887752,2.78,0.16],[1.365422,-0.2828388,3.29,-0.11],[1.3724304,-0.1431456,0.18,-0.03],[1.3818164,0.8028164,0.08,0.8],[1.4157977,-0.0418381,3.35,-0.24],[1.4186519,0.1108232,1.64,-0.22],[1.4237169,0.4992942,1.65,-0.13],[1.4322406,-0.3623206,2.81,0.81],[1.4486525,-0.0052201,2.25,-0.17],[1.4518096,-0.3110576,2.58,0.21],[1.4623153,0.1733838,3.39,-0.16],[1.4636028,-0.1031472,2.75,-0.21],[1.4670083,-0.0209775,1.69,-0.18],[1.4732533,0.3690071,2.97,-0.15],[1.4819984,-0.5947054,2.65,-0.12],[1.4868407,-0.0339043,1.74,-0.2],[1.5173738,-0.1687664,2.07,-0.17],[1.5313508,-0.6242748,3.12,1.15],[1.5497291,0.1292776,0.45,1.5],[1.5687409,0.7844807,1.9,0.08],[1.5695792,0.6494821,2.65,-0.08],[1.6357124,0.3928177,3.31,1.6],[1.6594293,-0.5247047,3.02,-0.16],[1.6698426,-0.3133899,1.98,-0.24],[1.6709799,0.3929362,2.87,1.62],[1.6753053,-0.9197128,-0.62,0.16],[1.7353446,0.2862209,1.93,0.0],[1.7355606,-0.7539113,3.17,-0.1],[1.7624864,0.4386209,3.06,1.38],[1.7677954,-0.2917513,-1.44,0.01],[1.7684088,0.2250705,3.35,0.44],[1.781072,-1.0810812,3.24,0.23],[1.7886831,-0.8833907,2.94,1.21],[1.8265997,-0.5056583,1.5,-0.21],[1.8457928,-0.4159694,3.02,-0.08],[1.8692102,-0.4606482,1.83,0.67],[1.9073947,-0.647473,2.71,1.62],[1.9377302,-0.5114356,2.45,-0.08],[1.9510631,0.1446758,2.89,-0.1],[1.9601389,-0.7557526,3.25,1.51],[1.9835581,0.5565554,1.58,0.03],[2.004083,0.0911933,0.4,0.43],[2.0303268,0.4891494,1.16,0.99],[2.0476825,-0.4338851,3.34,1.22],[2.1100342,-0.6981866,2.21,-0.27],[2.127313,-0.4241905,2.83,0.46],[2.1359887,-0.8261793,1.75,-0.14],[2.1926317,-1.0386364,1.86,1.2],[2.2264548,1.059732,3.35,0.86],[2.2894511,-0.9548491,1.93,0.04],[2.2984905,0.1120294,3.38,0.69],[2.3360962,0.1037697,3.11,0.98],[2.3527461,0.838488,3.12,0.22],[2.391084,-0.7580417,2.23,1.67],[2.4138011,-1.2167948,1.67,0.07],[2.4307649,-1.0345479,2.21,0.19],[2.4480664,0.6002634,3.14,1.55],[2.4526838,-0.9601173,2.47,-0.14],[2.4765672,-0.1511211,1.99,1.44],[2.4924273,-0.9954377,3.16,1.54],[2.4995859,0.901939,3.17,0.47],[2.5562584,0.414939,2.97,0.81],[2.5617164,-1.1357208,2.92,0.27],[2.6545233,0.2088672,1.36,-0.09],[2.6779357,-1.222392,3.29,-0.07],[2.6925334,-1.0704506,3.39,1.54],[2.7051398,0.3462993,2.01,1.13],[2.7154238,0.7243032,3.06,1.6],[2.7577275,-1.0766121,3.3,-0.09],[2.8054289,-1.1238952,2.74,-0.22],[2.8220634,-0.8625462,2.69,0.9],[2.8345227,-0.2826325,3.11,1.23],[2.8878245,0.984059,2.34,0.03],[2.8960654,1.0777588,1.81,1.06],[2.9219592,0.7766451,3.0,1.14],[2.9413523,0.3582064,2.56,0.13],[2.9419274,0.2692968,3.33,-0.0],[3.0359207,-1.0999037,3.11,-0.04],[3.0938569,0.2543304,2.14,0.09],[3.1146713,0.9371504,2.41,0.04],[3.1780639,-0.8852733,2.58,-0.13],[3.1857703,-0.3947894,3.02,1.33],[3.2076779,-1.0253622,2.79,-0.19],[3.2088976,0.9954069,3.32,0.08],[3.2105603,-0.3061644,2.58,-0.11],[3.2576512,-1.1012869,0.77,-0.24],[3.2719004,-0.2882487,2.94,-0.01],[3.2775788,-0.9968136,1.59,1.6],[3.2916354,-0.4083505,2.65,0.89],[3.3038399,-1.2066432,2.69,-0.18],[3.3227502,-0.8545112,2.2,-0.02],[3.3233717,-0.0252964,2.74,0.37],[3.3435306,-1.1887109,3.04,-0.18],[3.3498172,-1.0417655,1.25,-0.24],[3.3773357,0.9766831,1.76,-0.02],[3.3842087,0.059297,3.39,1.57],[3.3860628,0.6687819,2.89,-0.12],[3.4128896,0.1912733,2.85,0.93],[3.4859528,-0.4044192,2.99,0.92],[3.4932667,-0.6407504,2.75,0.07],[3.5077838,0.9586284,2.23,0.06],[3.5133172,-0.1948018,0.98,-0.23],[3.5547697,-0.010399,3.38,0.11],[3.5774352,-0.9331646,2.29,-0.17],[3.6108298,0.8606788,1.85,-0.1],[3.6419989,0.3211007,2.68,0.58],[3.6457311,-0.8253378,2.55,-0.18],[3.6818756,-1.0537083,0.61,-0.23],[3.6929927,-0.4656951,3.25,1.09],[3.6943546,-0.6347754,2.06,1.01],[3.7335289,0.3347962,-0.05,1.24],[3.8051588,0.6686051,3.04,0.19],[3.8201206,-0.7357928,2.33,-0.16],[3.8380696,-1.0618286,1.35,0.9],[3.8381793,-1.0617532,-0.01,0.71],[3.8481429,-0.8270801,2.3,-0.15],[3.8506742,-1.1340301,3.18,0.26],[3.8614844,0.4725343,2.35,0.97],[3.8864394,1.2942577,2.07,1.47],[3.8871913,-0.2799818,2.75,0.15],[3.9205864,-0.7528296,2.68,-0.18],[3.9233322,-0.7348568,3.13,-0.21],[3.944751,-0.4412535,3.25,1.67],[4.0011976,-0.1637628,2.61,-0.07],[4.009505,-1.1986842,2.87,0.01],[4.0174381,1.2537401,3.0,0.06],[4.020244,-0.709433,3.22,-0.23],[4.0259565,-0.779981,3.37,-0.19],[4.0357669,1.029152,3.29,1.17],[4.0783444,0.4662594,2.22,0.03],[4.0803217,-0.7184955,2.8,-0.22],[4.1201459,0.1121483,2.63,1.17],[4.1676062,-1.107075,2.83,0.32],[4.1837807,-0.4557771,2.89,-0.18],[4.190245,-0.3948233,2.29,-0.12],[4.2125145,-0.3456704,2.56,-0.07],[4.2513849,-0.0644781,2.73,1.58],[4.2687327,-0.0818998,3.23,0.97],[4.2812428,-0.4466786,2.9,0.3],[4.2934733,1.0736256,2.73,0.91],[4.3171054,-0.4613255,1.06,1.86],[4.3206502,0.3750645,2.78,0.95],[4.3453575,-0.4924624,2.82,-0.21],[4.3509268,-0.1844305,2.54,0.04],[4.3689378,0.5515716,2.81,0.65],[4.4011297,-1.2047609,1.91,1.45],[4.4076754,-0.5985298,2.29,1.14],[4.4151181,-0.6640521,3.0,-0.2],[4.4404158,0.1636252,3.19,1.16],[4.4445698,-0.9772123,3.12,1.55],[4.4889296,1.1469376,3.17,-0.12],[4.4958725,-0.2744515,2.43,0.06],[4.5036176,-0.7546662,3.32,0.44],[4.5145019,0.2511587,2.78,1.16],[4.5161785,0.4335259,3.12,0.08],[4.5162457,0.6424411,3.16,1.44],[4.5466247,-0.4363244,3.27,-0.19],[4.5609812,-0.9691793,2.84,1.48],[4.5613933,-0.983977,3.31,-0.15],[4.5833776,0.9128314,2.79,0.95],[4.5848225,-0.6509347,2.7,-0.18],[4.5895252,-0.8705029,2.84,-0.14],[4.5972352,-0.6475838,1.62,-0.23],[4.6030199,0.219214,2.08,0.15],[4.6134236,-0.7504536,1.86,0.41],[4.6359781,-0.6812017,2.39,-0.17],[4.6402745,0.0797145,2.76,1.17],[4.6582169,-0.7003482,2.99,0.51],[4.6681357,-0.6465276,3.19,1.19],[4.6975808,0.8986507,2.24,1.52],[4.7081413,-0.1705821,3.32,0.99],[4.7377319,-0.5310006,2.98,0.98],[4.7893038,-0.6416125,3.1,1.58],[4.8039926,-0.5205986,2.72,1.38],[4.8053715,-0.050594,3.23,0.94],[4.8178596,-0.6001248,1.79,-0.03],[4.8344344,-0.4436924,2.82,1.02],[4.8735632,0.6769031,0.03,-0.0],[4.9116026,-0.4710779,3.17,-0.11],[4.9535298,-0.4589644,2.05,-0.13],[4.9695794,0.5705404,3.25,-0.05],[4.985585,-0.5215062,2.6,0.06],[4.9977946,0.2419633,2.99,0.01],[5.0044707,-0.48294,3.32,1.17],[5.0167912,-0.3669313,2.88,0.38],[5.0289633,1.1809167,3.07,0.99],[5.0854458,0.0543631,3.36,0.32],[5.1082357,0.4879885,3.05,1.09],[5.1704264,0.7876812,2.86,-0.0],[5.1760341,0.1852363,2.72,1.51],[5.1957722,0.1547814,0.76,0.22],[5.2853142,-0.0143372,3.24,-0.07],[5.3276665,-0.2579835,3.05,0.79],[5.3329774,0.7026116,2.23,0.67],[5.3478963,-0.9902141,1.94,-0.12],[5.3999045,-0.8253924,3.11,1.0],[5.4167686,0.790291,1.25,0.09],[5.4376199,0.5928928,2.48,1.02],[5.5542329,0.5275592,3.21,0.99],[5.5788481,1.0923243,2.45,0.26],[5.6228388,1.2315168,3.23,-0.2],[5.6354889,-0.0972353,2.9,0.83],[5.6905849,0.1723515,2.38,1.52],[5.7030407,-0.2814742,2.85,0.18],[5.7330945,-0.6521397,3.0,-0.08],[5.7848237,-0.0055825,2.95,0.97],[5.7955078,-0.8196236,1.73,-0.07],[5.8069481,1.0158036,3.39,1.56],[5.8403179,-1.0517282,2.87,1.39],[5.945756,-0.8182902,2.07,1.61],[5.9472192,0.5274602,2.93,0.85],[5.9980431,-0.2761254,3.27,0.07],[6.0111333,-0.5170056,1.17,0.14],[6.0378534,0.4901371,2.44,1.66],[6.0421592,0.2653819,2.49,-0.0],[6.1930792,1.3549388,3.21,1.03],[1.3817578,0.8028662,0.96,0.45],[1.9836087,0.5565946,2.85,0.45],[4.4958241,-0.2744866,3.4,0.45]];
+const starCount=starCatalog.length;
+const reflectionStarIndices=starCatalog
+  .map((s,i)=>({i,mag:s[2]})).sort((a,b)=>a.mag-b.mag).slice(0,24).map(x=>x.i);
 const starPositions=new Float32Array(starCount*3);
-const starCatalog=[];
-let starSeed=1956;
-function starRandom(){
-  starSeed=(starSeed*1664525+1013904223)>>>0;
-  return starSeed/4294967296;
+const starColors=new Float32Array(starCount*3);
+const starSizes=new Float32Array(starCount);
+const starAlphas=new Float32Array(starCount);
+
+function starColorFromBV(bv){
+  if(bv<-.08) return [.68,.80,1.0];
+  if(bv<.25) return [.82,.89,1.0];
+  if(bv<.70) return [1.0,.98,.91];
+  if(bv<1.15) return [1.0,.82,.60];
+  return [1.0,.61,.40];
 }
 for(let i=0;i<starCount;i++){
-  starCatalog.push({
-    ra:starRandom()*Math.PI*2,
-    dec:Math.asin(starRandom()*2-1)
-  });
+  const s=starCatalog[i],c=starColorFromBV(s[3]);
+  starColors.set(c,i*3);
+  starSizes[i]=Math.min(4.2,1.15+(3.4-s[2])*.72);
+  starAlphas[i]=Math.min(1.0,.50+(3.4-s[2])*.105);
 }
 const starGeo=new THREE.BufferGeometry();
 starGeo.setAttribute('position',new THREE.BufferAttribute(starPositions,3));
-const starMat=new THREE.PointsMaterial({
-  color:0xddeaff,size:1.45,sizeAttenuation:false,
-  transparent:true,opacity:0,depthWrite:false,depthTest:true
+starGeo.setAttribute('starColor',new THREE.BufferAttribute(starColors,3));
+starGeo.setAttribute('starSize',new THREE.BufferAttribute(starSizes,1));
+starGeo.setAttribute('starAlpha',new THREE.BufferAttribute(starAlphas,1));
+const starMat=new THREE.ShaderMaterial({
+  transparent:true,depthWrite:false,depthTest:true,
+  uniforms:{opacity:{value:0}},
+  vertexShader:`
+    attribute vec3 starColor;
+    attribute float starSize;
+    attribute float starAlpha;
+    varying vec3 vStarColor;
+    varying float vStarAlpha;
+    varying float vHorizon;
+    void main(){
+      vStarColor=starColor;
+      vStarAlpha=starAlpha;
+      // Sterne unterhalb des geografischen Horizonts vollständig ausblenden.
+      vHorizon=smoothstep(0.0,4.0,position.z);
+      gl_PointSize=starSize;
+      gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+    }
+  `,
+  fragmentShader:`
+    uniform float opacity;
+    varying vec3 vStarColor;
+    varying float vStarAlpha;
+    varying float vHorizon;
+    void main(){
+      float d=length(gl_PointCoord-vec2(.5));
+      float halo=1.0-smoothstep(.18,.50,d);
+      float core=1.0-smoothstep(.02,.18,d);
+      float a=(halo*.48+core*.52)*vStarAlpha*opacity*vHorizon;
+      if(a<.015) discard;
+      gl_FragColor=vec4(vStarColor,a);
+    }
+  `
 });
 const starField=new THREE.Points(starGeo,starMat);
 starField.renderOrder=-5;
@@ -3684,8 +3719,8 @@ function updateAstronomicalStars(now,sunAltitude){
   const lat=SITE_LAT*Math.PI/180;
   const radius=Math.max(D.sceneW,D.sceneH)*2.75;
   for(let i=0;i<starCount;i++){
-    const s=starCatalog[i],h=lst-s.ra;
-    const cd=Math.cos(s.dec),sd=Math.sin(s.dec);
+    const s=starCatalog[i],h=lst-s[0],dec=s[1];
+    const cd=Math.cos(dec),sd=Math.sin(dec);
     const east=-cd*Math.sin(h);
     const north=sd*Math.cos(lat)-cd*Math.cos(h)*Math.sin(lat);
     const up=sd*Math.sin(lat)+cd*Math.cos(h)*Math.cos(lat);
@@ -3693,11 +3728,20 @@ function updateAstronomicalStars(now,sunAltitude){
     starPositions[i*3+1]=north*radius;
     starPositions[i*3+2]=up*radius;
   }
+  for(let k=0;k<24;k++){
+    const i=reflectionStarIndices[k];
+    waterUniforms.realStarDirs.value[k].set(
+      starPositions[i*3],starPositions[i*3+1],starPositions[i*3+2]
+    ).normalize();
+    waterUniforms.realStarBrightness.value[k]=THREE.MathUtils.clamp(
+      (3.5-starCatalog[i][2])/4.94,.16,1.0
+    );
+  }
   starGeo.attributes.position.needsUpdate=true;
   const darkness=THREE.MathUtils.clamp((-sunAltitude-.055)/.13,0,1);
   const clouds=(typeof liveWeather!=='undefined'?(liveWeather.cloud||0):0)/100;
-  starMat.opacity=simulationEnabled ? darkness*(1-clouds*.94)*.88 : 0;
-  starField.visible=!is2D && starMat.opacity>.01;
+  starMat.uniforms.opacity.value=simulationEnabled ? darkness*(1-clouds*.94)*.92 : 0;
+  starField.visible=!is2D && starMat.uniforms.opacity.value>.01;
 }
 
 
