@@ -1216,7 +1216,7 @@ html,body{
          <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.14 · 25.08.2026<br>
+  FINAL V5.15 · 25.08.2026<br>
 Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1248,7 +1248,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.14 ONLINE';
+const VIEWER_VERSION='FINAL V5.15 ONLINE';
 const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
@@ -1848,8 +1848,14 @@ const satUniforms={
  pondUS:{value:D.pondW/D.sceneW},
  pondVS:{value:D.pondH/D.sceneH},
  // V36: globale Tageshelligkeit für Luftbild und Umgebung.
- dayLight:{value:1.0}
+ dayLight:{value:1.0},
+ celestialDir:{value:new THREE.Vector2(0,1)},
+ celestialStrength:{value:0},
+ celestialColor:{value:new THREE.Color(0xb8d8ff)},
+ celestialTime:{value:0},
+ sceneSize:{value:new THREE.Vector2(D.sceneW,D.sceneH)}
 };
+const celestialDirTemp=new THREE.Vector3();
 
 const satMat=new THREE.ShaderMaterial({
   transparent:true,
@@ -1872,6 +1878,11 @@ const satMat=new THREE.ShaderMaterial({
     uniform float pondUS;
     uniform float pondVS;
     uniform float dayLight;
+    uniform vec2 celestialDir;
+    uniform float celestialStrength;
+    uniform vec3 celestialColor;
+    uniform float celestialTime;
+    uniform vec2 sceneSize;
     varying vec2 vUv;
 
     void main(){
@@ -1892,6 +1903,22 @@ const satMat=new THREE.ShaderMaterial({
       float dl=clamp(dayLight,0.10,1.0);
       col*=mix(nightTint,vec3(1.0),dl);
       col*=dl;
+
+      // FINAL V5.15: eigener sichtbarer Lichtstrahl über dem Luftbild.
+      // Das Luftbild ist ein unbeleuchteter Shader und reagiert deshalb nicht
+      // auf Three.js-Lampen; die Aufhellung muss direkt hier erfolgen.
+      vec2 worldXY=(vUv-vec2(.5))*sceneSize;
+      vec2 cdir=length(celestialDir)>.001 ? normalize(celestialDir) : vec2(0.0,1.0);
+      vec2 cside=vec2(-cdir.y,cdir.x);
+      float along=dot(worldXY,cdir);
+      float across=abs(dot(worldXY,cside));
+      float beamWidth=9.0+(along+sceneSize.y*.5)*.045;
+      float beam=exp(-pow(across/max(beamWidth,2.0),2.0));
+      beam*=1.0-smoothstep(max(sceneSize.x,sceneSize.y)*.43,
+                           max(sceneSize.x,sceneSize.y)*.68,abs(along));
+      float beamBreak=.72+.28*(.5+.5*sin(along*.31+across*.47-celestialTime*.85));
+      col+=celestialColor*celestialStrength*beam*beamBreak*.42;
+      col=clamp(col,0.0,1.0);
 
       float alpha=1.0;
 
@@ -3029,10 +3056,11 @@ const waterMat=new THREE.ShaderMaterial({
      float sd=max(dot(Rs,V),0.0);
      float sunCore=pow(sd,20.0)*sunStrength;
      float sunGlow=pow(sd,4.2)*sunStrength*(.70+ripples*.30);
-     float sunTint=clamp(sunCore*.68+sunGlow*.30+sunPath*.38,0.0,.32);
+     float sunTint=clamp(sunCore*.68+sunGlow*.30+sunPath*.72,0.0,.58);
      vec3 sunColored=color*vec3(1.13,1.075,.96)+vec3(.040,.024,.004);
      color=mix(color,sunColored,sunTint);
-     color+=vec3(.055,.040,.012)*(sunGlow*.22+sunPath*.34);
+     color+=vec3(.34,.24,.075)*sunPath*.72
+           +vec3(.055,.040,.012)*sunGlow*.22;
 
      // Mondreflex: eine breitere, kühle Reflexionsbahn. Die Richtung bleibt
      // vollständig von Mondposition, Kameraposition und Wellennormale bestimmt.
@@ -3040,10 +3068,11 @@ const waterMat=new THREE.ShaderMaterial({
      float md=max(dot(Rm,V),0.0);
      float moonCore=pow(md,24.0)*moonStrength;
      float moonGlow=pow(md,3.2)*moonStrength*(.72+ripples*.28);
-     float moonTint=clamp(moonCore*.92+moonGlow*.58+moonPath*.40,0.0,.30);
+     float moonTint=clamp(moonCore*.92+moonGlow*.58+moonPath*.78,0.0,.62);
      vec3 moonColored=color*vec3(.94,1.13,1.34)+vec3(.012,.043,.095);
      color=mix(color,moonColored,moonTint);
-     color+=vec3(.018,.050,.095)*(moonGlow*.32+moonPath*.38);
+     color+=vec3(.18,.31,.52)*moonPath*.88
+           +vec3(.018,.050,.095)*moonGlow*.32;
 
      // FINAL V4: Wasser wird nachts nur moderat dunkler.
      // Gleichzeitig wird es minimal transparenter, damit Tiefenfarben/Konturen lesbar bleiben.
@@ -3057,7 +3086,7 @@ const waterMat=new THREE.ShaderMaterial({
      float alpha=(opacity-nightFactor*.035)
        + fresnel*.06
        + crest*.030
-       + min(.050,sunGlow*.020+moonGlow*.010+sunPath*.032+moonPath*.028)
+       + min(.16,sunGlow*.020+moonGlow*.010+sunPath*.13+moonPath*.15)
        + cloudRefl*.025;
 
      // Von unten: mehrere wandernde Brechungsmuster statt einer glatten Scheibe.
@@ -6949,6 +6978,33 @@ const clock=new THREE.Clock();
   updateBirds(dt);
   updateTraffic(dt);
   updateCarVisit(dt);
+
+  // FINAL V5.15: Sonnen-/Mondstrahl aktualisiert das ansonsten unbeleuchtete
+  // Satellitenbild unabhängig davon, ob die Wasseroberfläche eingeschaltet ist.
+  if(typeof satUniforms!=='undefined'){
+    satUniforms.celestialTime.value+=dt;
+    const useMoon=simulationEnabled && sceneNightFactor>.48;
+    const source=useMoon?moonLight:sun;
+    const dir3=celestialDirTemp.copy(source.position).sub(source.target.position).normalize();
+    satUniforms.celestialDir.value.set(dir3.x,dir3.y);
+    const cloudClear=1-Math.max(0,Math.min(1,(liveWeather.cloud||0)/100))*.82;
+    let celestialPower=0;
+    if(simulationEnabled){
+      if(useMoon){
+        let mf=.5;
+        try{if(typeof SunCalc!=='undefined') mf=SunCalc.getMoonIllumination(new Date()).fraction;}catch(e){}
+        celestialPower=(moonDisc.userData.astronomicallyVisible?(.18+.28*mf):0)*cloudClear;
+        satUniforms.celestialColor.value.set(0xb8d8ff);
+      }else{
+        celestialPower=(sun.visible ? .62 : 0)*cloudClear;
+        satUniforms.celestialColor.value.set(0xffe1a0);
+      }
+    }else{
+      celestialPower=.52;
+      satUniforms.celestialColor.value.set(0xffe1a0);
+    }
+    satUniforms.celestialStrength.value=celestialPower;
+  }
 
   updateFishView(dt);
   updateFishActors(dt);
