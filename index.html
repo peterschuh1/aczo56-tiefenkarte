@@ -967,12 +967,12 @@ html,body{
          <div class="help-item"><strong>📌 Tiefe abfragen</strong><span>Am Computer genügt Mouseover. Auf dem Smartphone die gewünschte Stelle antippen. Ein kleiner Pin zeigt dort die Wassertiefe an.</span></div>
          <div class="help-item"><strong>📏 Messen</strong><span>Messen aktivieren, Startpunkt setzen und gedrückt bis zur Zielstelle ziehen. Währenddessen wird die Entfernung live angezeigt. Nach dem Loslassen erscheinen Entfernung und Wassertiefe am Ziel.</span></div>
          <div class="help-item"><strong>💧 Wasser</strong><span>Blendet die animierte Wasseroberfläche ein oder aus. Bei aktivem Wasser sind deutlich wandernde blau-türkise Oberflächenzüge und Wellenkämme sichtbar, die sich optisch klar von Wolkenspiegelungen unterscheiden. Wolken am Himmel und ihre Spiegelungen auf dem Wasser verwenden jetzt denselben Welt-Versatz und ziehen deshalb exakt gemeinsam in derselben Richtung und Geschwindigkeit; die Winddaten stammen aus dem gemeldeten Wetter; ihre Dichte entspricht dem gemeldeten Bewölkungsgrad. Sonne und Mond spiegeln sich zusätzlich abhängig von Blickrichtung und Himmelsposition. Die Tiefenkarte bleibt darunter bewusst sichtbar.</span></div>
-         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte. Luftbild und Umgebung werden mit sinkendem Sonnenstand neutral dunkler. Die farbige Tiefenkarte behält nachts bewusst ihre kräftigen Tiefenfarben und ausreichend Resthelligkeit, damit Farbstufen und Konturen klar lesbar bleiben. Bei „Aus“ zeigt die Karte unabhängig von Uhrzeit und Wetter einen klaren, sonnigen Tag mit blauem Himmel und einer sichtbaren Sonne; Mond, Regen und Nachtwirkung sind dann deaktiviert.</span></div>
+         <div class="help-item"><strong>🌦️ Auto</strong><span>Steuert automatisch Tageslicht, Dämmerung, Nacht, Sonnen- und Mondposition sowie Wettereffekte. Luftbild, Umgebung und die farbigen Tiefenfüllungen reagieren auf die reale Lichtstimmung. Die dunklen Tiefenlinien bleiben davon unabhängig immer gleich kräftig. Bei „Aus“ werden die Tiefenfüllungen als neutrale Referenz in ihren unveränderten Originalfarben dargestellt – ohne Aufhellung, Abdunklung oder Wettereinfluss. Mond, Regen und Nachtwirkung sind dann deaktiviert.</span></div>
          <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Positionen richten sich nach Datum, Uhrzeit und Standort des Weihers. Sonnenauf- und -untergang sowie die aktuelle Mondphase werden angezeigt. Der Mond ist nachts größer sichtbar, zeigt die aktuelle zunehmende oder abnehmende Phase mit entsprechender beleuchteter Seite und erzeugt einen dezenten kühlen Lichtschein auf Gelände und Karte.</span></div>
          <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Bewölkung, Regen, Nebel und Lichtstimmung werden anhand aktueller Wetterdaten angepasst. Temperatur, Wind und Bewölkung stehen in der Infoanzeige.</span></div>
          <div class="help-item"><strong>🧭 Kompass</strong><span>Die Kompassrose zeigt N/O/S/W auch bei gedrehter 3D-Karte. Der blaue animierte Pfeil zeigt zusätzlich die aktuelle Windströmungsrichtung; die Windgeschwindigkeit steht kompakt oberhalb der Kompassrose.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetter-/Astronomiefenster, Tiefenlegende und Kompass gemeinsam ein oder aus. So kann die Karte bei Bedarf völlig frei und ohne zusätzliche Anzeigen betrachtet werden.</span></div>
-         <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die angezeigten Tiefen stammen aus der Vermessung des Vereinsweihers.</span></div>
+         <div class="help-item"><strong>🎨 Tiefenfarben & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Die Linienstärke bleibt unverändert und die dunklen Tiefenlinien werden als feste Kartografie unabhängig von Wetter, Sonne, Mond und Tageszeit dargestellt. Im Modus „Auto“ dürfen nur die farbigen Füllungen auf die reale Beleuchtung reagieren. Bei „Aus“ erscheinen diese Füllungen ohne Lichteffekt in ihren definierten Originalfarben. Die angezeigten Tiefen stammen aus der Vermessung des Vereinsweihers.</span></div>
          <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Fußgänger und Fahrräder bewegen sich ausschließlich auf der fest eingemessenen Radweg-Trasse entlang der Mosel. Fußgänger und Fahrräder werden ausschließlich in der 3D-Ansicht dargestellt und bewegen sich dort auf der fest eingemessenen Radweg-Trasse. In der 2D-Karte ist der Publikumsverkehr ausgeblendet. Die Route und Positionen sind in beiden Ansichten identisch.</span></div>
          <div class="help-item"><strong>🐦 Vögel</strong><span>In der 3D-Ansicht fliegen tagsüber gelegentlich unterschiedlich große und gefärbte Vögel mit variierendem Flugstil und zufälliger Flugrichtung über die Karte; manchmal erscheint ein kleines Paar. Nachts gibt es keine Vögel. Bei sichtbarer Sonne wird ihr Schatten abhängig von Sonnenstand und Flughöhe gut sichtbar auf das Satellitenbild bzw. die Wasser-/Tiefenkarte projiziert. Auf dem weißen Außenbereich wird kein Schatten dargestellt. In 2D sind die Vögel ausgeblendet.</span></div>
        </div>
@@ -1196,6 +1196,15 @@ const pondMat=new THREE.MeshPhongMaterial({
 const pond=new THREE.Mesh(pondGeo,pondMat);
 pond.renderOrder=2;
 scene.add(pond);
+const pondNeutralMat=new THREE.MeshBasicMaterial({
+  vertexColors:true,
+  side:THREE.DoubleSide,
+  toneMapped:false
+});
+const pondNeutral=new THREE.Mesh(pondGeo,pondNeutralMat);
+pondNeutral.renderOrder=2;
+pondNeutral.visible=false;
+scene.add(pondNeutral);
 
 const contourGroup=new THREE.Group();
 scene.add(contourGroup);
@@ -1204,7 +1213,7 @@ for(const seg of D.contours){
  for(let i=0;i<seg.x.length;i++) arr.push(seg.x[i],seg.y[i],-seg.level+.035);
  const g=new THREE.BufferGeometry();
  g.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
- const m=new THREE.LineBasicMaterial({color:0x0b0f11,transparent:false,opacity:1,depthTest:true,depthWrite:false});
+ const m=new THREE.LineBasicMaterial({color:0x090d0f,transparent:false,opacity:1,depthTest:true,depthWrite:false,toneMapped:false});
  const line=new THREE.Line(g,m);
  line.renderOrder=3;
  line.userData={level:seg.level,major:seg.major};
@@ -1776,6 +1785,13 @@ function applyDayLightLevel(level,skyColor){
 }
 
 function applyWeatherScene(){
+  // FINAL V2: Nur die farbigen Füllungen reagieren im Auto-Modus auf Licht/Wetter.
+  // Bei Wetter AUS zeigt eine unbeleuchtete Kopie exakt die Original-Tiefenfarben.
+  if(typeof pond!=='undefined' && typeof pondNeutral!=='undefined'){
+    pond.visible=simulationEnabled;
+    pondNeutral.visible=!simulationEnabled;
+  }
+
   if(!simulationEnabled && typeof pondMat!=='undefined'){
     pondMat.emissiveIntensity=0;
   }
@@ -1958,8 +1974,9 @@ simBtn.onclick=()=>{
     applyWeatherScene();
     updateWeatherText();
   }else{
-    // V62: Wettermodell AUS = bewusst schöner, klarer Sonnentag.
-    // Keine reale Tageszeit, kein Mond, kein Regen/Nebel. Genau eine sichtbare Sonne.
+    // FINAL V2: Wettermodell AUS = neutrale Tiefenkarten-Referenz.
+    // Die Umgebung bleibt hell; die Tiefenfüllungen selbst bleiben unverändert
+    // und werden nicht von Sonne, Tageszeit oder Wetter beeinflusst.
     sun.visible=true;
 
     // V65: künstliche Tagessonne sicher im sichtbaren Himmel der Nordansicht.
