@@ -1216,7 +1216,7 @@ html,body{
          <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.9 · 25.08.2026<br>
+  FINAL V5.10 · 25.08.2026<br>
 Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1248,7 +1248,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.9 ONLINE';
+const VIEWER_VERSION='FINAL V5.10 ONLINE';
 const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
@@ -6209,6 +6209,11 @@ function enterFishView(){
     disc.material.fog=false;
     disc.material.needsUpdate=true;
   });
+  // Unter Wasser: Himmel zuerst, Wasserfläche danach, Fische zuletzt.
+  // So kann ein naher Fisch Sonne oder Mond optisch korrekt verdecken.
+  moonGlow.renderOrder=3.70;
+  sunDisc.renderOrder=3.80;
+  moonDisc.renderOrder=3.80;
   document.querySelector('.wrap').classList.add('fish-mode');
   fishMiniMap.style.display='block';
   fishViewBtn.classList.add('on');
@@ -6291,6 +6296,9 @@ function finishLeavingFishView(){
     disc.material.opacity=1;
     disc.material.needsUpdate=true;
   });
+  sunDisc.renderOrder=1000;
+  moonDisc.renderOrder=1000;
+  moonGlow.renderOrder=999;
   fishWheelThrust=0;
   fishTouchPointers.clear();fishTouchForward=0;fishTouchStrafe=0;
   fishTouchImpulseForward=0;fishTouchImpulseStrafe=0;fishTouchTwoLast=null;
