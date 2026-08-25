@@ -1216,7 +1216,7 @@ html,body{
          <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.13 · 25.08.2026<br>
+  FINAL V5.14 · 25.08.2026<br>
 Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1248,7 +1248,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.13 ONLINE';
+const VIEWER_VERSION='FINAL V5.14 ONLINE';
 const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
@@ -2974,7 +2974,6 @@ const waterMat=new THREE.ShaderMaterial({
      // Wasseroberfläche. Sie beginnt in Kamerarichtung, läuft zum projizierten
      // Sonnen-/Mondstand und zerfällt durch die bewegten kleinen Wellen.
      // Unter Wasser bleibt sie aus; dort wirkt weiterhin das einfallende Licht.
-     vec2 relToCamera=vWorldPos.xy-cameraPos.xy;
      float surfaceOnly=1.0-clamp(underwaterView,0.0,1.0);
      float glitter=smoothstep(.38,.88,ripples*.62+shimmer*.38);
      float broken=.38+.62*smoothstep(-.28,.58,
@@ -2982,21 +2981,26 @@ const waterMat=new THREE.ShaderMaterial({
 
      vec2 sunPathDir=length(sunDir.xy)>.001 ? normalize(sunDir.xy) : vec2(0.0,1.0);
      vec2 sunPathSide=vec2(-sunPathDir.y,sunPathDir.x);
-     float sunAlong=dot(relToCamera,sunPathDir);
-     float sunAcross=abs(dot(relToCamera,sunPathSide));
-     float sunWidth=2.5+max(sunAlong,0.0)*.052;
+     // Die Bahn wird auf der realen Weihermitte verankert. Die Kamera verschiebt
+     // sie nur leicht seitlich; so kann die Spiegelachse nicht mehr am kleinen,
+     // sichtbaren Wasserpolygon vorbeilaufen.
+     float sunAlong=dot(vWorldPos.xy,sunPathDir);
+     float sunLateral=clamp(dot(cameraPos.xy,sunPathSide)*.10,-5.0,5.0);
+     float sunAcross=abs(dot(vWorldPos.xy,sunPathSide)-sunLateral);
+     float sunWidth=4.3+(sunAlong+55.0)*.035;
      float sunRibbon=exp(-pow(sunAcross/max(sunWidth,.5),2.0))
-       *smoothstep(-2.0,7.0,sunAlong)*(1.0-smoothstep(175.0,235.0,sunAlong));
-     float sunPath=sunRibbon*(.28+.72*glitter)*broken*sunStrength*surfaceOnly;
+       *(1.0-smoothstep(48.0,68.0,abs(sunAlong)));
+     float sunPath=sunRibbon*(.46+.54*glitter)*(.62+.38*broken)*sunStrength*surfaceOnly;
 
      vec2 moonPathDir=length(moonDir.xy)>.001 ? normalize(moonDir.xy) : vec2(0.0,1.0);
      vec2 moonPathSide=vec2(-moonPathDir.y,moonPathDir.x);
-     float moonAlong=dot(relToCamera,moonPathDir);
-     float moonAcross=abs(dot(relToCamera,moonPathSide));
-     float moonWidth=1.8+max(moonAlong,0.0)*.040;
+     float moonAlong=dot(vWorldPos.xy,moonPathDir);
+     float moonLateral=clamp(dot(cameraPos.xy,moonPathSide)*.10,-4.0,4.0);
+     float moonAcross=abs(dot(vWorldPos.xy,moonPathSide)-moonLateral);
+     float moonWidth=3.2+(moonAlong+55.0)*.026;
      float moonRibbon=exp(-pow(moonAcross/max(moonWidth,.5),2.0))
-       *smoothstep(-2.0,6.0,moonAlong)*(1.0-smoothstep(170.0,225.0,moonAlong));
-     float moonPath=moonRibbon*(.25+.75*glitter)*broken*moonStrength*surfaceOnly;
+       *(1.0-smoothstep(48.0,68.0,abs(moonAlong)));
+     float moonPath=moonRibbon*(.44+.56*glitter)*(.60+.40*broken)*moonStrength*surfaceOnly;
 
      // V72: Wasserbewegung klar blau/türkis, nicht mehr weiß-wolkig.
      // Damit sind Wasserstruktur und echte Wolkenspiegelung sofort unterscheidbar.
@@ -5709,9 +5713,11 @@ function updateUnderwaterEffects(dt){
   const lightDir=night>.48?waterUniforms.moonDir.value:waterUniforms.sunDir.value;
   fishLightGlow.position.copy(camera.position).addScaledVector(lightDir,12);
   fishLightGlowMat.color.set(night>.48?0xa9d4ff:0xffe3a8);
-  fishLightGlowMat.opacity=((1-night)*.115+night*(.025+.050*moonFraction))
-    *(1-cloud*.84)*(.93+.07*Math.sin(underwaterFxTime*.17));
-  fishLightGlow.scale.setScalar((night>.48?8.8:11.8)*(1+cloud*.08));
+  // FINAL V5.14: von unten deutlich erkennbarer, aber weiterhin weicher
+  // Helligkeitsbereich im Einfallswinkel statt geometrischer Lichtbalken.
+  fishLightGlowMat.opacity=((1-night)*.175+night*(.060+.095*moonFraction))
+    *(1-cloud*.82)*(.91+.09*Math.sin(underwaterFxTime*.17));
+  fishLightGlow.scale.setScalar((night>.48?13.0:16.5)*(1+cloud*.08));
   fishLightGlow.visible=fishLightGlowMat.opacity>.004;
 
   for(let i=0;i<suspendedCount;i++){
