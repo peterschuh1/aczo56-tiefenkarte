@@ -1216,7 +1216,7 @@ html,body{
          <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.8 · 25.08.2026<br>
+  FINAL V5.9 · 25.08.2026<br>
 Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1248,7 +1248,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.8 ONLINE';
+const VIEWER_VERSION='FINAL V5.9 ONLINE';
 const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
@@ -2050,12 +2050,11 @@ moonDisc.renderOrder=1000;
 moonDisc.scale.set(22,22,1);
 
 scene.add(moonDisc);
-// Die astronomischen Lichtquellen arbeiten auch unter Wasser weiter. Ihre
-// sichtbaren Scheiben werden in der Fischsicht jedoch vollständig verborgen.
+// Die astronomischen Lichtquellen arbeiten auch unter Wasser weiter. Der
+// Kamerabildausschnitt entscheidet natürlich, wann ihre Scheiben verschwinden.
 let hideCelestialDiscsForFishMode=false;
-let underwaterLookUpFactor=0;
 function celestialDiscAllowedForView(){
-  return !hideCelestialDiscsForFishMode||underwaterLookUpFactor>.08;
+  return true;
 }
 
 // V42: weicher Lichtschein um den Mond
@@ -6202,7 +6201,6 @@ function enterFishView(){
   rebuildUnderwaterObjects();
   fishMode=true;
   hideCelestialDiscsForFishMode=true;
-  underwaterLookUpFactor=0;
   sunDisc.visible=false;moonDisc.visible=false;
   if(typeof moonGlow!=='undefined') moonGlow.visible=false;
   [sunDisc,moonDisc,moonGlow].forEach(disc=>{
@@ -6286,7 +6284,6 @@ function leaveFishView(){
 function finishLeavingFishView(){
   fishMode=false;
   hideCelestialDiscsForFishMode=false;
-  underwaterLookUpFactor=0;
   [sunDisc,moonDisc,moonGlow].forEach(disc=>{
     if(!disc||!disc.material) return;
     disc.material.depthTest=false;
@@ -6585,19 +6582,18 @@ function updateFishView(dt){
   enforceFishCameraBounds();
   camera.up.set(0,0,1);
   camera.lookAt(camera.position.clone().add(forward));
-  // Himmelskörper sind unter Wasser nur durch die Oberfläche beim Aufblicken
-  // sichtbar. Tiefentest verhindert ein Durchscheinen durch Böschung/Boden.
-  underwaterLookUpFactor=fishPitch;
+  // Sonne und Mond bleiben im Raum vorhanden und verlassen den sichtbaren
+  // Ausschnitt erst auf natürliche Weise. Der Tiefentest verhindert weiterhin
+  // ein Durchscheinen durch Böschung oder Gewässerboden.
   if(hideCelestialDiscsForFishMode){
-    const lookingUp=underwaterLookUpFactor>.08;
     const sunAstronomical=simulationEnabled
       ? !!sunDisc.userData.astronomicallyVisible
       : true;
     const moonAstronomical=simulationEnabled
       ? !!moonDisc.userData.astronomicallyVisible
       : false;
-    sunDisc.visible=lookingUp&&sunAstronomical;
-    moonDisc.visible=lookingUp&&moonAstronomical;
+    sunDisc.visible=sunAstronomical;
+    moonDisc.visible=moonAstronomical;
     if(typeof moonGlow!=='undefined') moonGlow.visible=moonDisc.visible;
     if(sunDisc.material) sunDisc.material.opacity=.66;
     if(moonDisc.material) moonDisc.material.opacity=.72;
