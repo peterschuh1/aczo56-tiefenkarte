@@ -1072,11 +1072,12 @@ html,body{
          <div class="help-item"><strong>🎨 Tiefenfarben, Licht & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Wie in den frühen Viewer-Versionen reagiert die echte 3D-Tiefengeometrie über verstärkte Geländenormalen auf das gerichtete Sonnen- und Mondlicht: dem Licht zugewandte Böschungen werden leicht heller, abgewandte Seiten etwas dunkler. Dadurch entsteht Reliefwirkung, ohne die Tiefenfarben weiß zu überstrahlen. Es gibt keine zusätzliche Licht- oder Schattenfläche. Pro Tiefenstufe wird weiterhin genau eine einzelne, feine und geometrisch am Gewässergrund verankerte Linie verwendet; deshalb können weder Doppelkonturen noch frei schwebende Linien entstehen. Im Auto-Nachtmodus werden dieselben Linien lediglich heller eingefärbt.</span></div>
          <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Fußgänger und Fahrräder bewegen sich ausschließlich auf der fest eingemessenen Radweg-Trasse entlang der Mosel. Fußgänger und Fahrräder werden ausschließlich in der 3D-Ansicht dargestellt und bewegen sich dort auf der fest eingemessenen Radweg-Trasse. In der 2D-Karte ist der Publikumsverkehr ausgeblendet. Die Route und Positionen sind in beiden Ansichten identisch.</span></div>
          <div class="help-item"><strong>🚶 Verkehr & Fahrradlicht</strong><span>Tagsüber bewegen sich Fußgänger und Fahrräder ausschließlich auf der festgelegten Fahrwegroute. Nachts verschwinden die Fußgänger und der Verkehr wird stark reduziert: Nur gelegentlich fährt ein einzelnes Fahrrad die Strecke vollständig ab. Sein warmweißer, weich auslaufender Frontscheinwerfer und das kleine rote Rücklicht folgen exakt der Fahrtrichtung und beleuchten die Satellitenansicht entlang der Route. Nach der Durchfahrt bleibt die Straße für eine längere zufällige Pause leer.</span></div>
+         <div class="help-item"><strong>🚗 Besucher auf dem Grundstück</strong><span>Zwischen astronomischer Morgendämmerung und Abenddämmerung fährt gelegentlich ein unterschiedlich gefärbtes Auto über die festgelegte Grundstücksspur zum Halteplatz. Dort steigen zufällig ein bis drei Personen aus, bewegen sich 60–120 Sekunden mit eigenen Wegen und kurzen Pausen innerhalb des festgelegten Areals, kehren zum Auto zurück und fahren dieselbe Strecke rückwärts hinaus. Bis zum nächsten Besuch vergehen zufällig zwei bis fünf Minuten. Diese Animation erscheint ausschließlich in 3D.</span></div>
          <div class="help-item"><strong>🐦 Vögel</strong><span>In der 3D-Ansicht fliegen tagsüber gelegentlich unterschiedlich große und gefärbte Vögel mit variierendem Flugstil und zufälliger Flugrichtung über die Karte; manchmal erscheint ein kleines Paar. Nachts gibt es keine Vögel. Bei sichtbarer Sonne wird ihr Schatten abhängig von Sonnenstand und Flughöhe gut sichtbar auf das Satellitenbild bzw. die Wasser-/Tiefenkarte projiziert. Auf dem weißen Außenbereich wird kein Schatten dargestellt. In 2D sind die Vögel ausgeblendet.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-FINAL V4.6 · 25.08.2026 · 04:02 Uhr<br>
-Sonne am Tag und Mond in der Nacht immer sichtbar · gekrümmte, unterbrochene Windrippel von Ufer zu Ufer · Wolkenwirkung auf Wasser +10 % · einzelne klassische Tiefenkontur ohne Doppelpass · transparente Wetterwolken · UI nachts unverändert hell
+FINAL V5.1 · 25.08.2026<br>
+Astronomisches Tageslicht und Reflexionen · windgerichtete Wasserbewegung · kontrastreiche Nachtkonturen · realistischer Radwegverkehr · 3D-Besucherfahrzeuge mit Personenbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
 Tiefenkarte und Darstellung: AC 1956 Zewen-Oberkirch e. V.<br>
@@ -1107,8 +1108,8 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V4.6';
-const VIEWER_BUILD='25.08.2026 04:02';
+const VIEWER_VERSION='FINAL V5.1';
+const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
 // als "Script error.". Solange unser Viewer weiterläuft, ist das keine hilfreiche
@@ -4489,6 +4490,274 @@ function updateRainRipples(dt){
   }
 }
 
+// =========================================================
+// PC-TEST: Autos, Aussteigen, Personenbewegung und Rückfahrt
+// =========================================================
+const CAR_ROUTE_RAW=[
+  [98.734,49.114],[88.392,53.695],[76.956,44.367],
+  [68.526,32.646],[63.320,27.055]
+];
+const PERSON_AREA_RAW=[
+  [72.872,42.202],[66.202,50.306],[73.015,40.602],
+  [79.386,33.071],[57.769,17.849],[54.273,22.167]
+];
+const carRoute=CAR_ROUTE_RAW.map(p=>new THREE.Vector3(p[0],p[1],.38));
+const personArea=PERSON_AREA_RAW.map(p=>({x:p[0],y:p[1]}));
+const carRouteSegments=[];
+let carRouteLength=0;
+for(let i=0;i<carRoute.length-1;i++){
+  const a=carRoute[i],b=carRoute[i+1],len=a.distanceTo(b);
+  carRouteSegments.push({a,b,len,start:carRouteLength});
+  carRouteLength+=len;
+}
+
+function carRouteSample(distance,outPos,outDir){
+  const d=THREE.MathUtils.clamp(distance,0,carRouteLength);
+  let seg=carRouteSegments[carRouteSegments.length-1];
+  for(const s of carRouteSegments){
+    if(d<=s.start+s.len){seg=s;break;}
+  }
+  const u=seg.len ? (d-seg.start)/seg.len : 0;
+  outPos.copy(seg.a).lerp(seg.b,u);
+  outDir.copy(seg.b).sub(seg.a).normalize();
+}
+
+function createTestCar(color){
+  const g=new THREE.Group();
+  g.userData.kind='test-car';
+  const paint=new THREE.MeshPhongMaterial({color,shininess:58,specular:0x5b6770});
+  const dark=new THREE.MeshPhongMaterial({color:0x171c20,shininess:22});
+  const glass=new THREE.MeshPhongMaterial({
+    color:0x8db3c5,transparent:true,opacity:.78,shininess:90
+  });
+
+  const body=new THREE.Mesh(new THREE.BoxGeometry(1.85,3.85,.72),paint);
+  body.position.z=.72;
+  g.add(body);
+  const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.58,1.82,.64),glass);
+  cabin.position.set(0,-.12,1.32);
+  g.add(cabin);
+  const bonnet=new THREE.Mesh(new THREE.BoxGeometry(1.72,1.05,.24),paint);
+  bonnet.position.set(0,1.38,1.02);
+  g.add(bonnet);
+
+  const wheelGeo=new THREE.CylinderGeometry(.35,.35,.22,14);
+  [[-.96,-1.18,.45],[.96,-1.18,.45],[-.96,1.18,.45],[.96,1.18,.45]].forEach(p=>{
+    const w=new THREE.Mesh(wheelGeo,dark);
+    w.rotation.z=Math.PI/2;
+    w.position.set(...p);
+    g.add(w);
+  });
+
+  const lampMat=new THREE.MeshBasicMaterial({color:0xfff1b0,toneMapped:false});
+  const rearMat=new THREE.MeshBasicMaterial({color:0xd71912,toneMapped:false});
+  [-.56,.56].forEach(x=>{
+    const front=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),lampMat);
+    front.position.set(x,1.94,.80);g.add(front);
+    const rear=new THREE.Mesh(new THREE.SphereGeometry(.11,8,6),rearMat);
+    rear.position.set(x,-1.94,.76);g.add(rear);
+  });
+  return g;
+}
+
+const personColors=[0x385d7a,0x8a4936,0x436e4e,0x6d4f82,0x9a742d,0x4e5862];
+function createVisitPerson(index){
+  const p=createWalker();
+  p.scale.setScalar(.86+Math.random()*.14);
+  p.traverse(o=>{
+    if(o.isMesh && o.material && o.material.color && o.geometry.type==='CylinderGeometry'){
+      o.material=o.material.clone();
+      o.material.color.setHex(personColors[(index+Math.floor(Math.random()*personColors.length))%personColors.length]);
+    }
+  });
+  return {
+    obj:p,
+    target:new THREE.Vector3(),
+    speed:.72+Math.random()*.48,
+    pause:0,
+    returned:false
+  };
+}
+
+function pointInPersonArea(x,y){
+  let inside=false;
+  for(let i=0,j=personArea.length-1;i<personArea.length;j=i++){
+    const a=personArea[i],b=personArea[j];
+    const hit=((a.y>y)!==(b.y>y)) &&
+      (x<(b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x);
+    if(hit) inside=!inside;
+  }
+  return inside;
+}
+
+const areaBounds=personArea.reduce((b,p)=>({
+  minX:Math.min(b.minX,p.x),maxX:Math.max(b.maxX,p.x),
+  minY:Math.min(b.minY,p.y),maxY:Math.max(b.maxY,p.y)
+}),{minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity});
+
+function randomPersonAreaPoint(out){
+  for(let n=0;n<120;n++){
+    const x=THREE.MathUtils.lerp(areaBounds.minX,areaBounds.maxX,Math.random());
+    const y=THREE.MathUtils.lerp(areaBounds.minY,areaBounds.maxY,Math.random());
+    if(pointInPersonArea(x,y)) return out.set(x,y,.42);
+  }
+  return out.set(carRoute[carRoute.length-1].x,carRoute[carRoute.length-1].y,.42);
+}
+
+const carTestGroup=new THREE.Group();
+scene.add(carTestGroup);
+let carTestWait=8+Math.random()*12;
+let currentVisit=null;
+let previousCarColor=-1;
+const carPalette=[0x2f5e85,0x8a2e2e,0x485447,0x8b8d91,0x6f4b31,0x25313b];
+const carPosTmp=new THREE.Vector3();
+const carDirTmp=new THREE.Vector3();
+
+function chooseNextCarColor(){
+  let index=Math.floor(Math.random()*carPalette.length);
+  if(index===previousCarColor) index=(index+1)%carPalette.length;
+  previousCarColor=index;
+  return carPalette[index];
+}
+
+function spawnCarVisit(){
+  const count=1+Math.floor(Math.random()*3);
+  const car=createTestCar(chooseNextCarColor());
+  carRouteSample(0,car.position,carDirTmp);
+  car.rotation.z=Math.atan2(-carDirTmp.x,carDirTmp.y);
+  carTestGroup.add(car);
+  currentVisit={
+    state:'arriving',
+    car,
+    distance:0,
+    speed:4.2+Math.random()*1.2,
+    personCount:count,
+    people:[],
+    stay:60+Math.random()*60
+  };
+}
+
+function movePersonToward(person,target,dt){
+  const dx=target.x-person.obj.position.x;
+  const dy=target.y-person.obj.position.y;
+  const dist=Math.hypot(dx,dy);
+  if(dist<.16) return true;
+  const step=Math.min(dist,person.speed*dt);
+  person.obj.position.x+=dx/dist*step;
+  person.obj.position.y+=dy/dist*step;
+  person.obj.rotation.z=Math.atan2(-dx,dy);
+  return false;
+}
+
+function startPeopleRoaming(visit){
+  const stop=carRoute[carRoute.length-1];
+  for(let i=0;i<visit.personCount;i++){
+    const p=createVisitPerson(i);
+    p.obj.position.set(stop.x+(i-1)*.45,stop.y-.55,.42);
+    randomPersonAreaPoint(p.target);
+    carTestGroup.add(p.obj);
+    visit.people.push(p);
+  }
+  visit.state='roaming';
+}
+
+function disposeSceneTree(obj){
+  obj.traverse(o=>{
+    if(o.geometry) o.geometry.dispose();
+    if(o.material){
+      const mats=Array.isArray(o.material)?o.material:[o.material];
+      mats.forEach(m=>m.dispose());
+    }
+  });
+}
+
+function finishCarVisit(){
+  if(!currentVisit) return;
+  for(const p of currentVisit.people){
+    carTestGroup.remove(p.obj);
+    disposeSceneTree(p.obj);
+  }
+  carTestGroup.remove(currentVisit.car);
+  disposeSceneTree(currentVisit.car);
+  currentVisit=null;
+  carTestWait=120+Math.random()*180;
+}
+
+function carTrafficDaytimeAllowed(){
+  try{
+    if(typeof SunCalc!=='undefined'){
+      // Bürgerliche Dämmerung: früher Morgen bis zum Ende der Abenddämmerung.
+      return SunCalc.getPosition(new Date(),SITE_LAT,SITE_LON).altitude>-0.105;
+    }
+  }catch(e){}
+  const h=new Date().getHours();
+  return h>=6 && h<21;
+}
+
+function updateCarVisit(dt){
+  const daytime=carTrafficDaytimeAllowed();
+  carTestGroup.visible=!is2D && daytime;
+
+  // In 2D nur ausblenden und pausieren; beim Zurückwechseln läuft derselbe
+  // Besuch an derselben Stelle weiter.
+  if(is2D) return;
+
+  // Nach Ende der Abenddämmerung darf kein Besuch auf dem Grundstück bleiben.
+  // Ein eventuell laufender Ablauf wird sauber entfernt; morgens beginnt eine
+  // neue Wartezeit.
+  if(!daytime){
+    if(currentVisit) finishCarVisit();
+    carTestGroup.visible=false;
+    return;
+  }
+
+  const scaledDt=dt;
+  if(!currentVisit){
+    carTestWait-=scaledDt;
+    if(carTestWait<=0) spawnCarVisit();
+    return;
+  }
+  const v=currentVisit;
+
+  if(v.state==='arriving'){
+    v.distance=Math.min(carRouteLength,v.distance+v.speed*scaledDt);
+    carRouteSample(v.distance,v.car.position,carDirTmp);
+    v.car.rotation.z=Math.atan2(-carDirTmp.x,carDirTmp.y);
+    if(v.distance>=carRouteLength) startPeopleRoaming(v);
+  }else if(v.state==='roaming'){
+    v.stay-=scaledDt;
+    for(const p of v.people){
+      if(p.pause>0){p.pause-=scaledDt;continue;}
+      if(movePersonToward(p,p.target,scaledDt)){
+        p.pause=1.5+Math.random()*5;
+        randomPersonAreaPoint(p.target);
+      }
+    }
+    if(v.stay<=0){
+      v.state='returning';
+      const stop=carRoute[carRoute.length-1];
+      v.people.forEach((p,i)=>p.target.set(stop.x+(i-1)*.34,stop.y-.25,.42));
+    }
+  }else if(v.state==='returning'){
+    let all=true;
+    for(const p of v.people){
+      if(!p.returned){
+        if(movePersonToward(p,p.target,scaledDt)){
+          p.returned=true;
+          p.obj.visible=false;
+        }else all=false;
+      }
+    }
+    if(all) v.state='departing';
+  }else if(v.state==='departing'){
+    v.distance=Math.max(0,v.distance-v.speed*scaledDt);
+    carRouteSample(v.distance,v.car.position,carDirTmp);
+    carDirTmp.multiplyScalar(-1);
+    v.car.rotation.z=Math.atan2(-carDirTmp.x,carDirTmp.y);
+    if(v.distance<=0) finishCarVisit();
+  }
+}
+
 const clock=new THREE.Clock();
 
 (function loop(){
@@ -4510,6 +4779,8 @@ const clock=new THREE.Clock();
 
   // V40: Personen und Fahrräder ausschließlich auf der markierten Radwegroute.
   updateTraffic(dt);
+
+  updateCarVisit(dt);
  if(waterVisible){
    waterUniforms.time.value += dt*.48;
    waterUniforms.cameraPos.value.copy(camera.position);
