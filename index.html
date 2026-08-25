@@ -1216,7 +1216,7 @@ html,body{
          <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.11 · 25.08.2026<br>
+  FINAL V5.13 · 25.08.2026<br>
 Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
@@ -1248,7 +1248,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.11 ONLINE';
+const VIEWER_VERSION='FINAL V5.13 ONLINE';
 const VIEWER_BUILD='25.08.2026';
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
@@ -1735,6 +1735,27 @@ const fishLightShafts=new THREE.Group();
   fishLightShafts.add(m);
 });
 fishLightShafts.visible=false;fishLightShafts.renderOrder=2.85;scene.add(fishLightShafts);
+
+// Ein einziger weicher, richtungsgebundener Lichtschein ersetzt sichtbare
+// Lichtkegel-Geometrien. Er sitzt in der realen Richtung des Himmelskörpers.
+const fishLightGlowCanvas=document.createElement('canvas');
+fishLightGlowCanvas.width=fishLightGlowCanvas.height=256;
+const fishLightGlowCtx=fishLightGlowCanvas.getContext('2d');
+const fishLightGlowGradient=fishLightGlowCtx.createRadialGradient(128,128,4,128,128,126);
+fishLightGlowGradient.addColorStop(0,'rgba(255,255,255,.72)');
+fishLightGlowGradient.addColorStop(.22,'rgba(220,242,255,.34)');
+fishLightGlowGradient.addColorStop(.58,'rgba(170,220,245,.11)');
+fishLightGlowGradient.addColorStop(1,'rgba(120,190,225,0)');
+fishLightGlowCtx.fillStyle=fishLightGlowGradient;
+fishLightGlowCtx.fillRect(0,0,256,256);
+const fishLightGlowTex=new THREE.CanvasTexture(fishLightGlowCanvas);
+const fishLightGlowMat=new THREE.SpriteMaterial({
+  map:fishLightGlowTex,color:0xb8dcff,transparent:true,opacity:0,
+  depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending,fog:false
+});
+const fishLightGlow=new THREE.Sprite(fishLightGlowMat);
+fishLightGlow.scale.set(10.5,10.5,1);
+fishLightGlow.renderOrder=4.65;fishLightGlow.visible=false;scene.add(fishLightGlow);
 
 const contourGroup=new THREE.Group();
 scene.add(contourGroup);
@@ -2949,6 +2970,34 @@ const waterMat=new THREE.ShaderMaterial({
      float fine=(fine1*.68+fine2*.32)*.5+.5;
      float ripples=surfaceRipples(vWorldPos.xy);
 
+     // FINAL V5.13: perspektivisch korrekte, längliche Glitzerbahn auf der
+     // Wasseroberfläche. Sie beginnt in Kamerarichtung, läuft zum projizierten
+     // Sonnen-/Mondstand und zerfällt durch die bewegten kleinen Wellen.
+     // Unter Wasser bleibt sie aus; dort wirkt weiterhin das einfallende Licht.
+     vec2 relToCamera=vWorldPos.xy-cameraPos.xy;
+     float surfaceOnly=1.0-clamp(underwaterView,0.0,1.0);
+     float glitter=smoothstep(.38,.88,ripples*.62+shimmer*.38);
+     float broken=.38+.62*smoothstep(-.28,.58,
+       sin(flow*.43+cross*.91)*sin(flow*.19-cross*1.37+1.4));
+
+     vec2 sunPathDir=length(sunDir.xy)>.001 ? normalize(sunDir.xy) : vec2(0.0,1.0);
+     vec2 sunPathSide=vec2(-sunPathDir.y,sunPathDir.x);
+     float sunAlong=dot(relToCamera,sunPathDir);
+     float sunAcross=abs(dot(relToCamera,sunPathSide));
+     float sunWidth=2.5+max(sunAlong,0.0)*.052;
+     float sunRibbon=exp(-pow(sunAcross/max(sunWidth,.5),2.0))
+       *smoothstep(-2.0,7.0,sunAlong)*(1.0-smoothstep(175.0,235.0,sunAlong));
+     float sunPath=sunRibbon*(.28+.72*glitter)*broken*sunStrength*surfaceOnly;
+
+     vec2 moonPathDir=length(moonDir.xy)>.001 ? normalize(moonDir.xy) : vec2(0.0,1.0);
+     vec2 moonPathSide=vec2(-moonPathDir.y,moonPathDir.x);
+     float moonAlong=dot(relToCamera,moonPathDir);
+     float moonAcross=abs(dot(relToCamera,moonPathSide));
+     float moonWidth=1.8+max(moonAlong,0.0)*.040;
+     float moonRibbon=exp(-pow(moonAcross/max(moonWidth,.5),2.0))
+       *smoothstep(-2.0,6.0,moonAlong)*(1.0-smoothstep(170.0,225.0,moonAlong));
+     float moonPath=moonRibbon*(.25+.75*glitter)*broken*moonStrength*surfaceOnly;
+
      // V72: Wasserbewegung klar blau/türkis, nicht mehr weiß-wolkig.
      // Damit sind Wasserstruktur und echte Wolkenspiegelung sofort unterscheidbar.
      vec3 waterDark=vec3(.055,.28,.46);
@@ -2976,10 +3025,10 @@ const waterMat=new THREE.ShaderMaterial({
      float sd=max(dot(Rs,V),0.0);
      float sunCore=pow(sd,20.0)*sunStrength;
      float sunGlow=pow(sd,4.2)*sunStrength*(.70+ripples*.30);
-     float sunTint=clamp(sunCore*.68+sunGlow*.30,0.0,.24);
+     float sunTint=clamp(sunCore*.68+sunGlow*.30+sunPath*.38,0.0,.32);
      vec3 sunColored=color*vec3(1.13,1.075,.96)+vec3(.040,.024,.004);
      color=mix(color,sunColored,sunTint);
-     color+=vec3(.055,.040,.012)*sunGlow*.22;
+     color+=vec3(.055,.040,.012)*(sunGlow*.22+sunPath*.34);
 
      // Mondreflex: eine breitere, kühle Reflexionsbahn. Die Richtung bleibt
      // vollständig von Mondposition, Kameraposition und Wellennormale bestimmt.
@@ -2987,10 +3036,10 @@ const waterMat=new THREE.ShaderMaterial({
      float md=max(dot(Rm,V),0.0);
      float moonCore=pow(md,24.0)*moonStrength;
      float moonGlow=pow(md,3.2)*moonStrength*(.72+ripples*.28);
-     float moonTint=clamp(moonCore*.92+moonGlow*.58,0.0,.28);
+     float moonTint=clamp(moonCore*.92+moonGlow*.58+moonPath*.40,0.0,.30);
      vec3 moonColored=color*vec3(.94,1.13,1.34)+vec3(.012,.043,.095);
      color=mix(color,moonColored,moonTint);
-     color+=vec3(.018,.050,.095)*moonGlow*.32;
+     color+=vec3(.018,.050,.095)*(moonGlow*.32+moonPath*.38);
 
      // FINAL V4: Wasser wird nachts nur moderat dunkler.
      // Gleichzeitig wird es minimal transparenter, damit Tiefenfarben/Konturen lesbar bleiben.
@@ -3004,7 +3053,7 @@ const waterMat=new THREE.ShaderMaterial({
      float alpha=(opacity-nightFactor*.035)
        + fresnel*.06
        + crest*.030
-       + min(.030,sunGlow*.020+moonGlow*.010)
+       + min(.050,sunGlow*.020+moonGlow*.010+sunPath*.032+moonPath*.028)
        + cloudRefl*.025;
 
      // Von unten: mehrere wandernde Brechungsmuster statt einer glatten Scheibe.
@@ -5655,14 +5704,15 @@ function updateUnderwaterEffects(dt){
   // Tagsüber klar erkennbar, nachts als wesentlich schwächeres Mondlichtmuster.
   fishCausticUniforms.intensity.value=(1-cloud*.60)*((1-night)*1.16+night*(.27+.13*moonFraction));
   fishBottomDetailUniforms.intensity.value=.82+(1-cloud)*.18;
-  fishLightShaftMat.opacity=((1-night)*.064+night*(.014+.028*moonFraction))
-    *(1-cloud*.82)*(.86+.14*Math.sin(underwaterFxTime*.19));
-  fishLightShaftMat.color.set(night>.48?0x9fcbed:0xc3ead7);
+  // Keine sichtbaren Rechteck-Kegel mehr.
+  fishLightShafts.visible=false;
   const lightDir=night>.48?waterUniforms.moonDir.value:waterUniforms.sunDir.value;
-  const beamAngle=Math.atan2(lightDir.y,lightDir.x)+Math.PI/2;
-  fishLightShafts.children.forEach(m=>{
-    m.rotation.z=beamAngle+(m.userData.angleOffset||0)*.18;
-  });
+  fishLightGlow.position.copy(camera.position).addScaledVector(lightDir,12);
+  fishLightGlowMat.color.set(night>.48?0xa9d4ff:0xffe3a8);
+  fishLightGlowMat.opacity=((1-night)*.115+night*(.025+.050*moonFraction))
+    *(1-cloud*.84)*(.93+.07*Math.sin(underwaterFxTime*.17));
+  fishLightGlow.scale.setScalar((night>.48?8.8:11.8)*(1+cloud*.08));
+  fishLightGlow.visible=fishLightGlowMat.opacity>.004;
 
   for(let i=0;i<suspendedCount;i++){
     const k=i*3,ph=suspendedPhase[i];
@@ -6250,7 +6300,8 @@ function enterFishView(){
   fishShoreTalus.visible=true;
   fishPlantMesh.visible=true;
   fishCaustics.visible=true;
-  fishLightShafts.visible=true;
+  fishLightShafts.visible=false;
+  fishLightGlow.visible=true;
   fishShadows.visible=true;
   suspendedWater.visible=true;
   bubblePool.points.visible=true;
@@ -6336,6 +6387,7 @@ function finishLeavingFishView(){
   if(fishPlantMesh) fishPlantMesh.visible=false;
   fishCaustics.visible=false;
   fishLightShafts.visible=false;
+  fishLightGlow.visible=false;
   fishShadows.visible=false;fishShadows.count=0;
   suspendedWater.visible=false;
   bubblePool.points.visible=false;
@@ -6517,7 +6569,8 @@ function updateFishView(dt){
   fishShoreTalus.visible=true;
   if(fishPlantMesh) fishPlantMesh.visible=true;
   fishCaustics.visible=true;
-  fishLightShafts.visible=true;
+  fishLightShafts.visible=false;
+  fishLightGlow.visible=true;
   fishShadows.visible=true;
   suspendedWater.visible=true;
   bubblePool.points.visible=true;
