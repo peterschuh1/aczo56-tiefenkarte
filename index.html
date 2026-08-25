@@ -1071,6 +1071,7 @@ html,body{
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetter-/Astronomiefenster, Tiefenlegende und Kompass gemeinsam ein oder aus. So kann die Karte bei Bedarf völlig frei und ohne zusätzliche Anzeigen betrachtet werden.</span></div>
          <div class="help-item"><strong>🎨 Tiefenfarben, Licht & Linien</strong><span>Farben und Höhenlinien visualisieren den Gewässergrund. Wie in den frühen Viewer-Versionen reagiert die echte 3D-Tiefengeometrie über verstärkte Geländenormalen auf das gerichtete Sonnen- und Mondlicht: dem Licht zugewandte Böschungen werden leicht heller, abgewandte Seiten etwas dunkler. Dadurch entsteht Reliefwirkung, ohne die Tiefenfarben weiß zu überstrahlen. Es gibt keine zusätzliche Licht- oder Schattenfläche. Pro Tiefenstufe wird weiterhin genau eine einzelne, feine und geometrisch am Gewässergrund verankerte Linie verwendet; deshalb können weder Doppelkonturen noch frei schwebende Linien entstehen. Im Auto-Nachtmodus werden dieselben Linien lediglich heller eingefärbt.</span></div>
          <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Fußgänger und Fahrräder bewegen sich ausschließlich auf der fest eingemessenen Radweg-Trasse entlang der Mosel. Fußgänger und Fahrräder werden ausschließlich in der 3D-Ansicht dargestellt und bewegen sich dort auf der fest eingemessenen Radweg-Trasse. In der 2D-Karte ist der Publikumsverkehr ausgeblendet. Die Route und Positionen sind in beiden Ansichten identisch.</span></div>
+         <div class="help-item"><strong>🚶 Verkehr & Fahrradlicht</strong><span>Tagsüber bewegen sich Fußgänger und Fahrräder ausschließlich auf der festgelegten Fahrwegroute. Nachts verschwinden die Fußgänger und der Verkehr wird stark reduziert: Nur gelegentlich fährt ein einzelnes Fahrrad die Strecke vollständig ab. Sein warmweißer, weich auslaufender Frontscheinwerfer und das kleine rote Rücklicht folgen exakt der Fahrtrichtung und beleuchten die Satellitenansicht entlang der Route. Nach der Durchfahrt bleibt die Straße für eine längere zufällige Pause leer.</span></div>
          <div class="help-item"><strong>🐦 Vögel</strong><span>In der 3D-Ansicht fliegen tagsüber gelegentlich unterschiedlich große und gefärbte Vögel mit variierendem Flugstil und zufälliger Flugrichtung über die Karte; manchmal erscheint ein kleines Paar. Nachts gibt es keine Vögel. Bei sichtbarer Sonne wird ihr Schatten abhängig von Sonnenstand und Flughöhe gut sichtbar auf das Satellitenbild bzw. die Wasser-/Tiefenkarte projiziert. Auf dem weißen Außenbereich wird kein Schatten dargestellt. In 2D sind die Vögel ausgeblendet.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
@@ -2590,8 +2591,8 @@ const waterMat=new THREE.ShaderMaterial({
      float md=max(dot(Rm,V),0.0);
      float moonCore=pow(md,38.0)*moonStrength;
      float moonGlow=pow(md,8.0)*moonStrength;
-     float moonTint=clamp(moonCore*.34+moonGlow*.085,0.0,.075);
-     vec3 moonColored=color*vec3(.985,1.025,1.09)+vec3(.002,.007,.018);
+     float moonTint=clamp(moonCore*.70+moonGlow*.30,0.0,.12);
+     vec3 moonColored=color*vec3(.96,1.10,1.28)+vec3(.008,.025,.055);
      color=mix(color,moonColored,moonTint);
 
      // FINAL V4: Wasser wird nachts nur moderat dunkler.
@@ -3797,6 +3798,65 @@ function createBike(){
   return g;
 }
 
+// FINAL V5.1: weicher Lichtkegel, der flach auf der vorhandenen Kartenfläche
+// liegt. Er ist keine zusätzliche Straßen- oder Geländegeometrie.
+function createBikeLight(){
+  const group=new THREE.Group();
+
+  const c=document.createElement('canvas');
+  c.width=256; c.height=512;
+  const ctx=c.getContext('2d');
+  const grad=ctx.createLinearGradient(128,500,128,18);
+  grad.addColorStop(0,'rgba(255,247,205,.68)');
+  grad.addColorStop(.18,'rgba(255,238,164,.42)');
+  grad.addColorStop(.62,'rgba(255,226,128,.14)');
+  grad.addColorStop(1,'rgba(255,220,120,0)');
+  ctx.fillStyle=grad;
+  ctx.beginPath();
+  ctx.moveTo(116,506);
+  ctx.quadraticCurveTo(70,260,18,18);
+  ctx.quadraticCurveTo(128,-2,238,18);
+  ctx.quadraticCurveTo(186,260,140,506);
+  ctx.closePath();
+  ctx.fill();
+
+  const tex=new THREE.CanvasTexture(c);
+  tex.encoding=THREE.sRGBEncoding;
+  const beam=new THREE.Mesh(
+    new THREE.PlaneGeometry(5.8,14.0),
+    new THREE.MeshBasicMaterial({
+      map:tex,transparent:true,depthWrite:false,depthTest:true,
+      blending:THREE.AdditiveBlending,toneMapped:false,opacity:.78,
+      polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2
+    })
+  );
+  beam.position.set(0,6.55,.19);
+  beam.renderOrder=12;
+  group.add(beam);
+
+  const rc=document.createElement('canvas');
+  rc.width=rc.height=128;
+  const rctx=rc.getContext('2d');
+  const rg=rctx.createRadialGradient(64,64,4,64,64,60);
+  rg.addColorStop(0,'rgba(255,32,18,.90)');
+  rg.addColorStop(.28,'rgba(235,12,8,.48)');
+  rg.addColorStop(1,'rgba(180,0,0,0)');
+  rctx.fillStyle=rg; rctx.fillRect(0,0,128,128);
+  const rear=new THREE.Mesh(
+    new THREE.PlaneGeometry(1.35,1.35),
+    new THREE.MeshBasicMaterial({
+      map:new THREE.CanvasTexture(rc),transparent:true,depthWrite:false,
+      depthTest:true,blending:THREE.AdditiveBlending,toneMapped:false
+    })
+  );
+  rear.position.set(0,-.72,.205);
+  rear.renderOrder=13;
+  group.add(rear);
+  group.visible=false;
+  scene.add(group);
+  return group;
+}
+
 var trafficGroup=new THREE.Group();
 trafficGroup.renderOrder=30;
 scene.add(trafficGroup);
@@ -3939,15 +3999,49 @@ for(const a of trafficActors){
 for(const a of trafficActors){
   a.marker2D=make2DMarker(a.obj.userData.kind);
   traffic2DGroup.add(a.marker2D);
+  if(a.obj.userData.kind==='bike') a.nightLight=createBikeLight();
 }
 
 const _routePos=new THREE.Vector3();
 const _routeDir=new THREE.Vector3();
+let nightBikeActor=null;
+let nightBikeActiveTime=0;
+let nightBikeWait=8+Math.random()*18;
 
 function updateTraffic(dt){
-  if(!radwegGesamtlaenge || !trafficGroup.visible) return;
+  if(!radwegGesamtlaenge) return;
+
+  const nightTraffic=simulationEnabled && sceneNightFactor>.55;
+  if(nightTraffic){
+    if(nightBikeActiveTime>0){
+      nightBikeActiveTime-=dt;
+      if(nightBikeActiveTime<=0){
+        nightBikeActor=null;
+        nightBikeWait=70+Math.random()*110;
+      }
+    }else{
+      nightBikeWait-=dt;
+      if(nightBikeWait<=0){
+        const bikes=trafficActors.filter(a=>a.obj.userData.kind==='bike');
+        nightBikeActor=bikes[Math.floor(Math.random()*bikes.length)];
+        nightBikeActor.dir=Math.random()<.5 ? 1 : -1;
+        nightBikeActor.t=nightBikeActor.dir>0 ? .015 : .985;
+        nightBikeActiveTime=radwegGesamtlaenge/nightBikeActor.speed*.97;
+      }
+    }
+  }else{
+    nightBikeActor=null;
+    nightBikeActiveTime=0;
+    nightBikeWait=8+Math.random()*18;
+  }
 
   for(const a of trafficActors){
+    const active=!nightTraffic || a===nightBikeActor;
+    a.obj.visible=active;
+    if(a.marker2D) a.marker2D.visible=active;
+    if(a.nightLight) a.nightLight.visible=nightTraffic && active;
+    if(!active) continue;
+
     a.t += (a.speed/radwegGesamtlaenge)*dt*a.dir;
 
     // Exakte Position auf der vom Nutzer festgelegten Polyline.
@@ -3958,6 +4052,7 @@ function updateTraffic(dt){
     radwegRichtung(a.t,_routeDir);
     if(a.dir<0) _routeDir.multiplyScalar(-1);
     a.obj.rotation.z=Math.atan2(-_routeDir.x,_routeDir.y);
+    const routeAngle=a.obj.rotation.z;
 
     // Leicht über dem Luftbild, damit nichts im Boden verschwindet.
     a.obj.position.z=0.34;
@@ -3965,6 +4060,10 @@ function updateTraffic(dt){
     // V48: 2D-Symbol folgt exakt derselben Route und Position.
     if(a.marker2D){
       a.marker2D.position.set(_routePos.x,_routePos.y,1.25);
+    }
+    if(a.nightLight){
+      a.nightLight.position.set(_routePos.x,_routePos.y,0);
+      a.nightLight.rotation.z=routeAngle;
     }
   }
 }
@@ -4425,8 +4524,15 @@ const clock=new THREE.Clock();
    }
    if(typeof moonLight!=='undefined'){
      waterUniforms.moonDir.value.copy(moonLight.position).sub(moonLight.target.position).normalize();
+     let moonFraction=.5;
+     try{
+       if(typeof SunCalc!=='undefined') moonFraction=SunCalc.getMoonIllumination(new Date()).fraction;
+     }catch(e){}
+     const moonCloud=1-Math.max(0,Math.min(1,(liveWeather.cloud||0)/100))*.68;
+     // Die Wasserreflexion bleibt auch bei dichter Bewölkung erkennbar.
+     // Ihre Stärke ist getrennt vom sehr schwachen Gelände-Mondlicht.
      waterUniforms.moonStrength.value=(moonDisc.visible && simulationEnabled)
-       ? Math.min(0.75,Math.max(0,moonLight.intensity))
+       ? Math.min(.46,(.20+.38*moonFraction)*moonCloud)
        : 0.0;
    }
 
