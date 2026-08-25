@@ -9,16 +9,13 @@
 html,body{margin:0;background:#ffffff;color:#183126;font-family:Arial,Helvetica,sans-serif}
 .wrap{max-width:1180px;margin:auto;padding:10px}
 .controls{
-  display:flex;
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
   align-items:center;
   gap:6px;
-  flex-wrap:nowrap;
   margin-bottom:9px;
   width:100%;
-  overflow-x:auto;
-  overflow-y:hidden;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
+  overflow:visible;
 }
 .controls::-webkit-scrollbar{display:none}
 button{
@@ -417,6 +414,7 @@ button.on{background:#176d3d;color:white;border-color:#176d3d}
   padding:5px 6px !important;
   min-height:28px;
   line-height:1.05;
+  white-space:normal;
 }
 @media(max-width:650px){
   .controls{gap:2px}
@@ -1011,7 +1009,7 @@ html,body{
 
 .fish-view-btn{
   position:absolute;left:12px;bottom:12px;z-index:40;
-  width:auto;min-width:52px;max-width:190px;height:44px;min-height:44px;
+  width:auto;min-width:178px;max-width:270px;height:46px;min-height:46px;
   padding:7px 12px!important;border:2px solid rgba(255,255,255,.85);
   border-radius:999px;background:rgba(15,78,50,.92);color:#fff;
   font-size:12px!important;font-weight:900;box-shadow:0 4px 14px rgba(0,0,0,.28)
@@ -1111,7 +1109,7 @@ html,body{
   background:rgba(100,190,207,.48);border:1px solid rgba(255,255,255,.45)
 }
 @media(max-width:700px){
-  .fish-view-btn{left:7px;bottom:7px;height:38px;min-height:38px;padding:5px 9px!important;font-size:10px!important}
+  .fish-view-btn{left:7px;bottom:7px;min-width:166px;max-width:210px;height:40px;min-height:40px;padding:5px 9px!important;font-size:10px!important}
   .fish-view-info{font-size:8px;bottom:52px;max-width:94%;white-space:normal;text-align:center}
   .fish-identify{bottom:70px;max-width:82%;padding:9px 12px}
   .wrap.fish-mode #viewer canvas.fish-minimap{right:9px}
@@ -1128,6 +1126,16 @@ html,body{
   .fish-hint-touch{display:inline}
 }
 
+.celestial-lens-flare{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .16s linear;mix-blend-mode:screen}
+.celestial-lens-flare i{position:absolute;left:50%;top:50%;border-radius:50%;transform:translate(-50%,-50%);will-change:left,top,opacity}
+.celestial-lens-flare .flare-source{width:74px;height:74px;background:radial-gradient(circle,rgba(255,255,244,.42) 0,rgba(255,224,145,.15) 28%,rgba(255,190,95,.04) 55%,transparent 72%);filter:blur(1.2px)}
+.celestial-lens-flare .flare-ring-a{width:58px;height:58px;border:3px solid rgba(112,212,255,.20);box-shadow:0 0 12px rgba(80,190,255,.10),inset 0 0 10px rgba(255,126,205,.10)}
+.celestial-lens-flare .flare-ring-b{width:34px;height:34px;border:4px solid rgba(255,122,192,.17);box-shadow:0 0 9px rgba(255,196,88,.13)}
+.celestial-lens-flare .flare-ring-c{width:86px;height:86px;border:2px solid rgba(255,214,102,.12);box-shadow:inset 0 0 14px rgba(94,214,255,.10)}
+.celestial-lens-flare .flare-streak{width:230px;height:34px;border-radius:50%;background:linear-gradient(90deg,transparent,rgba(104,206,255,.10),rgba(255,241,176,.30),rgba(255,126,205,.09),transparent);filter:blur(6px)}
+.celestial-lens-flare.moon .flare-source{filter:blur(1.2px) hue-rotate(155deg) saturate(.55)}
+@media(max-width:700px){.controls{grid-template-columns:repeat(5,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -1137,22 +1145,22 @@ html,body{
     <span class="view-seg view-seg-2d">2D</span>
     <span class="view-seg view-seg-3d">3D</span>
   </button>
-  <button id="s1" class="on">1:1</button>
-  <button id="s2">2× Tiefe</button>
+  <button id="waterBtn" class="on" aria-label="Wasser ein- oder ausblenden">💧 Wasser: AN</button>
+  <button id="simBtn" class="on" aria-label="Live-Wetter oder neutrale Darstellung">🌦️ Wetter: LIVE</button>
   <button id="resetView" aria-label="Ansicht zurücksetzen">↻ Reset</button>
-
-  <button id="locBtn" aria-label="Mein Standort">📍 Ort</button>
-  <button id="measureBtn" aria-label="Entfernung messen">📏 Messen</button>
-  <button id="waterBtn" aria-label="Wasser ein- oder ausblenden">💧 Wasser</button>
-  <button id="simBtn" class="on" aria-label="Tag-Nacht- und Wettersimulation">🌦️ Auto</button>
-  <button id="overlayBtn" class="on" aria-label="Legenden und Kompass ein- oder ausblenden">👁️ Anzeigen</button>
   <button id="helpBtn" aria-label="Hilfe und Bedienung">❔ Hilfe</button>
+  <button id="s1" class="on">Tiefe 1×</button>
+  <button id="s2">Tiefe 2×</button>
+  <button id="measureBtn" aria-label="Entfernung messen">📏 Messen</button>
+  <button id="locBtn" aria-label="Mein Standort">📍 Standort</button>
+  <button id="overlayBtn" class="on" aria-label="Legenden und Kompass ein- oder ausblenden">👁️ Anzeigen</button>
  </div>
  <div id="fishCollection" class="fish-collection" aria-label="Gefundene Fischarten">
    <div id="fishCollectionProgress" class="fish-collection-progress">0 von 13 Fischarten gefunden</div>
    <div id="fishCollectionItems" class="fish-collection-items"></div>
  </div>
  <div id="viewer">
+<div id="celestialLensFlare" class="celestial-lens-flare" aria-hidden="true"><i class="flare-source"></i><i class="flare-ring-a"></i><i class="flare-ring-b"></i><i class="flare-ring-c"></i><i class="flare-streak"></i></div>
 <div class="legend" aria-label="Tiefenlegende">
      <div class="legend-scale">
        <div class="grad"></div>
@@ -1171,7 +1179,7 @@ html,body{
    <div id="runtimeError" class="runtime-error"></div>
    <div id="depthPinLabel" class="depth-pin-label"></div>
    <div id="measureLabel" class="measure-label"></div>
-   <button id="fishViewBtn" class="fish-view-btn" aria-label="Fischsicht starten">🐟</button>
+   <button id="fishViewBtn" class="fish-view-btn" aria-label="Unterwasser-Modus starten">🐟 Unterwasser-Modus</button>
    <div class="fish-view-info">
      <span class="fish-hint-desktop">Im Bild ziehen: umsehen · Mausrad: vor/zurück · Fisch anklicken: Informationen</span>
      <span class="fish-hint-touch">1 Finger: schwimmen · 2 Finger: Blick/Tauchwinkel · Antippen: Fischinfo</span>
@@ -1195,30 +1203,29 @@ html,body{
      <div class="help-card">
        <button id="helpClose" class="help-close" aria-label="Hilfe schließen">×</button>
        <h2 id="helpTitle">🗺️ Bedienung der Tiefenkarte</h2>
-       <p class="help-intro">Kurzübersicht der Bedienung und Anzeigen.</p>
+       <p class="help-intro">Die wichtigsten Funktionen und Steuerungen im Überblick.</p>
        <div class="help-grid">
-         <div class="help-item"><strong>🗺️ 2D / 3D</strong><span>Wechselt zwischen Draufsicht und räumlicher 3D-Ansicht.</span></div>
-         <div class="help-item"><strong>🖱️ Bewegen</strong><span>Mit Maus oder Finger drehen und verschieben. Mausrad oder zwei Finger zoomen.</span></div>
-         <div class="help-item"><strong>↻ Reset</strong><span>Stellt Kamera, Zoom, Drehung und Neigung auf die Ausgangsansicht zurück.</span></div>
-         <div class="help-item"><strong>📍 Ort</strong><span>Zeigt nach Standortfreigabe die eigene Position am Weiher.</span></div>
-         <div class="help-item"><strong>📌 Tiefe</strong><span>Am Computer mit dem Mauszeiger, mobil durch Antippen abfragen.</span></div>
-         <div class="help-item"><strong>📏 Messen</strong><span>Startpunkt setzen und bis zum Ziel ziehen. Entfernung und Zieltiefe werden angezeigt.</span></div>
-        <div class="help-item"><strong>💧 Wasser</strong><span>Weiher und Mosel zeigen standardmäßig bewegte Wellen sowie Wetter- und Lichtreflexionen. Der Schalter blendet beide Wasserflächen aus.</span></div>
-         <div class="help-item"><strong>🐟 Fischsicht</strong><span>Fische anklicken und alle Arten farbig freischalten. Desktop: Maus/Mausrad. Mobil: ein Finger schwimmt, zwei Finger steuern den Blick.</span></div>
-         <div class="help-item"><strong>🌦️ Auto</strong><span>Schaltet die automatische Tageszeit- und Wettersimulation ein oder aus.</span></div>
-        <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Folgen automatisch Datum, Uhrzeit und Standort und beeinflussen Licht und Reflexionen.</span></div>
-        <div class="help-item"><strong>✨ Sternenhimmel</strong><span>Die hellen Sterne stehen astronomisch passend zu Datum, Uhrzeit und Standort. So lassen sich auch bekannte Sternbilder suchen; helle Sterne spiegeln sich bei klarem Himmel im Wasser.</span></div>
-         <div class="help-item"><strong>☁️ Live-Wetter</strong><span>Steuert Bewölkung, Wind, Regen, Nebel und Lichtstimmung mit aktuellen Wetterdaten.</span></div>
-         <div class="help-item"><strong>🧭 Kompass & Wind</strong><span>Zeigt Himmelsrichtungen, Windrichtung und Windgeschwindigkeit.</span></div>
+         <div class="help-item"><strong>🗺️ 2D / 3D</strong><span>Wechselt zwischen drehbarer Draufsicht und räumlicher Standardansicht.</span></div>
+         <div class="help-item"><strong>🖱️ Desktop</strong><span>Ziehen dreht oder verschiebt die Karte; das Mausrad zoomt. Unter Wasser steuert es vor und zurück.</span></div>
+         <div class="help-item"><strong>📱 Mobil</strong><span>Ein Finger bewegt die Karte. Zwei Finger zoomen; unter Wasser steuern sie Blick und Tauchwinkel.</span></div>
+         <div class="help-item"><strong>↻ Reset</strong><span>Stellt Kamera, Zoom, Drehung und Neigung wieder auf die Ausgangsansicht.</span></div>
+         <div class="help-item"><strong>💧 Wasser: AN/AUS</strong><span>Blendet die bewegten Oberflächen von Weiher und Mosel ein oder aus. Standardmäßig ist Wasser aktiv.</span></div>
+         <div class="help-item"><strong>🌦️ Wetter</strong><span>LIVE verwendet Tageszeit und aktuelle Wetterdaten. NEUTRAL entfernt Wetter- und Tageszeiteinflüsse für eine klare Referenzansicht.</span></div>
+         <div class="help-item"><strong>☀️ Sonne & 🌙 Mond</strong><span>Folgen Datum, Uhrzeit und Standort. Lichtbahn, Reflexion und Kameralicht ändern sich mit dem Blickwinkel.</span></div>
+         <div class="help-item"><strong>✨ Sternenhimmel</strong><span>Helle Sterne und Sternbilder stehen astronomisch passend über Zewen; einzelne Sterne spiegeln sich auf klarem Wasser.</span></div>
+         <div class="help-item"><strong>☁️ Wind und Regen</strong><span>Wolken, Wellenrichtung, Regen und Regentropfen folgen den aktuellen Wetter- und Winddaten.</span></div>
+         <div class="help-item"><strong>🎨 Tiefe 1× / 2×</strong><span>Zeigt die echte Tiefenform oder verstärkt die Höhenunterschiede für eine deutlichere 3D-Wirkung.</span></div>
+         <div class="help-item"><strong>📌 Tiefenabfrage</strong><span>Desktop: Mauszeiger. Mobil: gewünschte Stelle antippen. Im Unterwasser-Modus ist die Abfrage deaktiviert.</span></div>
+         <div class="help-item"><strong>📏 Messen</strong><span>Start- und Zielpunkt auf der Karte setzen; Entfernung und Zieltiefe werden angezeigt.</span></div>
+         <div class="help-item"><strong>📍 Standort</strong><span>Zeigt nach Freigabe die eigene Position im Bereich des Weihers.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetterfenster, Tiefenlegende und Kompass gemeinsam ein oder aus.</span></div>
-         <div class="help-item"><strong>🎨 Tiefenkarte</strong><span>Farben, Höhenlinien sowie Licht und Schatten zeigen Tiefe und Geländeform.</span></div>
-         <div class="help-item"><strong>🚶🚲 Radweg</strong><span>Zeigt in 3D Fußgänger und Fahrräder auf der festgelegten Strecke. Nachts ist der Verkehr reduziert.</span></div>
-         <div class="help-item"><strong>🚗 Besucher</strong><span>Zeigt tagsüber in 3D gelegentliche Autos und Personen auf dem Grundstück.</span></div>
-         <div class="help-item"><strong>🐦 Vögel</strong><span>Zeigt tagsüber in 3D gelegentlich Vögel mit passenden Schatten.</span></div>
+         <div class="help-item"><strong>🐟 Unterwasser-Modus</strong><span>Im Weiher schwimmen, Fische anklicken und alle 13 Arten farbig freischalten. Die Minikarte zeigt die Position.</span></div>
+         <div class="help-item"><strong>🌿 Unterwasserwelt</strong><span>Boden, Steine, Pflanzen, Schwebstoffe, Lichtmuster und Fischverhalten bilden den Weiher lebendig nach.</span></div>
+         <div class="help-item"><strong>🚶🚲🚗 Umgebung</strong><span>In 3D erscheinen tagsüber Radfahrer, Fußgänger, Besucher und Vögel; nachts ist der Verkehr deutlich reduziert.</span></div>
        </div>
        <div class="help-note"><strong>Version</strong><br>
-  FINAL V5.23 · 25.08.2026<br>
-Astronomisches Licht und Reflexionen · Fischsammlung · zuverlässige Unterwassersteuerung · bodengebundene Fischbewegung
+  <span id="helpVersion"></span><br>
+Live-Wetter · astronomisches Licht · Unterwasserwelt · Fischsammlung
 </div>
        <div class="help-note"><strong>Datenquellen & Hinweise</strong><br>
 Tiefenkarte und Darstellung: AC 1956 Zewen-Oberkirch e. V.<br>
@@ -1249,8 +1256,10 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.23 ONLINE';
+const VIEWER_VERSION='FINAL V5.27 ONLINE';
 const VIEWER_BUILD='25.08.2026';
+const helpVersion=document.getElementById('helpVersion');
+if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
 
 // V49: Safari meldet Fehler aus externen Bibliotheken ohne CORS-Details häufig nur
 // als "Script error.". Solange unser Viewer weiterläuft, ist das keine hilfreiche
@@ -2006,6 +2015,14 @@ moonLight.target.position.set(0,0,-1);
 scene.add(moonLight.target);
 scene.add(moonLight);
 
+// TEST V13: ausschließlich tagsüber aktive Kopie desjenigen gerichteten
+// Relieflichts, das nachts die schönen kameraabhängigen Glanzflecken auf der
+// MeshPhong-Tiefengeometrie erzeugt. Die Nacht wird davon nicht berührt.
+const dayReliefLight=new THREE.DirectionalLight(0xffedc2,0.0);
+dayReliefLight.target.position.set(0,0,-1);
+scene.add(dayReliefLight.target);
+scene.add(dayReliefLight);
+
 const moonCanvas=document.createElement('canvas');
 moonCanvas.width=moonCanvas.height=256;
 const moonTex=new THREE.CanvasTexture(moonCanvas);
@@ -2294,7 +2311,7 @@ function updateCloudAppearance(cloudFraction,nightFactor){
   let moonFraction=0;
   let moonVisible=false;
   try{
-    const now=new Date();
+    const now=viewerNow();
     moonFraction=SunCalc.getMoonIllumination(now).fraction;
     moonVisible=SunCalc.getMoonPosition(now,SITE_LAT,SITE_LON).altitude>0;
   }catch(e){}
@@ -2373,7 +2390,7 @@ cloudGroup.children.forEach((cloud,i)=>{
   cloudReflectionGroup.add(s);
 });
 
-function pointInsideWaterMask(x,y){
+function pointInsidePondMask(x,y){
   // Weltkoordinate -> Rasterzelle der ReefMaster-Maske.
   const u=(x + D.pondW/2)/D.pondW;
   const v=(y + D.pondH/2)/D.pondH;
@@ -2381,6 +2398,12 @@ function pointInsideWaterMask(x,y){
   const c=Math.max(0,Math.min(D.ncols-1,Math.round(u*(D.ncols-1))));
   const r=Math.max(0,Math.min(D.nrows-1,Math.round((1-v)*(D.nrows-1))));
   return !!D.mask[r][c];
+}
+
+function pointInsideWaterMask(x,y){
+  // Gemeinsame Maske für Weiher und die exakt eingezeichnete Moselfläche.
+  return pointInsidePondMask(x,y) ||
+    (typeof pointInMosel==='function' && pointInMosel(x,y));
 }
 
 function updateRealCloudReflections(){
@@ -2451,6 +2474,12 @@ let liveWeather={
   weatherCode:0,
   humidity:null
 };
+
+function viewerNow(){return new Date();}
+
+// In der Online-Fassung bleiben alle geprüften Ebenen dauerhaft aktiv.
+const diagnosticState={mirror:true,alpha:true,spec:true,relief:true,lift:true,disc:true,baseWaves:true,lane:true,depthSpots:true,waterObject:true,pondObject:true,extraObjects:true,stars:true,solarScatter:true};
+function applyDiagnosticLayers(){}
 
 
 
@@ -2555,6 +2584,7 @@ function applyWeatherScene(){
   // Der genaue Tages-/Nachtfaktor der bestehenden Simulation bleibt erhalten.
 
   if(!simulationEnabled){
+    if(typeof dayReliefLight!=='undefined') dayReliefLight.intensity=0;
     sceneNightFactor=0;
     updateContourNightContrast(0);
     if(typeof pondNightLiftMat!=='undefined') pondNightLiftMat.opacity=0;
@@ -2588,7 +2618,12 @@ function applyWeatherScene(){
   // Bewölkung schwächt nur das Sonnenlicht auf der Szene ab. Die sichtbare
   // Sonnenscheibe bleibt unabhängig vom Bewölkungsgrad vollständig erhalten.
   if(typeof SunCalc!=='undefined'){
-    sun.intensity*=Math.max(.28,1-fraction*.68);
+    // Nicht mehr wiederholt den bereits gedämpften Wert multiplizieren.
+    // Jede Aktualisierung beginnt erneut bei der astronomischen Klarhimmelstärke.
+    const clearSun=Number.isFinite(sun.userData.clearSkyIntensity)
+      ? sun.userData.clearSkyIntensity
+      : sun.intensity;
+    sun.intensity=clearSun*Math.max(.28,1-fraction*.68);
     if(sunDisc.material) sunDisc.material.opacity=1.0;
   }
 
@@ -2609,7 +2644,7 @@ function applyWeatherScene(){
   // V41: Keine orange Dämmerungsfärbung der Umgebung.
   // Himmel und Hintergrund werden nur über Helligkeit verändert.
   if(simulationEnabled){
-    const now=new Date();
+    const now=viewerNow();
     let neutralDark=0;
     if(typeof SunCalc!=='undefined'){
       try{
@@ -2676,7 +2711,13 @@ function applyWeatherScene(){
       // Tiefengeometrie sehr dezent. Bewölkung dämpft das Licht weiterhin.
       moonLight.intensity=moonStrength
         *(.075+.78*moonFraction)
-        *cloudTransmission;
+        *cloudTransmission
+        *((typeof diagnosticState==='undefined'||diagnosticState.relief)?1:0);
+
+      // Tagsüber warmes gerichtetes Relieflicht aus der echten Sonnenposition.
+      if(typeof dayReliefLight!=='undefined'){
+        dayReliefLight.intensity=.55*(1-neutralDark)*cloudTransmission;
+      }
     }
     if(typeof hemi!=='undefined'){
       // Ein wenig Restlicht verhindert, dass die Karte nachts vollständig absäuft.
@@ -2742,7 +2783,7 @@ async function loadLiveWeather(){
 
 function updateSimulationButton(){
   simBtn.classList.toggle('on',simulationEnabled);
-  simBtn.textContent=simulationEnabled ? '🌦️ Auto' : '🌦️ Aus';
+  simBtn.textContent=simulationEnabled ? '🌦️ Wetter: LIVE' : '☀️ Wetter: NEUTRAL';
 }
 
 simBtn.onclick=()=>{
@@ -2847,6 +2888,9 @@ const waterUniforms={
  cameraPos:{value:new THREE.Vector3()},
  sunDir:{value:new THREE.Vector3(0,0,1)},
  moonDir:{value:new THREE.Vector3(0,0,1)},
+ sunScreen:{value:new THREE.Vector3(-2,-2,0)},
+ moonScreen:{value:new THREE.Vector3(-2,-2,0)},
+ viewportSize:{value:new THREE.Vector2(1,1)},
  sunStrength:{value:0},
  moonStrength:{value:0},
  cloudAmount:{value:0},
@@ -2855,6 +2899,14 @@ const waterUniforms={
  cloudWindSpeed:{value:0.25},
  cloudOffset:{value:new THREE.Vector2(0,0)},
  nightFactor:{value:0},
+ dayMatchFactor:{value:0},
+ diagnosticMirror:{value:1},
+ diagnosticSpecular:{value:1},
+ diagnosticNightTransparency:{value:1},
+ diagnosticBaseWaves:{value:1},
+ diagnosticLane:{value:1},
+ diagnosticStars:{value:1},
+ diagnosticSolarScatter:{value:1},
  underwaterView:{value:0},
  realStarDirs:{value:Array.from({length:32},()=>new THREE.Vector3(0,0,-1))},
  realStarBrightness:{value:new Float32Array(32)}
@@ -2917,6 +2969,9 @@ const waterMat=new THREE.ShaderMaterial({
    uniform vec3 cameraPos;
    uniform vec3 sunDir;
    uniform vec3 moonDir;
+   uniform vec3 sunScreen;
+   uniform vec3 moonScreen;
+   uniform vec2 viewportSize;
    uniform float sunStrength;
    uniform float moonStrength;
    uniform float cloudAmount;
@@ -2924,6 +2979,14 @@ const waterMat=new THREE.ShaderMaterial({
    uniform float cloudWindSpeed;
    uniform vec2 cloudOffset;
    uniform float nightFactor;
+   uniform float dayMatchFactor;
+   uniform float diagnosticMirror;
+   uniform float diagnosticSpecular;
+   uniform float diagnosticNightTransparency;
+   uniform float diagnosticBaseWaves;
+   uniform float diagnosticLane;
+   uniform float diagnosticStars;
+   uniform float diagnosticSolarScatter;
    uniform float underwaterView;
    uniform vec3 realStarDirs[32];
    uniform float realStarBrightness[32];
@@ -3022,7 +3085,8 @@ const waterMat=new THREE.ShaderMaterial({
      vec3 daySky=mix(vec3(.58,.76,.90),vec3(.16,.47,.76),pow(reflectedHeight,.62));
      vec3 nightSky=mix(vec3(.075,.13,.20),vec3(.012,.035,.085),pow(reflectedHeight,.72));
      vec3 reflectedSky=mix(daySky,nightSky,clamp(nightFactor,0.0,1.0));
-     float mirrorAmount=(.24+fresnel*.36)*(1.0-clamp(underwaterView,0.0,1.0));
+     float mirrorAmount=(.24+fresnel*.36)*(1.0-clamp(underwaterView,0.0,1.0))
+       *diagnosticMirror;
 
      vec2 cloudMirrorPos=vWorldPos.xy
        +reflectedView.xy/max(.16,reflectedView.z)*32.0;
@@ -3056,53 +3120,144 @@ const waterMat=new THREE.ShaderMaterial({
                     .46 + shimmer*.18 + fine*.055 + fresnel*.08);
      color=mix(color,reflectedSky,mirrorAmount);
 
-     float stars=reflectedStars(reflectedView)*nightFactor
+     float stars=reflectedStars(reflectedView)*nightFactor*diagnosticStars
        *(1.0-cloudAmount*.92)*surfaceOnly;
      // Einzelne, durch die Wellen gebrochene Sternpunkte statt einer glatten
      // Aufhellung. Die Position folgt weiterhin dem echten reflektierten Himmelsstrahl.
      float starBreak=.32+.68*smoothstep(.57,.92,
        .52*fine+.48*ripples);
-     color+=vec3(.88,.95,1.0)*stars*starBreak*(1.75+.85*fresnel);
+     // Sterne bleiben als kleine Lichtpunkte erhalten, erzeugen aber keine
+     // riesigen weißen Flächen mehr. Der großflächige Reflex kommt unten
+     // ausschließlich von Sonne bzw. Mond.
+     color+=vec3(.88,.95,1.0)*stars*starBreak*(.22+.10*fresnel);
 
      float rippleLight=smoothstep(.58,.92,ripples);
      float rippleDark=1.0-smoothstep(.18,.48,ripples);
 
      // Lange türkise Wellenzüge, keine weißen Flächen.
-     color=mix(color,waterLight,rippleLight*.19);
-     color=mix(color,waterDark,rippleDark*.085);
+     color=mix(color,waterLight,rippleLight*.19*diagnosticBaseWaves);
+     color=mix(color,waterDark,rippleDark*.085*diagnosticBaseWaves);
 
      // Schmale cyanfarbene Wellenkämme.
      float crest=smoothstep(.60,.91,shimmer);
-     color += vec3(.06,.27,.34)*crest*.145;
+     color += vec3(.06,.27,.34)*crest*.145*diagnosticBaseWaves;
 
      // FINAL V4.9: farbtreue, begrenzte Lichtmodulation statt weißer Addition.
      // Die transparente Wasserfläche färbt die darunter sichtbaren Tiefenfarben
      // lokal leicht mit, lässt Orange, Blau und Violett aber klar erhalten.
-     // Für Sonne und Mond wird die großräumige Reflexionsachse etwas weniger
-     // von einer einzelnen Windwellen-Normale abgelenkt. Die Reflexe bleiben
-     // bewegt, liegen aber optisch sauberer auf der Himmelskörperachse.
-     vec3 celestialN=normalize(mix(vec3(0.0,0.0,1.0),N,.52));
-     vec3 Rs=reflect(-normalize(sunDir),celestialN);
+     // FINAL V5.25: Die Spiegelstraße liegt in der Bildschirmprojektion exakt
+     // unter Sonne bzw. Mond. Beim Drehen folgt sie deren sichtbarer Position;
+     // Windwellen modulieren nur sanft die Helligkeit, nicht mehr die Richtung.
+     vec3 celestialN=vec3(0.0,0.0,1.0);
+     vec2 screenUV=gl_FragCoord.xy/max(viewportSize,vec2(1.0));
+     // TEST V5: vollständige Mond-Reflexionslogik 1:1 für die Sonne.
+     // Nur die Farbe bleibt sonnentypisch warm; Breite, Wellenbruch,
+     // Kern, Glühen und Begrenzung entsprechen exakt dem Mondblock.
+     // Perspektivischer Lichtweg: an der fernen Lichtquelle schmal, zur
+     // Kamera hin deutlich breiter aufgefächert.
+     float sunWidth=mix(.112,.030,clamp(screenUV.y,0.0,1.0));
+     float sunAxisMask=exp(-pow((screenUV.x-sunScreen.x)/sunWidth,2.0))
+       *sunScreen.z*step(screenUV.y,sunScreen.y-.006);
+     float sunWideMask=exp(-pow((screenUV.x-sunScreen.x)/(sunWidth*1.72),2.0))
+       *sunScreen.z*step(screenUV.y,sunScreen.y-.006);
+     float sunBreak=.92+.08*(.5+.5*sin(vWorldPos.x*1.39-time*.31)
+       *sin(vWorldPos.y*1.81+time*.36));
+     // Physikalischer Spiegelwinkel auf der tatsächlich geneigten, bewegten
+     // Wellennormale. Dieser Wert verändert sich unmittelbar mit der Kamera.
+     // Nur für die neue Quellenstreuung wird die Normale zuverlässig zur
+     // sichtbaren Kameraseite ausgerichtet. Bestehende Nachtpfade bleiben unverändert.
+     vec3 sourceN=dot(N,V)<0.0 ? -N : N;
+     vec3 Rs=reflect(-normalize(sunDir),N);
      float sd=max(dot(Rs,V),0.0);
-     float sunCore=pow(sd,13.0)*sunStrength;
-     float sunGlow=pow(sd,2.7)*sunStrength*(.68+ripples*.32);
-     float sunTint=clamp(sunCore*.84+sunGlow*.48,0.0,.64);
-     vec3 sunColored=color*vec3(1.13,1.075,.96)+vec3(.040,.024,.004);
+     // TEST V21: Tagsüber dieselbe großflächige, durch Wellen gebrochene
+     // Lichtwirkung wie bei den nachts sichtbaren Sternreflexen. Anders als
+     // die Sterne folgt sie ausschließlich der gekoppelten Sonnenrichtung,
+     // der echten Wellennormale und dem Blickwinkel der Kamera.
+     vec3 RsSource=reflect(-normalize(sunDir),sourceN);
+     float sourceSd=max(dot(RsSource,V),0.0);
+     float solarScatter=(pow(sourceSd,1.65)*1.08+pow(sourceSd,5.0)*.82)
+       *sunStrength*surfaceOnly*dayMatchFactor*diagnosticSolarScatter;
+     float solarScatterBreak=.30+.70*smoothstep(.50,.90,
+       .44*fine+.38*ripples+.18*shimmer);
+     float sunLane=sunAxisMask*sunBreak*sunStrength*surfaceOnly*diagnosticLane;
+     // Tagsüber exakt dieselbe Kamera-Lichtbahn wie beim Mond, aber kräftiger
+     // gegen den hellen Himmel ausgesteuert. Der Nachtpfad bleibt unverändert.
+     float sunCore=sunLane*mix(.15,.40,dayMatchFactor);
+     float sunGlow=sunLane*mix(.085,.235,dayMatchFactor);
+     float sunOuter=max(0.0,sunWideMask-sunAxisMask)*sunBreak*sunStrength
+       *surfaceOnly*diagnosticLane;
+     float sunTint=clamp(sunCore*1.12+sunGlow*.76,0.0,.68);
+     vec3 sunColored=color*vec3(1.18,1.12,.98)+vec3(.095,.065,.018);
      color=mix(color,sunColored,sunTint);
-     color+=vec3(.22,.16,.045)*sunCore*.62
-           +vec3(.085,.060,.016)*sunGlow*.44;
+     color+=vec3(.52,.43,.22)*sunCore*.74
+           +vec3(.16,.115,.035)*sunGlow*.62;
+     // Goldgelber Außenrand, während der Kern nahezu weiß bleibt.
+     color+=vec3(.92,.58,.12)*sunOuter*.46;
+     color=mix(color,vec3(1.0,.78,.30),clamp(sunOuter*.16,0.0,.24));
 
      // Mondreflex: eine breitere, kühle Reflexionsbahn. Die Richtung bleibt
      // vollständig von Mondposition, Kameraposition und Wellennormale bestimmt.
-     vec3 Rm=reflect(-normalize(moonDir),celestialN);
+     float moonWidth=mix(.112,.030,clamp(screenUV.y,0.0,1.0));
+     float moonAxisMask=exp(-pow((screenUV.x-moonScreen.x)/moonWidth,2.0))
+       *moonScreen.z*step(screenUV.y,moonScreen.y-.006);
+     float moonWideMask=exp(-pow((screenUV.x-moonScreen.x)/(moonWidth*1.72),2.0))
+       *moonScreen.z*step(screenUV.y,moonScreen.y-.006);
+     float moonBreak=.92+.08*(.5+.5*sin(vWorldPos.x*1.39-time*.31)
+       *sin(vWorldPos.y*1.81+time*.36));
+     vec3 Rm=reflect(-normalize(moonDir),N);
      float md=max(dot(Rm,V),0.0);
-     float moonCore=pow(md,14.0)*moonStrength;
-     float moonGlow=pow(md,2.35)*moonStrength*(.70+ripples*.30);
+     vec3 RmSource=reflect(-normalize(moonDir),sourceN);
+     float sourceMd=max(dot(RmSource,V),0.0);
+     float moonScatter=(pow(sourceMd,1.65)*1.08+pow(sourceMd,5.0)*.82)
+       *moonStrength*surfaceOnly*nightFactor;
+     float moonScatterBreak=.30+.70*smoothstep(.50,.90,
+       .44*fine+.38*ripples+.18*shimmer);
+
+     // Gleiche optische Struktur bei Tag und Nacht; lediglich die Lichtfarbe
+     // unterscheidet Sonne und Mond. Beide Effekte entstehen aus ihrer realen Richtung.
+     color+=vec3(1.0,.965,.82)*solarScatter*solarScatterBreak*1.28;
+     color=mix(color,vec3(1.0,.975,.88),
+       clamp(solarScatter*solarScatterBreak*.34,0.0,.48));
+     color+=vec3(.84,.93,1.0)*moonScatter*moonScatterBreak*.92;
+     color=mix(color,vec3(.88,.95,1.0),
+       clamp(moonScatter*moonScatterBreak*.28,0.0,.42));
+     float moonLane=moonAxisMask*moonBreak*moonStrength*surfaceOnly*diagnosticLane;
+     float moonCore=moonLane*.23;
+     float moonGlow=moonLane*.14;
+     float moonOuter=max(0.0,moonWideMask-moonAxisMask)*moonBreak*moonStrength
+       *surfaceOnly*diagnosticLane;
      float moonTint=clamp(moonCore*1.12+moonGlow*.76,0.0,.68);
      vec3 moonColored=color*vec3(.94,1.13,1.34)+vec3(.012,.043,.095);
      color=mix(color,moonColored,moonTint);
      color+=vec3(.18,.30,.52)*moonCore*.74
            +vec3(.035,.085,.16)*moonGlow*.62;
+     // Kühler bläulicher Außenrand des Mondlichts.
+     color+=vec3(.18,.48,.92)*moonOuter*.42;
+     color=mix(color,vec3(.48,.72,1.0),clamp(moonOuter*.15,0.0,.22));
+
+     // TEST V11: echte kameraabhängige Glanzflecken. sd und md wurden bereits
+     // seit früheren Versionen berechnet, bisher jedoch nirgends verwendet.
+     // Breiter Schimmer plus sehr heller Kern erzeugen die großen Flecken nur
+     // dort, wo Lichtquelle, Wellennormale und Blickrichtung zusammenpassen.
+     // Nur tagsüber etwas mehr optischer Kontrast, weil der helle Himmel die
+     // gleichen Glanzwerte sonst sichtbar verschluckt. Der Mondpfad bleibt exakt unverändert.
+     float sunViewSpec=(pow(sd,5.2)*.78+pow(sd,20.0)*1.18)
+       *sunStrength*surfaceOnly*1.42;
+     float moonViewSpec=(pow(md,5.2)*.78+pow(md,20.0)*1.18)
+       *moonStrength*surfaceOnly;
+     float specWaveBreak=.48+.52*smoothstep(.38,.82,
+       ripples*.52+fine*.31+shimmer*.17);
+     sunViewSpec*=specWaveBreak*diagnosticSpecular;
+     moonViewSpec*=specWaveBreak*diagnosticSpecular;
+     float celestialViewSpec=sunViewSpec+moonViewSpec;
+
+     vec3 sunSpecColor=vec3(1.0,.965,.82);
+     vec3 moonSpecColor=vec3(.84,.93,1.0);
+     color+=sunSpecColor*sunViewSpec*.92;
+     color+=moonSpecColor*moonViewSpec*.92;
+     color=mix(color,
+       sunViewSpec>moonViewSpec ? sunSpecColor : moonSpecColor,
+       clamp(celestialViewSpec*.38,0.0,.72));
 
      // FINAL V4: Wasser wird nachts nur moderat dunkler.
      // Gleichzeitig wird es minimal transparenter, damit Tiefenfarben/Konturen lesbar bleiben.
@@ -3112,10 +3267,15 @@ const waterMat=new THREE.ShaderMaterial({
      // berechnet und folgt damit Kamera, Wellen und realer Windverschiebung.
 
      // Mehr sichtbare Bewegung, aber Tiefen-Shader bleibt darunter erhalten.
-     float alpha=(opacity-nightFactor*.035)
+     // In der Test-Tagesansicht dieselbe leichte Durchlässigkeit wie nachts,
+     // ohne irgendeinen Wert des Nachtpfads zu verändern.
+     float alpha=(opacity-max(nightFactor*diagnosticNightTransparency,dayMatchFactor)*.035)
        + fresnel*.06
        + crest*.030
-       + min(.19,sunGlow*.055+moonGlow*.060+stars*.105)
+       + min(.19,sunGlow*.055+moonGlow*.060+stars*.018)
+       + min(.16,solarScatter*.10+moonScatter*.075)
+       + min(.075,sunOuter*.040+moonOuter*.038)
+       + min(.16,celestialViewSpec*.11)
        + cloudRefl*.025;
 
      // Von unten: mehrere wandernde Brechungsmuster statt einer glatten Scheibe.
@@ -3137,6 +3297,80 @@ const waterSurface=new THREE.Mesh(waterGeo,waterMat);
 waterSurface.visible=true;
 waterSurface.renderOrder=4;
 scene.add(waterSurface);
+
+// TEST V10: Gemeinsamer lokaler Lichtpass für Sonne UND Mond.
+// Er liegt zwischen Tiefengeometrie und transparenter Wasseroberfläche. Dadurch
+// werden genau dieselben wandernden Wellenstellen nicht nur oben gespiegelt,
+// sondern hellen zugleich die darunterliegenden Tiefenfarben auf.
+const celestialDepthUniforms={
+  time:waterUniforms.time,
+  viewportSize:waterUniforms.viewportSize,
+  sourceScreen:{value:new THREE.Vector3(-2,-2,0)},
+  sourceStrength:{value:0},
+  sourceColor:{value:new THREE.Color(0xd8e8ff)},
+  cloudWindDir:waterUniforms.cloudWindDir,
+  cloudWindSpeed:waterUniforms.cloudWindSpeed
+};
+const celestialDepthMat=new THREE.ShaderMaterial({
+  transparent:true,
+  depthWrite:false,
+  depthTest:true,
+  side:THREE.DoubleSide,
+  blending:THREE.AdditiveBlending,
+  polygonOffset:true,
+  polygonOffsetFactor:-2,
+  polygonOffsetUnits:-2,
+  uniforms:celestialDepthUniforms,
+  vertexShader:`
+    varying vec3 vWorldPos;
+    void main(){
+      vec4 world=modelMatrix*vec4(position,1.0);
+      vWorldPos=world.xyz;
+      gl_Position=projectionMatrix*viewMatrix*world;
+    }
+  `,
+  fragmentShader:`
+    uniform float time;
+    uniform vec2 viewportSize;
+    uniform vec3 sourceScreen;
+    uniform float sourceStrength;
+    uniform vec3 sourceColor;
+    uniform vec2 cloudWindDir;
+    uniform float cloudWindSpeed;
+    varying vec3 vWorldPos;
+
+    void main(){
+      vec2 dir=normalize(length(cloudWindDir)>.01 ? cloudWindDir : vec2(0.0,-1.0));
+      vec2 side=vec2(-dir.y,dir.x);
+      float flow=dot(vWorldPos.xy,dir)-time*(.86+cloudWindSpeed*.76);
+      float cross=dot(vWorldPos.xy,side)+sin(flow*.19)*.72;
+
+      // Exakt dieselben langen Oberflächenzüge wie im Wasser-Shader.
+      float fine1=sin(cross*1.34-flow*.12);
+      float fine2=sin((cross+sin(flow*.27)*.42)*2.18-flow*.17+2.1);
+      float fine=(fine1*.68+fine2*.32)*.5+.5;
+      float curve=cross+sin(flow*.15)*1.25+sin(flow*.061+2.2)*1.75;
+      float wave=(sin(curve*.47-flow*.08)*.48
+                 +sin((curve+sin(flow*.23)*.75)*.79-flow*.11+1.7)*.32
+                 +sin((curve-sin(flow*.18+1.1)*.55)*1.18-flow*.15+3.8)*.20)*.5+.5;
+      float longCrests=max(smoothstep(.56,.88,fine),smoothstep(.54,.86,wave));
+
+      vec2 suv=gl_FragCoord.xy/max(viewportSize,vec2(1.0));
+      float width=mix(.34,.20,clamp(suv.y,0.0,1.0));
+      float reflectionArea=exp(-pow((suv.x-sourceScreen.x)/width,2.0))
+        *sourceScreen.z*step(suv.y,sourceScreen.y-.004);
+      float softBreak=.78+.22*(.5+.5*sin(flow*.17-cross*.28+1.2));
+      float light=reflectionArea*longCrests*softBreak*sourceStrength;
+
+      vec3 c=sourceColor*(.38+.62*longCrests);
+      gl_FragColor=vec4(c,clamp(light*.72,0.0,.68));
+    }
+  `
+});
+const pondCelestialDepthLift=new THREE.Mesh(pondGeo,celestialDepthMat);
+pondCelestialDepthLift.renderOrder=2.7;
+pondCelestialDepthLift.frustumCulled=false;
+scene.add(pondCelestialDepthLift);
 
 // FINAL V5.22: sichtbarer Moselabschnitt unterhalb des Radwegs.
 // Ein fein unterteiltes, aufwärts orientiertes Gitter verhindert die dunklen
@@ -3202,6 +3436,13 @@ moselWaterBase.position.z=.045;
 moselWaterBase.renderOrder=3;
 moselWaterBase.frustumCulled=false;
 waterSurface.add(moselWaterBase);
+
+// Derselbe Tiefenlicht-Pass liegt auch unter der Moseloberfläche.
+const moselCelestialDepthLift=new THREE.Mesh(moselWaterGeo,celestialDepthMat);
+moselCelestialDepthLift.position.z=.075;
+moselCelestialDepthLift.renderOrder=3.2;
+moselCelestialDepthLift.frustumCulled=false;
+waterSurface.add(moselCelestialDepthLift);
 
 let waterVisible=true;
 
@@ -3428,6 +3669,7 @@ function updateButtons(){
  viewToggle.classList.toggle('mode-2d',is2D);
  viewToggle.classList.toggle('mode-3d',!is2D);
  waterBtn.classList.toggle('on',waterVisible);
+ waterBtn.textContent=waterVisible?'💧 Wasser: AN':'💧 Wasser: AUS';
  s1.classList.toggle('on',exaggeration===1);
  s2.classList.toggle('on',exaggeration===2);
 }
@@ -3450,7 +3692,12 @@ resetView.onclick=()=>{
   }
   updateButtons();
 };
-waterBtn.onclick=()=>{waterVisible=!waterVisible;waterSurface.visible=waterVisible;updateButtons()};
+waterBtn.onclick=()=>{
+  waterVisible=!waterVisible;
+  waterSurface.visible=waterVisible;
+  if(typeof moselWaterSurface!=='undefined') moselWaterSurface.visible=waterVisible;
+  updateButtons();
+};
 s1.onclick=()=>{
   exaggeration=1;
   updateDepthScale();
@@ -3765,6 +4012,92 @@ const starField=new THREE.Points(starGeo,starMat);
 starField.renderOrder=-5;
 scene.add(starField);
 
+// FINAL V5.24: tatsächliche Spiegelpunkte der Sterne auf der horizontalen
+// Wasserfläche. Für jeden astronomisch sichtbaren Stern wird der reflektierte
+// Strahl von der Kamera bis zur Wasserhöhe zurückgerechnet. Punkte erscheinen
+// ausschließlich innerhalb der Weiher- oder Moselmaske.
+const waterStarPositions=new Float32Array(starCount*3);
+const waterStarColors=new Float32Array(starCount*3);
+const waterStarGeo=new THREE.BufferGeometry();
+waterStarGeo.setAttribute('position',new THREE.BufferAttribute(waterStarPositions,3));
+waterStarGeo.setAttribute('color',new THREE.BufferAttribute(waterStarColors,3));
+waterStarGeo.setDrawRange(0,0);
+const waterStarCanvas=document.createElement('canvas');
+waterStarCanvas.width=waterStarCanvas.height=64;
+const waterStarCtx=waterStarCanvas.getContext('2d');
+const waterStarGradient=waterStarCtx.createRadialGradient(32,32,0,32,32,31);
+waterStarGradient.addColorStop(0,'rgba(255,255,255,1)');
+waterStarGradient.addColorStop(.18,'rgba(255,255,255,.96)');
+waterStarGradient.addColorStop(.52,'rgba(255,255,255,.30)');
+waterStarGradient.addColorStop(1,'rgba(255,255,255,0)');
+waterStarCtx.fillStyle=waterStarGradient;
+waterStarCtx.fillRect(0,0,64,64);
+const waterStarTexture=new THREE.CanvasTexture(waterStarCanvas);
+const waterStarHaloMat=new THREE.PointsMaterial({
+  size:14.0,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:0,
+  map:waterStarTexture,alphaMap:waterStarTexture,
+  depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending
+});
+const waterStarCoreMat=new THREE.PointsMaterial({
+  size:6.8,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:0,
+  map:waterStarTexture,alphaMap:waterStarTexture,
+  depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending
+});
+const waterStarHalos=new THREE.Points(waterStarGeo,waterStarHaloMat);
+const waterStarCores=new THREE.Points(waterStarGeo,waterStarCoreMat);
+waterStarHalos.renderOrder=18;
+waterStarCores.renderOrder=19;
+scene.add(waterStarHalos,waterStarCores);
+let waterStarPhase=0;
+
+function pointInPondWaterMask(x,y){
+  const u=(x+D.pondW/2)/D.pondW;
+  const v=(D.pondH/2-y)/D.pondH;
+  const c=Math.round(u*(D.ncols-1));
+  const r=Math.round(v*(D.nrows-1));
+  return r>=0&&r<D.nrows&&c>=0&&c<D.ncols&&!!D.mask[r][c];
+}
+
+function updateWaterStarReflectionPoints(dt){
+  waterStarPhase+=dt;
+  const cloud=(typeof liveWeather!=='undefined'?(liveWeather.cloud||0):0)/100;
+  const opacity=(simulationEnabled?sceneNightFactor:0)*(1-cloud*.84);
+  const active=waterVisible&&!is2D&&!(typeof fishMode!=='undefined'&&fishMode)&&opacity>.035;
+  waterStarHalos.visible=waterStarCores.visible=active;
+  if(!active){
+    waterStarGeo.setDrawRange(0,0);
+    return;
+  }
+  let count=0;
+  const waterZ=.68;
+  for(let i=0;i<starCount;i++){
+    const sx=starPositions[i*3],sy=starPositions[i*3+1],sz=starPositions[i*3+2];
+    const sl=Math.hypot(sx,sy,sz);
+    if(sl<.001)continue;
+    const lx=sx/sl,ly=sy/sl,lz=sz/sl;
+    if(lz<.045)continue;
+    const t=(camera.position.z-waterZ)/lz;
+    if(t<=0)continue;
+    const x=camera.position.x+t*lx;
+    const y=camera.position.y+t*ly;
+    if(!pointInPondWaterMask(x,y)&&!pointInMosel(x,y))continue;
+    waterStarPositions[count*3]=x;
+    waterStarPositions[count*3+1]=y;
+    waterStarPositions[count*3+2]=waterZ;
+    const brightness=THREE.MathUtils.clamp((4.1-starCatalog[i][2])/4.2,.42,1.35);
+    waterStarColors[count*3]=starColors[i*3]*brightness;
+    waterStarColors[count*3+1]=starColors[i*3+1]*brightness;
+    waterStarColors[count*3+2]=starColors[i*3+2]*brightness;
+    count++;
+  }
+  waterStarGeo.setDrawRange(0,count);
+  waterStarGeo.attributes.position.needsUpdate=true;
+  waterStarGeo.attributes.color.needsUpdate=true;
+  const twinkle=.88+.12*Math.sin(waterStarPhase*2.15);
+  waterStarHaloMat.opacity=opacity*.38*twinkle;
+  waterStarCoreMat.opacity=Math.min(1,opacity*.96*twinkle);
+}
+
 function updateAstronomicalStars(now,sunAltitude){
   const jd=now.getTime()/86400000+2440587.5;
   const gmst=(280.46061837+360.98564736629*(jd-2451545.0))*Math.PI/180;
@@ -3837,7 +4170,7 @@ function celestialVector(pos,radius){
 function updateAstronomy(){
   if(typeof SunCalc==='undefined') return;
 
-  const now=new Date();
+  const now=viewerNow();
   const sunPos=SunCalc.getPosition(now,SITE_LAT,SITE_LON);
   const moonPos=SunCalc.getMoonPosition(now,SITE_LAT,SITE_LON);
   const moonIll=SunCalc.getMoonIllumination(now);
@@ -3862,19 +4195,23 @@ function updateAstronomy(){
 
 
   const span=Math.max(D.sceneW,D.sceneH);
-  const sunVec=celestialVector(sunPos,span*2.1);
+  let sunVec=celestialVector(sunPos,span*2.1);
   // Nachts bleibt ein Mond sichtbar, selbst wenn seine reale Bahn gerade unter
   // dem Horizont liegt. Azimut und Phase bleiben echt; nur die Anzeigehöhe wird
   // in diesem Fall knapp über den Horizont angehoben.
   const displayMoonPos={azimuth:moonPos.azimuth,altitude:moonPos.altitude};
   const sunUp=sunPos.altitude>0;
   if(!sunUp && displayMoonPos.altitude<=0) displayMoonPos.altitude=0.22;
-  const moonVec=celestialVector(displayMoonPos,span*1.9);
+  let moonVec=celestialVector(displayMoonPos,span*1.9);
 
   sun.position.copy(sunVec);
   sunDisc.position.copy(sunVec);
   moonLight.position.copy(moonVec);
   moonDisc.position.copy(moonVec);
+  if(typeof dayReliefLight!=='undefined'){
+    dayReliefLight.position.copy(sunVec);
+    dayReliefLight.target.position.copy(moonLight.target.position);
+  }
 
   const twilight=sunPos.altitude>-0.12;
 
@@ -3889,7 +4226,11 @@ function updateAstronomy(){
 
   const altNorm=Math.max(0,Math.min(1,Math.sin(Math.max(0,sunPos.altitude))));
   sun.intensity=sunUp ? (0.72+0.95*altNorm) : 0;
-  moonLight.intensity=!sunUp ? 0.10+0.35*moonIll.fraction : 0;
+  // Unveränderter Ausgangswert für die Wolkendämpfung. Dadurch kann der
+  // Regler die Sonne nicht bei jedem Aufruf erneut schwächer multiplizieren.
+  sun.userData.clearSkyIntensity=sun.intensity;
+  moonLight.intensity=(!sunUp ? 0.10+0.35*moonIll.fraction : 0)
+    *((typeof diagnosticState==='undefined'||diagnosticState.relief)?1:0);
 
   // V36: kontinuierliche Helligkeit statt nur drei optischer Zustände.
   // Von ca. 6° Sonnenhöhe bis zur bürgerlichen Dämmerung wird das Luftbild
@@ -3944,7 +4285,7 @@ function updateAstronomy(){
   }
 
   // V44: vorhandene einfache Mondgrafik abschließend durch korrekte Phase ersetzen.
-  renderMoonPhase(new Date());
+  renderMoonPhase(viewerNow());
 }
 
 
@@ -5116,18 +5457,27 @@ function spawnRainRipple(){
   const rainingNow=Number(liveWeather.precipitation||liveWeather.rain||0)>0.01;
   if(!waterVisible || is2D || !rainingNow || rainRipples.length>=MAX_RAIN_RIPPLES) return;
 
-  // Zufälligen Punkt innerhalb der echten ReefMaster-Wassermaske suchen.
+  // Zufälligen Punkt auf Weiher oder Mosel suchen.
+  const rippleOnMosel=Math.random()<.40;
   let x=0,y=0,ok=false;
   for(let tries=0;tries<18;tries++){
-    x=(Math.random()-.5)*D.pondW;
-    y=(Math.random()-.5)*D.pondH;
+    if(rippleOnMosel){
+      x=THREE.MathUtils.lerp(moselBox.min.x,moselBox.max.x,Math.random());
+      y=THREE.MathUtils.lerp(moselBox.min.y,moselBox.max.y,Math.random());
+    }else{
+      x=(Math.random()-.5)*D.pondW;
+      y=(Math.random()-.5)*D.pondH;
+    }
 
     // V76: Einschlag minimal in Windrichtung versetzt.
     const impactShift=Math.min(1.8,Number(liveWeather.windSpeed||0)*.035);
     x+=cloudWindWorld.x*impactShift;
     y+=cloudWindWorld.y*impactShift;
 
-    if(pointInsideWaterMask(x,y)){ ok=true; break; }
+    if(rippleOnMosel ? pointInMosel(x,y) : pointInsidePondMask(x,y)){
+      ok=true;
+      break;
+    }
   }
   if(!ok) return;
 
@@ -5143,7 +5493,8 @@ function spawnRainRipple(){
     side:THREE.DoubleSide
   });
   const s=new THREE.Mesh(rainRippleGeo,mat);
-  s.position.set(x,y,.34);
+  // Die Moseloberfläche liegt konstruktiv etwas höher als die Weiheroberfläche.
+  s.position.set(x,y,rippleOnMosel ? .82 : .34);
   s.scale.set(.62,.62,1);
   s.renderOrder=215;
   rainRippleGroup.add(s);
@@ -5387,10 +5738,10 @@ function carTrafficDaytimeAllowed(){
   try{
     if(typeof SunCalc!=='undefined'){
       // Bürgerliche Dämmerung: früher Morgen bis zum Ende der Abenddämmerung.
-      return SunCalc.getPosition(new Date(),SITE_LAT,SITE_LON).altitude>-0.105;
+      return SunCalc.getPosition(viewerNow(),SITE_LAT,SITE_LON).altitude>-0.105;
     }
   }catch(e){}
-  const h=new Date().getHours();
+  const h=viewerNow().getHours();
   return h>=6 && h<21;
 }
 
@@ -5939,7 +6290,7 @@ function updateUnderwaterEffects(dt){
   const cloud=(typeof liveWeather!=='undefined'?(liveWeather.cloud||0):0)/100;
   const night=simulationEnabled?sceneNightFactor:0;
   let moonFraction=.5;
-  try{if(typeof SunCalc!=='undefined') moonFraction=SunCalc.getMoonIllumination(new Date()).fraction;}catch(e){}
+  try{if(typeof SunCalc!=='undefined') moonFraction=SunCalc.getMoonIllumination(viewerNow()).fraction;}catch(e){}
   // Tagsüber klar erkennbar, nachts als wesentlich schwächeres Mondlichtmuster.
   fishCausticUniforms.intensity.value=(1-cloud*.60)*((1-night)*1.16+night*(.27+.13*moonFraction));
   fishBottomDetailUniforms.intensity.value=.82+(1-cloud)*.18;
@@ -6521,11 +6872,12 @@ function enterFishView(){
   document.querySelector('.wrap').classList.add('fish-mode');
   fishMiniMap.style.display='block';
   fishViewBtn.classList.add('on');
-  fishViewBtn.textContent='🐟 Fischsicht verlassen';
-  fishViewBtn.setAttribute('aria-label','Fischsicht verlassen');
+  fishViewBtn.textContent='👁 Unterwasser-Modus verlassen';
+  fishViewBtn.setAttribute('aria-label','Unterwasser-Modus verlassen');
   fishPreviousWaterVisible=waterVisible;
   waterVisible=true;
   waterSurface.visible=true;
+  if(typeof moselWaterSurface!=='undefined') moselWaterSurface.visible=true;
   // Der Unterwasser-Shader wird während des Tauchflugs weich eingeblendet.
   waterUniforms.underwaterView.value=0;
   // Fischboden übernimmt stets die aktuell gewählte 1×/2×-Geometrie.
@@ -6611,13 +6963,14 @@ function finishLeavingFishView(){
   hideFishIdentify();
   document.querySelector('.wrap').classList.remove('fish-mode');
   fishViewBtn.classList.remove('on');
-  fishViewBtn.textContent='🐟';
-  fishViewBtn.setAttribute('aria-label','Fischsicht starten');
+  fishViewBtn.textContent='🐟 Unterwasser-Modus';
+  fishViewBtn.setAttribute('aria-label','Unterwasser-Modus starten');
   fishTransition=null;
   fishGroup.visible=false;
   scene.fog=savedSceneFog;
   waterVisible=fishPreviousWaterVisible;
   waterSurface.visible=waterVisible;
+  if(typeof moselWaterSurface!=='undefined') moselWaterSurface.visible=waterVisible;
   waterUniforms.underwaterView.value=0;
   renderer.setPixelRatio(fishPreviousPixelRatio);
   fishPond.visible=false;
@@ -7169,6 +7522,94 @@ function updateFishShadows(){
   fishShadowAlpha.needsUpdate=true;
 }
 
+const celestialScreenTemp=new THREE.Vector3();
+const waterViewportTemp=new THREE.Vector2();
+function updateCelestialReflectionScreens(){
+  renderer.getDrawingBufferSize(waterViewportTemp);
+  waterUniforms.viewportSize.value.copy(waterViewportTemp);
+  const setProjected=(object,uniform,active)=>{
+    if(!active){uniform.value.set(-2,-2,0);return;}
+    celestialScreenTemp.copy(object.position).project(camera);
+    // Für die Spiegelung darf die Lichtquelle auch oberhalb des sichtbaren
+    // Bildausschnitts stehen. Früher wurde dadurch besonders die hoch stehende
+    // Tagessonne komplett deaktiviert, während der tiefer stehende Mond wirkte.
+    const visible=celestialScreenTemp.z>=-1&&celestialScreenTemp.z<=1
+      &&celestialScreenTemp.x>=-1.35&&celestialScreenTemp.x<=1.35
+      &&celestialScreenTemp.y>=-1.0;
+    uniform.value.set(
+      THREE.MathUtils.clamp(celestialScreenTemp.x*.5+.5,-.16,1.16),
+      THREE.MathUtils.clamp(celestialScreenTemp.y*.5+.5,-.05,1.28),
+      visible?1:0
+    );
+  };
+  setProjected(sunDisc,waterUniforms.sunScreen,simulationEnabled&&sun.visible);
+  setProjected(moonDisc,waterUniforms.moonScreen,
+    simulationEnabled&&!!moonDisc.userData.astronomicallyVisible);
+}
+
+function updateCelestialDepthLighting(){
+  // Bei Tageslicht darf die dezente Quellenaufhellung auch in 2D sichtbar sein.
+  const allowIn2D=sceneNightFactor<.48;
+  const active=waterVisible&&(!is2D||allowIn2D)&&simulationEnabled
+    &&(typeof diagnosticState==='undefined'||diagnosticState.depthSpots)
+    &&!(typeof fishMode!=='undefined'&&fishMode);
+  pondCelestialDepthLift.visible=active;
+  moselCelestialDepthLift.visible=active;
+  if(!active){
+    celestialDepthUniforms.sourceStrength.value=0;
+    return;
+  }
+
+  const useMoon=sceneNightFactor>.48;
+  const screen=useMoon?waterUniforms.moonScreen.value:waterUniforms.sunScreen.value;
+  const strength=useMoon?waterUniforms.moonStrength.value:waterUniforms.sunStrength.value;
+  celestialDepthUniforms.sourceScreen.value.copy(screen);
+  celestialDepthUniforms.sourceStrength.value=strength;
+  celestialDepthUniforms.sourceColor.value.set(useMoon?0xbdd9ff:0xffedbd);
+}
+
+const celestialLensFlare=document.getElementById('celestialLensFlare');
+const lensFlareParts=celestialLensFlare ? Array.from(celestialLensFlare.querySelectorAll('i')) : [];
+function updateCelestialLensFlare(){
+  if(!celestialLensFlare)return;
+  const useMoon=sceneNightFactor>.48;
+  const screen=useMoon?waterUniforms.moonScreen.value:waterUniforms.sunScreen.value;
+  const cloud=Math.max(0,Math.min(1,(liveWeather.cloud||0)/100));
+  const inFront=screen.z>.5;
+  const x=screen.x,y=screen.y;
+  const edge=Math.max(Math.abs(x-.5),Math.abs(y-.5));
+  const outsideX=Math.max(0,Math.abs(x-.5)-.5);
+  const outsideY=Math.max(0,Math.abs(y-.5)-.5);
+  // Auch eine knapp oberhalb/seitlich außerhalb des Viewers stehende Lichtquelle
+  // erzeugt reale Linsenreflexe. Erst weiter außerhalb wird sauber ausgeblendet.
+  const nearFrame=Math.max(0,Math.min(1,1-Math.hypot(outsideX,outsideY)/.52));
+  const centerBoost=.58+.42*Math.max(0,Math.min(1,1-edge/.82));
+  const allowed=!is2D&&simulationEnabled
+    &&!(typeof fishMode!=='undefined'&&fishMode)
+    &&inFront&&nearFrame>.015;
+  const clearSky=1-cloud*.88;
+  const strength=(useMoon?.30:.84)*clearSky*Math.pow(nearFrame,.58)*centerBoost;
+  celestialLensFlare.style.opacity=allowed?strength.toFixed(3):'0';
+  celestialLensFlare.classList.toggle('moon',useMoon);
+  if(!allowed||lensFlareParts.length<5)return;
+
+  const place=(el,px,py,scale=1)=>{
+    el.style.left=(px*100).toFixed(2)+'%';
+    el.style.top=((1-py)*100).toFixed(2)+'%';
+    el.style.scale=String(scale);
+  };
+  place(lensFlareParts[0],x,y,useMoon?.72:1);
+  // Optische Geister liegen auf der Achse Lichtquelle – Bildmitte und wandern
+  // deshalb beim Drehen der Kamera sichtbar schräg durch das Bild.
+  const ghost=(k)=>[.5+(.5-x)*k,.5+(.5-y)*k];
+  let p=ghost(.34);place(lensFlareParts[1],p[0],p[1],useMoon?.68:.92);
+  p=ghost(.72);place(lensFlareParts[2],p[0],p[1],useMoon?.62:.82);
+  p=ghost(1.12);place(lensFlareParts[3],p[0],p[1],useMoon?.66:.90);
+  p=ghost(.12);place(lensFlareParts[4],p[0],p[1],useMoon?.66:1.0);
+  const angle=Math.atan2(.5-y,.5-x)*180/Math.PI;
+  lensFlareParts[4].style.transform='translate(-50%,-50%) rotate('+angle.toFixed(2)+'deg)';
+}
+
 const clock=new THREE.Clock();
 
 (function loop(){
@@ -7199,7 +7640,7 @@ const clock=new THREE.Clock();
     if(simulationEnabled){
       if(useMoon){
         let mf=.5;
-        try{if(typeof SunCalc!=='undefined') mf=SunCalc.getMoonIllumination(new Date()).fraction;}catch(e){}
+        try{if(typeof SunCalc!=='undefined') mf=SunCalc.getMoonIllumination(viewerNow()).fraction;}catch(e){}
         celestialPower=(moonDisc.userData.astronomicallyVisible?(.18+.28*mf):0)*cloudClear;
         satUniforms.celestialColor.value.set(0xb8d8ff);
       }else{
@@ -7221,19 +7662,25 @@ const clock=new THREE.Clock();
    waterUniforms.time.value += dt*.48;
    waterUniforms.cameraPos.value.copy(camera.position);
    waterUniforms.nightFactor.value=simulationEnabled ? sceneNightFactor : 0;
+   waterUniforms.dayMatchFactor.value=simulationEnabled
+     ? Math.max(0,Math.min(1,1-sceneNightFactor))
+     : 0;
 
    // V60: Reflexionsrichtungen folgen echten Himmelskörpern und reagieren auf Kameradrehung.
    if(typeof sun!=='undefined'){
      waterUniforms.sunDir.value.copy(sun.position).sub(sun.target.position).normalize();
-     waterUniforms.sunStrength.value=sun.visible
-       ? Math.min(1.0,Math.max(0,sun.intensity/1.55))
+     const sunCloud=1-Math.max(0,Math.min(1,(liveWeather.cloud||0)/100))*.68;
+     // Eigenständige Reflexionsstärke: nicht mehr vom vergleichsweise kleinen
+     // Three.js-Lichtwert abhängig. Wolken schwächen sie weiterhin realistisch.
+     waterUniforms.sunStrength.value=(sun.visible && simulationEnabled)
+       ? Math.min(.74,.82*sunCloud)
        : 0.0;
    }
    if(typeof moonLight!=='undefined'){
      waterUniforms.moonDir.value.copy(moonLight.position).sub(moonLight.target.position).normalize();
      let moonFraction=.5;
      try{
-       if(typeof SunCalc!=='undefined') moonFraction=SunCalc.getMoonIllumination(new Date()).fraction;
+       if(typeof SunCalc!=='undefined') moonFraction=SunCalc.getMoonIllumination(viewerNow()).fraction;
      }catch(e){}
      const moonCloud=1-Math.max(0,Math.min(1,(liveWeather.cloud||0)/100))*.68;
      // Die Wasserreflexion bleibt auch bei dichter Bewölkung erkennbar.
@@ -7352,7 +7799,22 @@ const clock=new THREE.Clock();
    windArrow.style.scale='1';
  }
 
+ updateCelestialReflectionScreens();
+ updateCelestialDepthLighting();
+ updateCelestialLensFlare();
+ applyDiagnosticLayers();
+ updateWaterStarReflectionPoints(dt);
  updateCompass();
+ // Harte Objekt-Isolation unmittelbar vor dem Rendern. Dadurch kann keine
+ // Wetter- oder Animationsroutine ein ausgeschaltetes Diagnoseobjekt reaktivieren.
+ if(typeof diagnosticState!=='undefined'){
+   if(!diagnosticState.waterObject) waterSurface.visible=false;
+   if(!diagnosticState.pondObject){pond.visible=false;pondNeutral.visible=false;}
+   if(!diagnosticState.extraObjects){
+     pondNightLift.visible=false;
+     pondCelestialDepthLift.visible=false;
+   }
+ }
  renderer.render(scene,camera);
 })();
 </script>
