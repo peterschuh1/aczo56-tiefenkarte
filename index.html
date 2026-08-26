@@ -1256,7 +1256,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.43 ONLINE';
+const VIEWER_VERSION='FINAL V5.45 ONLINE';
 const VIEWER_BUILD='26.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
@@ -6059,26 +6059,57 @@ function createPersonalAngler(){
   const g=new THREE.Group();
   const jacket=new THREE.MeshPhongMaterial({color:0x71806f,shininess:18});
   const trousers=new THREE.MeshPhongMaterial({color:0x20282b});
-  const body=new THREE.Mesh(new THREE.CylinderGeometry(.25,.31,1.08,10),jacket);
-  body.rotation.x=Math.PI/2;body.position.z=.96;g.add(body);
+  // V5.45: Der Oberkörper endet deutlich unterhalb des Kinns. In V5.44 lag
+  // die geschlossene Deckfläche des Zylinders noch vor Kiefer und Hals.
+  const body=new THREE.Mesh(new THREE.CylinderGeometry(.25,.31,.96,10),jacket);
+  body.rotation.x=Math.PI/2;body.position.z=.84;g.add(body);
+  // Ein sichtbarer kurzer Hals verbindet den kleineren Kopf mit dem Shirt.
+  const skin=new THREE.MeshPhongMaterial({color:0xb77f5e,shininess:7,specular:0x2b211d});
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.078,.096,.18,16),skin);
+  neck.rotation.x=Math.PI/2;neck.position.z=1.37;g.add(neck);
+
   // Ein einziges geschlossenes, vollständig texturiertes 3D-Kopfobjekt.
-  // Die Textur enthält Gesicht, Profile, Hinterkopf und Frisur rundherum.
+  // Die seitlichen Randbereiche der vorhandenen Rundumtextur werden bewusst
+  // ausgespart: Dort lagen zwei abgebildete Haarenden. Der kurze gebundene
+  // Haaransatz wird weiter unten exakt einmal als echtes 3D-Objekt ergänzt.
   const headTex=new THREE.TextureLoader().load(PERSONAL_HEAD_ATLAS,t=>{
-    t.encoding=THREE.sRGBEncoding;t.wrapS=THREE.RepeatWrapping;t.needsUpdate=true;
+    t.encoding=THREE.sRGBEncoding;t.wrapS=THREE.RepeatWrapping;
+    t.repeat.set(.84,1);t.offset.set(.08,0);t.needsUpdate=true;
   });
   headTex.minFilter=THREE.LinearMipmapLinearFilter;headTex.magFilter=THREE.LinearFilter;
-  const headGeo=new THREE.SphereGeometry(.235,32,22);
+  const headGeo=new THREE.SphereGeometry(.160,36,26);
   // Three.js-Kugel von Y-up auf die Z-Hochachse der Karte drehen und die
   // Texturmitte (+Y) zur tatsächlichen Vorderseite der Figur ausrichten.
   headGeo.rotateX(Math.PI/2);headGeo.rotateZ(Math.PI/2);
   const head=new THREE.Mesh(headGeo,new THREE.MeshPhongMaterial({
     map:headTex,color:0xffffff,shininess:5,specular:0x222222
   }));
-  head.scale.set(.90,.82,1.12);head.position.z=1.64;g.add(head);
-  // Leere Kompatibilitätsgruppen: Es existieren keine aufgesetzte Gesichts-
-  // oder Haarflächen mehr.
+  // Weniger Tiefe verhindert die kugelige/aufgeblasene Gesichtsform. Die
+  // kleinere Breite und Hoehe entsprechen der freigegebenen Vorschau.
+  head.scale.set(.92,.72,1.10);head.position.z=1.61;g.add(head);
+
+  // Leere Kompatibilitätsgruppen: Gesicht und Kopfhaar bleiben Bestandteil
+  // der geschlossenen Rundumtextur und schweben nicht vor dem Kopf.
   const face=new THREE.Group(),hairCap=new THREE.Group(),topHair=new THREE.Group();
-  const hairKnot=new THREE.Group(),ponytail=new THREE.Group();
+
+  // Exakt ein kurzer, ungeflochtener Haaransatz am Hinterkopf.
+  // Die Laenge nach dem hellen Haargummi entspricht im Modell etwa 5 cm.
+  const hairMat=new THREE.MeshPhongMaterial({color:0x3b2a22,shininess:24,specular:0x392820});
+  const bandMat=new THREE.MeshPhongMaterial({color:0xe9dfc7,shininess:36,specular:0xffffff});
+  const hairKnot=new THREE.Group();
+  const band=new THREE.Mesh(new THREE.TorusGeometry(.026,.0065,8,18),bandMat);
+  band.rotation.x=Math.PI/2;band.position.set(0,-.119,1.69);hairKnot.add(band);g.add(hairKnot);
+
+  const ponytail=new THREE.Group();
+  const tuftRoot=new THREE.Vector3(0,-.123,1.69);
+  const tuftTip=new THREE.Vector3(0,-.168,1.672);
+  const tuftDir=tuftTip.clone().sub(tuftRoot),tuftLen=tuftDir.length();
+  // Ein einziges zusammenhaengendes, ungeflochtenes Haarbuendel. Kein zweites
+  // Endstueck: So kann aus der Entfernung optisch kein Doppelzopf entstehen.
+  const tuft=new THREE.Mesh(new THREE.CylinderGeometry(.008,.026,tuftLen,12),hairMat);
+  tuft.position.copy(tuftRoot).add(tuftTip).multiplyScalar(.5);
+  tuft.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),tuftDir.normalize());
+  ponytail.add(tuft);g.add(ponytail);
 
   // Das Logo liegt gekrümmt direkt auf dem zylindrischen Shirt und folgt dessen
   // Oberfläche; dadurch bleibt es auch beim Drehen fest mit der Brust verbunden.
@@ -6092,7 +6123,7 @@ function createPersonalAngler(){
   const logoWidth=.34,logoHeight=.174,logoCenterZ=1.10;
   const logoGeo=makeSurfacePatch(12,5,(u,v)=>{
     const x=(u-.5)*logoWidth,z=logoCenterZ+(v-.5)*logoHeight;
-    const bodyT=THREE.MathUtils.clamp((z-(.96-.54))/1.08,0,1);
+    const bodyT=THREE.MathUtils.clamp((z-(.84-.48))/.96,0,1);
     const radius=THREE.MathUtils.lerp(.31,.25,bodyT);
     return new THREE.Vector3(x,Math.sqrt(Math.max(.002,radius*radius-x*x))+.002,z);
   });
@@ -6109,21 +6140,22 @@ function createPersonalAngler(){
   const arm2=arm1.clone();
   arm1.rotation.z=.45;arm2.rotation.z=-.45;
   arm1.position.set(-.34,.04,1.05);arm2.position.set(.34,.04,1.05);g.add(arm1,arm2);
-  g.userData={body,head,face,hairCap,topHair,hairKnot,ponytail,logo,leg1,leg2,arm1,arm2};
+  g.userData={body,neck,head,face,hairCap,topHair,hairKnot,ponytail,logo,leg1,leg2,arm1,arm2};
   return g;
 }
 
 function setPersonalAnglerSeated(person,seated){
   const u=person.userData;
   if(!u||!u.leg1)return;
-  u.body.position.z=seated?.87:.96;
-  u.head.position.z=seated?1.53:1.64;
+  u.body.position.z=seated?.75:.84;
+  u.neck.position.z=seated?1.28:1.37;
+  u.head.position.z=seated?1.50:1.61;
   // Gesicht, Haare und Brustlogo bewegen sich exakt mit Kopf und Oberkörper.
   const headDelta=seated?-.11:0,bodyDelta=seated?-.09:0;
   u.face.position.z=headDelta;
-  u.hairCap.position.z=1.755+headDelta;
-  u.topHair.position.z=1.76+headDelta;
-  u.hairKnot.position.z=1.70+headDelta;
+  u.hairCap.position.z=headDelta;
+  u.topHair.position.z=headDelta;
+  u.hairKnot.position.z=headDelta;
   u.ponytail.position.z=headDelta;
   u.logo.position.z=bodyDelta;
   [u.leg1,u.leg2].forEach((leg,i)=>{
