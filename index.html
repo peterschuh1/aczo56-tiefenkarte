@@ -1256,7 +1256,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.29 ONLINE';
+const VIEWER_VERSION='FINAL V5.30 ONLINE';
 const VIEWER_BUILD='26.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
@@ -3138,9 +3138,11 @@ const waterMat=new THREE.ShaderMaterial({
      // als sehr kleine, gebrochene Lichtreflexe erkennbar.
      for(int i=0;i<32;i++){
        float alignment=dot(d,realStarDirs[i]);
-       result+=smoothstep(.9895,.99920,alignment)*realStarBrightness[i]*2.10;
+       // FINAL V5.30: nur noch winzige, dezente Sternreflexe statt grosser
+       // heller Flecken auf der Wasseroberflaeche.
+       result+=smoothstep(.9975,.99965,alignment)*realStarBrightness[i]*.32;
      }
-     return min(result,2.15);
+     return min(result,.38);
    }
 
    void main(){
@@ -4064,8 +4066,8 @@ for(let i=0;i<starCount;i++){
   // FINAL V5.29: auf kleinen Mobil-Displays klar erkennbare Himmelssterne.
   // Nur die Darstellung am Himmel wird verstaerkt; die Wasserreflexionen
   // verwenden weiterhin ihre eigenen, unveraenderten Parameter.
-  starSizes[i]=Math.min(11.5,4.70+(3.4-s[2])*1.42);
-  starAlphas[i]=Math.min(1.0,.97+(3.4-s[2])*.045);
+  starSizes[i]=Math.min(12.2,4.95+(3.4-s[2])*1.47);
+  starAlphas[i]=Math.min(1.0,1.01+(3.4-s[2])*.040);
 }
 const starGeo=new THREE.BufferGeometry();
 starGeo.setAttribute('position',new THREE.BufferAttribute(starPositions,3));
@@ -4100,7 +4102,7 @@ const starMat=new THREE.ShaderMaterial({
       float d=length(gl_PointCoord-vec2(.5));
       float halo=1.0-smoothstep(.16,.50,d);
       float core=1.0-smoothstep(.015,.205,d);
-      float a=(halo*.82+core*.98)*vStarAlpha*opacity*vHorizon;
+      float a=(halo*.90+core*1.08)*vStarAlpha*opacity*vHorizon;
       if(a<.015) discard;
       gl_FragColor=vec4(vStarColor,a);
     }
@@ -4132,12 +4134,12 @@ waterStarCtx.fillStyle=waterStarGradient;
 waterStarCtx.fillRect(0,0,64,64);
 const waterStarTexture=new THREE.CanvasTexture(waterStarCanvas);
 const waterStarHaloMat=new THREE.PointsMaterial({
-  size:14.0,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:0,
+  size:4.2,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:0,
   map:waterStarTexture,alphaMap:waterStarTexture,
   depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending
 });
 const waterStarCoreMat=new THREE.PointsMaterial({
-  size:6.8,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:0,
+  size:2.4,sizeAttenuation:false,vertexColors:true,transparent:true,opacity:0,
   map:waterStarTexture,alphaMap:waterStarTexture,
   depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending
 });
@@ -4192,8 +4194,8 @@ function updateWaterStarReflectionPoints(dt){
   waterStarGeo.attributes.position.needsUpdate=true;
   waterStarGeo.attributes.color.needsUpdate=true;
   const twinkle=.88+.12*Math.sin(waterStarPhase*2.15);
-  waterStarHaloMat.opacity=opacity*.38*twinkle;
-  waterStarCoreMat.opacity=Math.min(1,opacity*.96*twinkle);
+  waterStarHaloMat.opacity=opacity*.075*twinkle;
+  waterStarCoreMat.opacity=Math.min(.24,opacity*.22*twinkle);
 }
 
 function updateAstronomicalStars(now,sunAltitude){
