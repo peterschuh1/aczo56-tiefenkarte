@@ -1256,7 +1256,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.46 ONLINE';
+const VIEWER_VERSION='FINAL V5.47 ONLINE';
 const VIEWER_BUILD='26.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
@@ -5969,12 +5969,12 @@ function cylinderBetween(a,b,r,material,segments=8){
 function createGrandCalifornia(){
   const g=new THREE.Group();
   g.userData.kind='grand-california';
-  // V5.46: Proportionen und Farbgebung nach Peters anthrazitgrauem
-  // VW Grand California. Das Modell bleibt bewusst leichtgewichtig, besteht
-  // aber nicht mehr aus einem weissen Kasten.
-  const grey=new THREE.MeshPhongMaterial({color:0x596168,shininess:46,specular:0x899298});
-  const roofGrey=new THREE.MeshPhongMaterial({color:0x737d83,shininess:38,specular:0x939da2});
-  const greyDark=new THREE.MeshPhongMaterial({color:0x343b40,shininess:32});
+  // V5.47: dunkler VW-Anthrazitton nach Peters Referenzfoto. Die vielen
+  // Karosserie-Kleinteile werden materialweise instanziert, damit der
+  // Kartenstart trotz des detaillierten Fahrzeugs schnell bleibt.
+  const grey=new THREE.MeshPhongMaterial({color:0x464e53,shininess:42,specular:0x70797f});
+  const roofGrey=new THREE.MeshPhongMaterial({color:0x667178,shininess:36,specular:0x879197});
+  const greyDark=new THREE.MeshPhongMaterial({color:0x2d3337,shininess:30});
   const glass=new THREE.MeshPhongMaterial({color:0x142831,shininess:105,specular:0x84a9ba});
   const black=new THREE.MeshPhongMaterial({color:0x101315,shininess:24});
   const trim=new THREE.MeshPhongMaterial({color:0x24292c,shininess:34});
@@ -5983,9 +5983,27 @@ function createGrandCalifornia(){
   const red=new THREE.MeshBasicMaterial({color:0xd71920,toneMapped:false});
   const amber=new THREE.MeshBasicMaterial({color:0xffa31a,toneMapped:false});
 
+  const boxBatches=new Map();
   const addBox=(sx,sy,sz,x,y,z,mat)=>{
-    const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);
-    m.position.set(x,y,z);g.add(m);return m;
+    if(!boxBatches.has(mat))boxBatches.set(mat,[]);
+    boxBatches.get(mat).push({sx,sy,sz,x,y,z});
+  };
+  const flushBoxes=()=>{
+    const unitBox=new THREE.BoxGeometry(1,1,1);
+    const dummy=new THREE.Object3D();
+    boxBatches.forEach((items,mat)=>{
+      const batch=new THREE.InstancedMesh(unitBox,mat,items.length);
+      items.forEach((p,i)=>{
+        dummy.position.set(p.x,p.y,p.z);
+        dummy.rotation.set(0,0,0);
+        dummy.scale.set(p.sx,p.sy,p.sz);
+        dummy.updateMatrix();
+        batch.setMatrixAt(i,dummy.matrix);
+      });
+      batch.instanceMatrix.needsUpdate=true;
+      batch.frustumCulled=false;
+      g.add(batch);
+    });
   };
   const addCabPrism=()=>{
     const hx=1.02,y0=1.08,y1=2.82,z0=.66,zt0=2.88,zt1=1.82;
@@ -6062,20 +6080,35 @@ function createGrandCalifornia(){
   [-1.28,.34].forEach(y=>addBox(.72,.86,.09,0,y,3.095,glass));
 
   // Breite dunkle Raeder mit Felgen und angedeuteten Radlaufkanten.
-  const wheelGeo=new THREE.CylinderGeometry(.47,.47,.30,20);
-  const rimGeo=new THREE.CylinderGeometry(.25,.25,.315,18);
-  const archGeo=new THREE.TorusGeometry(.51,.045,8,24);
-  [[-1.12,-1.88,.52],[1.12,-1.88,.52],[-1.12,1.91,.52],[1.12,1.91,.52]].forEach(p=>{
-    const w=new THREE.Mesh(wheelGeo,black);w.rotation.z=Math.PI/2;w.position.set(...p);g.add(w);
-    const rim=new THREE.Mesh(rimGeo,metal);rim.rotation.z=Math.PI/2;
-    rim.position.set(p[0]+(p[0]<0?-.012:.012),p[1],p[2]);g.add(rim);
-    const arch=new THREE.Mesh(archGeo,greyDark);arch.rotation.y=Math.PI/2;
-    arch.position.set(p[0],p[1],p[2]);g.add(arch);
+  const wheelGeo=new THREE.CylinderGeometry(.47,.47,.30,16);
+  const rimGeo=new THREE.CylinderGeometry(.25,.25,.315,14);
+  const archGeo=new THREE.TorusGeometry(.51,.045,6,18);
+  const wheelPoints=[[-1.12,-1.88,.52],[1.12,-1.88,.52],[-1.12,1.91,.52],[1.12,1.91,.52]];
+  const wheels=new THREE.InstancedMesh(wheelGeo,black,wheelPoints.length);
+  const rims=new THREE.InstancedMesh(rimGeo,metal,wheelPoints.length);
+  const arches=new THREE.InstancedMesh(archGeo,greyDark,wheelPoints.length);
+  const wheelDummy=new THREE.Object3D();
+  wheelPoints.forEach((p,i)=>{
+    wheelDummy.position.set(p[0],p[1],p[2]);
+    wheelDummy.rotation.set(0,0,Math.PI/2);
+    wheelDummy.scale.set(1,1,1);wheelDummy.updateMatrix();
+    wheels.setMatrixAt(i,wheelDummy.matrix);
+    wheelDummy.position.set(p[0]+(p[0]<0?-.012:.012),p[1],p[2]);
+    wheelDummy.updateMatrix();rims.setMatrixAt(i,wheelDummy.matrix);
+    wheelDummy.position.set(p[0],p[1],p[2]);
+    wheelDummy.rotation.set(0,Math.PI/2,0);
+    wheelDummy.updateMatrix();arches.setMatrixAt(i,wheelDummy.matrix);
   });
+  wheels.instanceMatrix.needsUpdate=true;
+  rims.instanceMatrix.needsUpdate=true;
+  arches.instanceMatrix.needsUpdate=true;
+  wheels.frustumCulled=rims.frustumCulled=arches.frustumCulled=false;
+  g.add(wheels,rims,arches);
 
   // Aussenspiegel und obere Positionsleuchten vervollstaendigen die Silhouette.
   [-1.22,1.22].forEach(x=>addBox(.23,.32,.22,x,1.83,2.08,black));
   [-.78,.78].forEach(x=>addBox(.12,.04,.07,x,1.11,2.88,amber));
+  flushBoxes();
   return g;
 }
 
