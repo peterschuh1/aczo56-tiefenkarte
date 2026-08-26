@@ -1256,7 +1256,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.45 ONLINE';
+const VIEWER_VERSION='FINAL V5.46 ONLINE';
 const VIEWER_BUILD='26.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
@@ -5969,63 +5969,113 @@ function cylinderBetween(a,b,r,material,segments=8){
 function createGrandCalifornia(){
   const g=new THREE.Group();
   g.userData.kind='grand-california';
-  const grey=new THREE.MeshPhongMaterial({color:0x9ca1a3,shininess:62,specular:0xaeb7bc});
-  const greyDark=new THREE.MeshPhongMaterial({color:0x747b7e,shininess:44});
-  const glass=new THREE.MeshPhongMaterial({color:0x182a33,shininess:95,specular:0x82aabd});
-  const black=new THREE.MeshPhongMaterial({color:0x111416,shininess:28});
-  const trim=new THREE.MeshPhongMaterial({color:0x2b3032,shininess:38});
-  const white=new THREE.MeshBasicMaterial({color:0xe9eef0,toneMapped:false});
-  const red=new THREE.MeshBasicMaterial({color:0xc41414,toneMapped:false});
+  // V5.46: Proportionen und Farbgebung nach Peters anthrazitgrauem
+  // VW Grand California. Das Modell bleibt bewusst leichtgewichtig, besteht
+  // aber nicht mehr aus einem weissen Kasten.
+  const grey=new THREE.MeshPhongMaterial({color:0x596168,shininess:46,specular:0x899298});
+  const roofGrey=new THREE.MeshPhongMaterial({color:0x737d83,shininess:38,specular:0x939da2});
+  const greyDark=new THREE.MeshPhongMaterial({color:0x343b40,shininess:32});
+  const glass=new THREE.MeshPhongMaterial({color:0x142831,shininess:105,specular:0x84a9ba});
+  const black=new THREE.MeshPhongMaterial({color:0x101315,shininess:24});
+  const trim=new THREE.MeshPhongMaterial({color:0x24292c,shininess:34});
+  const metal=new THREE.MeshPhongMaterial({color:0x858d91,shininess:86,specular:0xd8dde0});
+  const white=new THREE.MeshBasicMaterial({color:0xf3f5ef,toneMapped:false});
+  const red=new THREE.MeshBasicMaterial({color:0xd71920,toneMapped:false});
+  const amber=new THREE.MeshBasicMaterial({color:0xffa31a,toneMapped:false});
 
-  const lower=new THREE.Mesh(new THREE.BoxGeometry(2.15,5.85,1.12),grey);
-  lower.position.z=1.03;g.add(lower);
-  const upper=new THREE.Mesh(new THREE.BoxGeometry(2.02,4.55,1.02),grey);
-  upper.position.set(0,-.30,2.02);g.add(upper);
-  const roof=new THREE.Mesh(new THREE.BoxGeometry(2.07,4.70,.18),greyDark);
-  roof.position.set(0,-.32,2.61);g.add(roof);
-  const bonnet=new THREE.Mesh(new THREE.BoxGeometry(2.02,1.02,.47),grey);
-  bonnet.position.set(0,2.46,1.54);g.add(bonnet);
+  const addBox=(sx,sy,sz,x,y,z,mat)=>{
+    const m=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);
+    m.position.set(x,y,z);g.add(m);return m;
+  };
+  const addCabPrism=()=>{
+    const hx=1.02,y0=1.08,y1=2.82,z0=.66,zt0=2.88,zt1=1.82;
+    const p=[
+      -hx,y0,z0, hx,y0,z0, -hx,y1,z0, hx,y1,z0,
+      -hx,y0,zt0, hx,y0,zt0, -hx,y1,zt1, hx,y1,zt1
+    ];
+    const idx=[
+      0,2,1,1,2,3, 0,1,4,1,5,4, 2,6,3,3,6,7,
+      0,4,2,2,4,6, 1,3,5,3,7,5, 4,5,6,5,7,6
+    ];
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(p,3));
+    geo.setIndex(idx);geo.computeVertexNormals();
+    const cab=new THREE.Mesh(geo,grey);g.add(cab);return cab;
+  };
 
-  // Crafter-/Grand-California-typische dunkle Front mit breitem Grill,
-  // Stoßfänger und dem runden VW-Zeichen.
-  const grille=new THREE.Mesh(new THREE.BoxGeometry(1.72,.10,.66),black);
-  grille.position.set(0,2.985,1.10);g.add(grille);
-  const bumper=new THREE.Mesh(new THREE.BoxGeometry(2.10,.16,.30),trim);
-  bumper.position.set(0,2.97,.66);g.add(bumper);
+  // Tiefer Aufbau, hoher Wohnbereich und die geneigte Crafter-Front.
+  addBox(2.14,5.82,1.12,0,0,1.00,grey);
+  addBox(2.04,4.25,1.55,0,-.63,2.11,grey);
+  addCabPrism();
+  addBox(2.09,4.36,.18,0,-.62,2.96,roofGrey);
+  addBox(2.06,.42,.76,0,2.72,1.20,grey);
 
-  const windshield=new THREE.Mesh(new THREE.PlaneGeometry(1.78,.76),glass);
-  windshield.rotation.x=Math.PI/2;windshield.position.set(0,1.99,2.05);g.add(windshield);
-  [-1.081,1.081].forEach((x,side)=>{
-    [-1.42,.36,1.54].forEach((y,j)=>{
-      const w=new THREE.Mesh(new THREE.PlaneGeometry(j===0?1.25:1.02,.62),glass);
-      w.rotation.y=side?Math.PI/2:-Math.PI/2;
-      w.position.set(x,y,2.03);g.add(w);
-    });
+  // Dunkle umlaufende Seitenlinie und robuste untere Beplankung.
+  [-1.075,1.075].forEach(x=>{
+    addBox(.035,5.45,.12,x,-.05,1.46,trim);
+    addBox(.045,5.30,.30,x,-.10,.73,greyDark);
   });
 
-  // Schiebetürfuge, Markise und zwei Dachhauben machen den Camper auch aus
-  // der schrägen Kartenperspektive eindeutig als Grand California erkennbar.
-  const doorLine=new THREE.Mesh(new THREE.BoxGeometry(.025,2.18,1.50),trim);
-  doorLine.position.set(1.087,-.50,1.55);g.add(doorLine);
-  const awning=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,3.55,10),trim);
-  awning.position.set(1.10,-.38,2.58);g.add(awning);
-  [-1.05,.88].forEach(y=>{
-    const hatch=new THREE.Mesh(new THREE.BoxGeometry(.78,.90,.10),glass);
-    hatch.position.set(0,y,2.73);g.add(hatch);
+  // Geneigte Windschutzscheibe sowie Fahrerhaus- und Wohnraumfenster.
+  const windshield=new THREE.Mesh(new THREE.PlaneGeometry(1.82,.90),new THREE.MeshPhongMaterial({
+    color:0x142831,shininess:105,specular:0x84a9ba,side:THREE.DoubleSide
+  }));
+  windshield.rotation.x=-Math.PI/2+.34;
+  windshield.position.set(0,2.43,2.08);g.add(windshield);
+  [-1.035,1.035].forEach(x=>{
+    addBox(.025,1.22,.78,x,1.64,2.08,glass);
+    addBox(.025,1.18,.72,x,.20,2.13,glass);
+    addBox(.025,1.30,.72,x,-1.30,2.13,glass);
+    // Schiebetuer-/Karosseriefugen und schwarze Griffe.
+    addBox(.030,.045,1.36,x,-.47,1.62,trim);
+    addBox(.045,.30,.075,x,-.05,1.60,black);
   });
 
-  const wheelGeo=new THREE.CylinderGeometry(.46,.46,.24,18);
-  [[-1.12,-1.85,.53],[1.12,-1.85,.53],[-1.12,1.82,.53],[1.12,1.82,.53]].forEach(p=>{
+  // Front: breiter Crafter-Grill, rechteckige Scheinwerfer, Stossfaenger,
+  // Nummernschild und VW-Zeichen.
+  addBox(1.82,.085,.52,0,3.01,1.08,black);
+  addBox(2.10,.14,.28,0,3.00,.66,trim);
+  [-.70,.70].forEach(x=>{
+    addBox(.45,.055,.25,x,3.035,1.43,white);
+    addBox(.12,.060,.09,x+(x<0?-.19:.19),3.040,1.43,amber);
+  });
+  [-.22,0,.22].forEach(z=>addBox(1.46,.025,.026,0,3.058,1.08+z,metal));
+  addBox(.64,.035,.16,0,3.075,.79,white);
+  const frontBadge=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.035,22),metal);
+  frontBadge.position.set(0,3.075,1.31);g.add(frontBadge);
+
+  // Heck: zwei grosse dunkle Fenster, geteilte Hecktuer und senkrechte
+  // Leuchten statt der bisherigen roten Punkte.
+  [-.50,.50].forEach(x=>addBox(.88,.035,.82,x,-2.775,2.10,glass));
+  addBox(.035,.040,1.72,0,-2.805,1.90,trim);
+  [-.91,.91].forEach(x=>{
+    addBox(.18,.055,.72,x,-2.945,1.31,red);
+    addBox(.12,.060,.15,x,-2.978,1.40,white);
+  });
+  addBox(.64,.035,.16,0,-2.965,.79,white);
+  const rearBadge=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.030,20),metal);
+  rearBadge.position.set(0,-2.975,1.48);g.add(rearBadge);
+
+  // Markise und flache Dachhauben des Campers.
+  const awning=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,3.70,12),trim);
+  awning.position.set(1.10,-.58,3.02);g.add(awning);
+  [-1.28,.34].forEach(y=>addBox(.72,.86,.09,0,y,3.095,glass));
+
+  // Breite dunkle Raeder mit Felgen und angedeuteten Radlaufkanten.
+  const wheelGeo=new THREE.CylinderGeometry(.47,.47,.30,20);
+  const rimGeo=new THREE.CylinderGeometry(.25,.25,.315,18);
+  const archGeo=new THREE.TorusGeometry(.51,.045,8,24);
+  [[-1.12,-1.88,.52],[1.12,-1.88,.52],[-1.12,1.91,.52],[1.12,1.91,.52]].forEach(p=>{
     const w=new THREE.Mesh(wheelGeo,black);w.rotation.z=Math.PI/2;w.position.set(...p);g.add(w);
+    const rim=new THREE.Mesh(rimGeo,metal);rim.rotation.z=Math.PI/2;
+    rim.position.set(p[0]+(p[0]<0?-.012:.012),p[1],p[2]);g.add(rim);
+    const arch=new THREE.Mesh(archGeo,greyDark);arch.rotation.y=Math.PI/2;
+    arch.position.set(p[0],p[1],p[2]);g.add(arch);
   });
-  [-.68,.68].forEach(x=>{
-    const lamp=new THREE.Mesh(new THREE.SphereGeometry(.17,10,7),white);
-    lamp.position.set(x,2.98,1.28);g.add(lamp);
-    const tail=new THREE.Mesh(new THREE.SphereGeometry(.14,9,6),red);
-    tail.position.set(x,-2.94,1.20);g.add(tail);
-  });
-  const badge=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.035,18),white);
-  badge.position.set(0,2.99,1.34);g.add(badge);
+
+  // Aussenspiegel und obere Positionsleuchten vervollstaendigen die Silhouette.
+  [-1.22,1.22].forEach(x=>addBox(.23,.32,.22,x,1.83,2.08,black));
+  [-.78,.78].forEach(x=>addBox(.12,.04,.07,x,1.11,2.88,amber));
   return g;
 }
 
@@ -6065,8 +6115,8 @@ function createPersonalAngler(){
   body.rotation.x=Math.PI/2;body.position.z=.84;g.add(body);
   // Ein sichtbarer kurzer Hals verbindet den kleineren Kopf mit dem Shirt.
   const skin=new THREE.MeshPhongMaterial({color:0xb77f5e,shininess:7,specular:0x2b211d});
-  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.078,.096,.18,16),skin);
-  neck.rotation.x=Math.PI/2;neck.position.z=1.37;g.add(neck);
+  const neck=new THREE.Mesh(new THREE.CylinderGeometry(.080,.098,.14,16),skin);
+  neck.rotation.x=Math.PI/2;neck.position.z=1.35;g.add(neck);
 
   // Ein einziges geschlossenes, vollständig texturiertes 3D-Kopfobjekt.
   // Die seitlichen Randbereiche der vorhandenen Rundumtextur werden bewusst
@@ -6077,7 +6127,7 @@ function createPersonalAngler(){
     t.repeat.set(.84,1);t.offset.set(.08,0);t.needsUpdate=true;
   });
   headTex.minFilter=THREE.LinearMipmapLinearFilter;headTex.magFilter=THREE.LinearFilter;
-  const headGeo=new THREE.SphereGeometry(.160,36,26);
+  const headGeo=new THREE.SphereGeometry(.170,36,26);
   // Three.js-Kugel von Y-up auf die Z-Hochachse der Karte drehen und die
   // Texturmitte (+Y) zur tatsächlichen Vorderseite der Figur ausrichten.
   headGeo.rotateX(Math.PI/2);headGeo.rotateZ(Math.PI/2);
@@ -6086,7 +6136,7 @@ function createPersonalAngler(){
   }));
   // Weniger Tiefe verhindert die kugelige/aufgeblasene Gesichtsform. Die
   // kleinere Breite und Hoehe entsprechen der freigegebenen Vorschau.
-  head.scale.set(.92,.72,1.10);head.position.z=1.61;g.add(head);
+  head.scale.set(.94,.74,1.10);head.position.z=1.58;g.add(head);
 
   // Leere Kompatibilitätsgruppen: Gesicht und Kopfhaar bleiben Bestandteil
   // der geschlossenen Rundumtextur und schweben nicht vor dem Kopf.
@@ -6098,11 +6148,11 @@ function createPersonalAngler(){
   const bandMat=new THREE.MeshPhongMaterial({color:0xe9dfc7,shininess:36,specular:0xffffff});
   const hairKnot=new THREE.Group();
   const band=new THREE.Mesh(new THREE.TorusGeometry(.026,.0065,8,18),bandMat);
-  band.rotation.x=Math.PI/2;band.position.set(0,-.119,1.69);hairKnot.add(band);g.add(hairKnot);
+  band.rotation.x=Math.PI/2;band.position.set(0,-.130,1.66);hairKnot.add(band);g.add(hairKnot);
 
   const ponytail=new THREE.Group();
-  const tuftRoot=new THREE.Vector3(0,-.123,1.69);
-  const tuftTip=new THREE.Vector3(0,-.168,1.672);
+  const tuftRoot=new THREE.Vector3(0,-.134,1.66);
+  const tuftTip=new THREE.Vector3(0,-.179,1.642);
   const tuftDir=tuftTip.clone().sub(tuftRoot),tuftLen=tuftDir.length();
   // Ein einziges zusammenhaengendes, ungeflochtenes Haarbuendel. Kein zweites
   // Endstueck: So kann aus der Entfernung optisch kein Doppelzopf entstehen.
@@ -6148,8 +6198,8 @@ function setPersonalAnglerSeated(person,seated){
   const u=person.userData;
   if(!u||!u.leg1)return;
   u.body.position.z=seated?.75:.84;
-  u.neck.position.z=seated?1.28:1.37;
-  u.head.position.z=seated?1.50:1.61;
+  u.neck.position.z=seated?1.26:1.35;
+  u.head.position.z=seated?1.47:1.58;
   // Gesicht, Haare und Brustlogo bewegen sich exakt mit Kopf und Oberkörper.
   const headDelta=seated?-.11:0,bodyDelta=seated?-.09:0;
   u.face.position.z=headDelta;
