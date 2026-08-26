@@ -1256,8 +1256,8 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.27 ONLINE';
-const VIEWER_BUILD='25.08.2026';
+const VIEWER_VERSION='FINAL V5.28 ONLINE';
+const VIEWER_BUILD='26.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
 
@@ -3966,8 +3966,11 @@ function starColorFromBV(bv){
 for(let i=0;i<starCount;i++){
   const s=starCatalog[i],c=starColorFromBV(s[3]);
   starColors.set(c,i*3);
-  starSizes[i]=Math.min(8.2,3.15+(3.4-s[2])*1.05);
-  starAlphas[i]=Math.min(1.0,.90+(3.4-s[2])*.055);
+  // FINAL V5.28: auf kleinen Mobil-Displays klar erkennbare Himmelssterne.
+  // Nur die Darstellung am Himmel wird verstaerkt; die Wasserreflexionen
+  // verwenden weiterhin ihre eigenen, unveraenderten Parameter.
+  starSizes[i]=Math.min(10.8,4.35+(3.4-s[2])*1.38);
+  starAlphas[i]=Math.min(1.0,.96+(3.4-s[2])*.045);
 }
 const starGeo=new THREE.BufferGeometry();
 starGeo.setAttribute('position',new THREE.BufferAttribute(starPositions,3));
@@ -4000,9 +4003,9 @@ const starMat=new THREE.ShaderMaterial({
     varying float vHorizon;
     void main(){
       float d=length(gl_PointCoord-vec2(.5));
-      float halo=1.0-smoothstep(.18,.50,d);
-      float core=1.0-smoothstep(.02,.18,d);
-      float a=(halo*.58+core*.78)*vStarAlpha*opacity*vHorizon;
+      float halo=1.0-smoothstep(.16,.50,d);
+      float core=1.0-smoothstep(.015,.205,d);
+      float a=(halo*.76+core*.92)*vStarAlpha*opacity*vHorizon;
       if(a<.015) discard;
       gl_FragColor=vec4(vStarColor,a);
     }
