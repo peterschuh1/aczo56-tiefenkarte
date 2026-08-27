@@ -1256,7 +1256,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.51 ONLINE';
+const VIEWER_VERSION='FINAL V5.52 MOBILE TEST';
 const VIEWER_BUILD='26.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
@@ -1341,8 +1341,15 @@ const camera=new THREE.PerspectiveCamera(42,1,0.1,2000);
 // weil OrbitControls die Up-Achse intern beim Initialisieren übernimmt.
 camera.up.set(0,0,1);
 
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+// Der Viewer exportiert keine Canvas-Screenshots. Ein dauerhaft konservierter
+// Zeichenpuffer kostet auf den kachelbasierten iPhone-GPUs viel Bandbreite und
+// kann beim Drehen die gesamte Safari-Oberflaeche ausbremsen.
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:false});
+// Mobile Safari muss in 3D gleichzeitig Wasser, Satellitenbild und viele
+// transparente Wolkenschichten zeichnen. 1.5x bleibt auf Retina scharf,
+// reduziert die intern berechneten Bildpunkte aber um rund 44 Prozent.
+const mobileRenderDevice=window.matchMedia('(pointer:coarse)').matches;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,mobileRenderDevice?1.5:2));
 renderer.outputEncoding=THREE.sRGBEncoding;
 host.prepend(renderer.domElement);
 
@@ -1351,7 +1358,7 @@ host.prepend(renderer.domElement);
 renderer.domElement.style.touchAction='none';
 renderer.domElement.addEventListener('touchstart',()=>{}, {passive:false});
 
-let controls=new THREE.OrbitControls(camera,renderer.domElement);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;
 controls.dampingFactor=.07;
 controls.screenSpacePanning=true;
@@ -1465,13 +1472,7 @@ function finishSkyLookPointer(e){
   if(e.pointerId===skyLookPointer) skyLookPointer=null;
 }
 renderer.domElement.addEventListener('pointerup',finishSkyLookPointer,{passive:true});
-renderer.domElement.addEventListener('pointercancel',e=>{
-  if(e.pointerId!==skyLookPointer)return;
-  skyLookPointer=null;
-  // iOS kann eine laufende Geste ohne pointerup abbrechen. In diesem Fall
-  // darf der Himmelmodus die normale Orbit-Steuerung nicht deaktiviert lassen.
-  if(skyLookMode)leaveSkyLookMode(true);
-},{passive:true});
+renderer.domElement.addEventListener('pointercancel',finishSkyLookPointer,{passive:true});
 
 // 2D-Drehwinkel. In echter Draufsicht ist Orbit-Rotation wirkungslos;
 // deshalb drehen wir dort gezielt die camera.up-Achse.
@@ -2324,7 +2325,13 @@ function addCloudField(x,y,z,s,seed,layer=1){
     side:THREE.DoubleSide
   });
 
-  // Breite, unregelmäßige Wolkenfelder. Mehr Teile, aber weich und halbtransparent.
+  // Breite, unregelmaessige Wolkenfelder. Die Teile werden nicht mehr als
+  // einzelne Meshes gezeichnet, sondern je Material in InstancedMesh-Gruppen
+  // gebuendelt. Bei 100 % Bewoelkung sinken die Wolken-Zeichenaufrufe dadurch
+  // von rund 350 auf hoechstens 81, ohne Form oder Bewegung zu veraendern.
+  const coreParts=[];
+  const edgeParts=[];
+  const highlightParts=[];
   const partCount=9+Math.floor(cloudRand(seed+1)*5);
   for(let i=0;i<partCount;i++){
     const a=cloudRand(seed+i*3.11);
@@ -2337,33 +2344,49 @@ function addCloudField(x,y,z,s,seed,layer=1){
     const radius=s*(.42+cloudRand(seed+i*7.17+1)*.48);
 
     const radial=Math.min(1,Math.hypot(px/(s*2.0),py/(s*.9)));
-    const mat=radial>.68 ? edgeMat : coreMat;
-
-    const m=new THREE.Mesh(cloudPuffGeo,mat);
-    m.scale.set(
-      radius*(1.15+cloudRand(seed+i*8.13)*.85),
-      radius*(.72+cloudRand(seed+i*9.07)*.58),
-      radius*(.22+cloudRand(seed+i*10.21)*.16)
-    );
-    m.position.set(px,py,pz);
-    m.renderOrder=40;
-    g.add(m);
+    const part={
+      position:new THREE.Vector3(px,py,pz),
+      scale:new THREE.Vector3(
+        radius*(1.15+cloudRand(seed+i*8.13)*.85),
+        radius*(.72+cloudRand(seed+i*9.07)*.58),
+        radius*(.22+cloudRand(seed+i*10.21)*.16)
+      )
+    };
+    (radial>.68 ? edgeParts : coreParts).push(part);
   }
 
   // Wenige diffuse Highlights, damit dünne Stellen Licht durchlassen,
   // ohne dass die ganze Wolke nachts weiß leuchtet.
   for(let i=0;i<2;i++){
     const r=s*(.46+cloudRand(seed+30+i)*.28);
-    const h=new THREE.Mesh(cloudPuffGeo,highlightMat);
-    h.scale.set(r*1.5,r*.72,r*.20);
-    h.position.set(
-      s*(.15+i*.55),
-      s*(-.22+i*.16),
-      s*(.13+i*.05)
-    );
-    h.renderOrder=40;
-    g.add(h);
+    highlightParts.push({
+      position:new THREE.Vector3(
+        s*(.15+i*.55),
+        s*(-.22+i*.16),
+        s*(.13+i*.05)
+      ),
+      scale:new THREE.Vector3(r*1.5,r*.72,r*.20)
+    });
   }
+
+  const addInstancedParts=(parts,material)=>{
+    if(!parts.length)return;
+    const mesh=new THREE.InstancedMesh(cloudPuffGeo,material,parts.length);
+    const dummy=new THREE.Object3D();
+    parts.forEach((part,i)=>{
+      dummy.position.copy(part.position);
+      dummy.scale.copy(part.scale);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i,dummy.matrix);
+    });
+    mesh.instanceMatrix.needsUpdate=true;
+    mesh.frustumCulled=false;
+    mesh.renderOrder=40;
+    g.add(mesh);
+  };
+  addInstancedParts(coreParts,coreMat);
+  addInstancedParts(edgeParts,edgeMat);
+  addInstancedParts(highlightParts,highlightMat);
 
   g.position.set(x,y,z);
   g.userData={
@@ -6359,85 +6382,54 @@ const personalCatchPile=[];
 let personalScene=null;
 let personalCampReady=false;
 let personalCampScheduled=false;
-let personalCampBuilding=false;
-let personalCampBuildStep=0;
-
-function scheduleNextPersonalCampBuildStep(){
-  const run=()=>buildPersonalCampSceneStep();
-  // Safari bekommt zwischen den einzelnen Bauabschnitten sicher mindestens
-  // einen Render-/Eingabezyklus. So blockiert der spaete Szenenaufbau nicht
-  // mehr fuer eine volle Sekunde die Touch-Steuerung.
-  if(typeof window.requestIdleCallback==='function'){
-    window.requestIdleCallback(run,{timeout:220});
-  }else{
-    window.setTimeout(run,70);
-  }
-}
-
-function buildPersonalCampSceneStep(){
-  if(personalCampReady)return;
-  personalCampBuilding=true;
-
-  if(personalCampBuildStep===0){
-    personalCamper=createGrandCalifornia();
-  }else if(personalCampBuildStep===1){
-    personalCamperLight=createBikeLight();
-    personalCamperLight.scale.set(1.18,1.28,1);
-    personalAngler=createPersonalAngler();
-  }else if(personalCampBuildStep===2){
-    personalRodPod=createRodPodScene();
-    personalChair=createFishingChair();
-  }else if(personalCampBuildStep===3){
-    personalCarryRods=createRodPodScene();
-    personalCarryRods.scale.setScalar(.56);
-    personalCaughtZander=createPersonalZander();
-  }else if(personalCampBuildStep===4){
-    personalHandRod=new THREE.Group();
-    const personalHandRodMat=new THREE.MeshPhongMaterial({color:0x172521,shininess:42});
-    const personalHandReelMat=new THREE.MeshPhongMaterial({color:0x9ba4a6,shininess:72});
-    personalHandRod.add(cylinderBetween(
-      new THREE.Vector3(0,0,.72),new THREE.Vector3(0,-4.75,2.12),.026,personalHandRodMat,8
-    ));
-    const personalHandReel=new THREE.Mesh(new THREE.TorusGeometry(.13,.036,7,14),personalHandReelMat);
-    personalHandReel.rotation.x=Math.PI/2;personalHandReel.position.set(0,-.14,.72);
-    personalHandRod.add(personalHandReel);
-  }else{
-    personalSceneGroup.add(
-      personalCamper,personalAngler,personalRodPod,personalChair,
-      personalCarryRods,personalCaughtZander,personalHandRod
-    );
-    personalAngler.visible=personalRodPod.visible=personalChair.visible=personalCarryRods.visible=false;
-    personalCaughtZander.visible=personalHandRod.visible=false;
-
-    personalLineMat=new THREE.LineBasicMaterial({
-      color:0xd7e1dc,transparent:true,opacity:.68,depthWrite:false,depthTest:true
-    });
-    [-.27,.27].forEach((x,i)=>{
-      const geo=new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(personalFishingSpot.x+x,personalFishingSpot.y-4.2,1.55),
-        new THREE.Vector3(personalFishingSpot.x+x+(i?1.0:-.7),personalFishingSpot.y-15.0,.74)
-      ]);
-      const line=new THREE.Line(geo,personalLineMat);line.visible=false;line.renderOrder=12;
-      personalSceneGroup.add(line);personalCastLines.push(line);
-    });
-
-    personalScene={state:'driving',distance:0,timer:0,finished:false};
-    samplePersonalCamperRoute(0,personalCamper.position,personalTmpDir);
-    personalCamper.rotation.z=Math.atan2(-personalTmpDir.x,personalTmpDir.y);
-    personalCampReady=true;
-    personalCampBuilding=false;
-    personalSceneGroup.visible=!(typeof fishMode!=='undefined'&&fishMode);
-    return;
-  }
-
-  personalCampBuildStep++;
-  scheduleNextPersonalCampBuildStep();
-}
 
 function initPersonalCampScene(){
-  if(personalCampReady||personalCampBuilding)return;
-  personalCampBuildStep=0;
-  scheduleNextPersonalCampBuildStep();
+  if(personalCampReady)return;
+
+  personalCamper=createGrandCalifornia();
+  personalCamperLight=createBikeLight();
+  personalCamperLight.scale.set(1.18,1.28,1);
+  personalAngler=createPersonalAngler();
+  personalRodPod=createRodPodScene();
+  personalChair=createFishingChair();
+  personalCarryRods=createRodPodScene();
+  personalCarryRods.scale.setScalar(.56);
+  personalCaughtZander=createPersonalZander();
+
+  personalHandRod=new THREE.Group();
+  const personalHandRodMat=new THREE.MeshPhongMaterial({color:0x172521,shininess:42});
+  const personalHandReelMat=new THREE.MeshPhongMaterial({color:0x9ba4a6,shininess:72});
+  personalHandRod.add(cylinderBetween(
+    new THREE.Vector3(0,0,.72),new THREE.Vector3(0,-4.75,2.12),.026,personalHandRodMat,8
+  ));
+  const personalHandReel=new THREE.Mesh(new THREE.TorusGeometry(.13,.036,7,14),personalHandReelMat);
+  personalHandReel.rotation.x=Math.PI/2;personalHandReel.position.set(0,-.14,.72);
+  personalHandRod.add(personalHandReel);
+
+  personalSceneGroup.add(
+    personalCamper,personalAngler,personalRodPod,personalChair,
+    personalCarryRods,personalCaughtZander,personalHandRod
+  );
+  personalAngler.visible=personalRodPod.visible=personalChair.visible=personalCarryRods.visible=false;
+  personalCaughtZander.visible=personalHandRod.visible=false;
+
+  personalLineMat=new THREE.LineBasicMaterial({
+    color:0xd7e1dc,transparent:true,opacity:.68,depthWrite:false,depthTest:true
+  });
+  [-.27,.27].forEach((x,i)=>{
+    const geo=new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(personalFishingSpot.x+x,personalFishingSpot.y-4.2,1.55),
+      new THREE.Vector3(personalFishingSpot.x+x+(i?1.0:-.7),personalFishingSpot.y-15.0,.74)
+    ]);
+    const line=new THREE.Line(geo,personalLineMat);line.visible=false;line.renderOrder=12;
+    personalSceneGroup.add(line);personalCastLines.push(line);
+  });
+
+  personalScene={state:'driving',distance:0,timer:0,finished:false};
+  samplePersonalCamperRoute(0,personalCamper.position,personalTmpDir);
+  personalCamper.rotation.z=Math.atan2(-personalTmpDir.x,personalTmpDir.y);
+  personalCampReady=true;
+  personalSceneGroup.visible=!(typeof fishMode!=='undefined'&&fishMode);
 }
 
 function schedulePersonalCampScene(){
@@ -8438,89 +8430,6 @@ function updateCelestialLensFlare(){
   const angle=Math.atan2(.5-y,.5-x)*180/Math.PI;
   lensFlareParts[4].style.transform='translate(-50%,-50%) rotate('+angle.toFixed(2)+'deg)';
 }
-
-// FINAL V5.51: iOS kann bei schnellen Gesten, dem Wechsel zwischen einem und
-// zwei Fingern oder einem vom System abgebrochenen Kontakt das abschliessende
-// pointerup verschlucken. OrbitControls behaelt dann intern einen alten Pointer
-// und reagiert mehrere Sekunden lang nicht mehr korrekt, obwohl die Animation
-// normal weiterlaeuft. Bei einem echten Abbruch verbinden wir die Steuerung neu,
-// ohne Kamera, Ziel oder Bedienparameter zu veraendern.
-const activeMobilePointers=new Set();
-let orbitRecoveryPending=false;
-
-function orbitInputMayRun(){
-  const helpOpen=helpOverlay&&helpOverlay.classList.contains('open');
-  return !fishMode&&!skyLookMode&&!helpOpen&&!measuring;
-}
-
-function rebuildOrbitControlsAfterLostPointer(){
-  if(orbitRecoveryPending)return;
-  orbitRecoveryPending=true;
-  window.setTimeout(()=>{
-    orbitRecoveryPending=false;
-    if(!orbitInputMayRun())return;
-
-    const old=controls;
-    const target=old.target.clone();
-    const settings={
-      enableDamping:old.enableDamping,dampingFactor:old.dampingFactor,
-      screenSpacePanning:old.screenSpacePanning,
-      enableZoom:old.enableZoom,enablePan:old.enablePan,enableRotate:old.enableRotate,
-      rotateSpeed:old.rotateSpeed,zoomSpeed:old.zoomSpeed,panSpeed:old.panSpeed,
-      minDistance:old.minDistance,maxDistance:old.maxDistance,
-      minPolarAngle:old.minPolarAngle,maxPolarAngle:old.maxPolarAngle,
-      minAzimuthAngle:old.minAzimuthAngle,maxAzimuthAngle:old.maxAzimuthAngle,
-      mouseButtons:{...old.mouseButtons},touches:{...old.touches}
-    };
-    try{old.dispose();}catch(err){}
-    controls=new THREE.OrbitControls(camera,renderer.domElement);
-    Object.assign(controls,settings);
-    controls.mouseButtons={...settings.mouseButtons};
-    controls.touches={...settings.touches};
-    controls.target.copy(target);
-    controls.enabled=true;
-    controls.update();
-  },0);
-}
-
-// Capture-Phase: Status wird vor den internen OrbitControls-Listenern erfasst.
-renderer.domElement.addEventListener('pointerdown',e=>{
-  if(e.pointerType!=='touch')return;
-  // Ein neuer Primaerpointer bei noch gespeicherten IDs beweist, dass iOS die
-  // vorherige Geste ohne Abschluss verworfen hat.
-  if(e.isPrimary&&activeMobilePointers.size){
-    activeMobilePointers.clear();
-    rebuildOrbitControlsAfterLostPointer();
-  }
-  activeMobilePointers.add(e.pointerId);
-},true);
-
-window.addEventListener('pointerup',e=>{
-  if(e.pointerType==='touch')activeMobilePointers.delete(e.pointerId);
-},true);
-
-window.addEventListener('pointercancel',e=>{
-  if(e.pointerType!=='touch')return;
-  activeMobilePointers.delete(e.pointerId);
-  rebuildOrbitControlsAfterLostPointer();
-},true);
-
-renderer.domElement.addEventListener('lostpointercapture',e=>{
-  if(!activeMobilePointers.has(e.pointerId))return; // normal nach pointerup
-  activeMobilePointers.delete(e.pointerId);
-  rebuildOrbitControlsAfterLostPointer();
-},true);
-
-window.addEventListener('blur',()=>{
-  if(!activeMobilePointers.size)return;
-  activeMobilePointers.clear();
-  rebuildOrbitControlsAfterLostPointer();
-});
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState!=='visible')return;
-  activeMobilePointers.clear();
-  rebuildOrbitControlsAfterLostPointer();
-});
 
 const clock=new THREE.Clock();
 
