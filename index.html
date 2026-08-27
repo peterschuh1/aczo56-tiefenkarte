@@ -1109,10 +1109,11 @@ html,body{
   background:rgba(100,190,207,.48);border:1px solid rgba(255,255,255,.45)
 }
 @media(max-width:700px){
-  .fish-view-btn{left:7px;bottom:7px;min-width:166px;max-width:210px;height:40px;min-height:40px;padding:5px 9px!important;font-size:10px!important}
-  .fish-view-info{font-size:8px;bottom:52px;max-width:94%;white-space:normal;text-align:center}
+  .fish-view-btn{left:7px;bottom:7px;min-width:142px;max-width:178px;height:36px;min-height:36px;padding:4px 8px!important;font-size:9px!important}
+  .fish-view-info{display:block;font-size:8px;bottom:48px;max-width:82%;white-space:normal;text-align:center;opacity:0;visibility:hidden;transition:opacity .38s ease,visibility 0s linear .38s}
+  .fish-mode .fish-view-info.fish-hint-visible{opacity:1;visibility:visible;transition:opacity .20s ease,visibility 0s}
   .fish-identify{bottom:70px;max-width:82%;padding:9px 12px}
-  .wrap.fish-mode #viewer canvas.fish-minimap{right:9px}
+  .wrap.fish-mode #viewer canvas.fish-minimap{right:8px;bottom:8px;width:76px;height:76px;border-radius:14px}
   .fish-collection{width:100%;padding:4px 3px 5px;border-radius:9px;margin-bottom:4px}
   .fish-collection-progress{font-size:8px;margin-bottom:3px}
   .fish-collection-items{gap:2px;flex-wrap:wrap}
@@ -1180,7 +1181,7 @@ html,body{
    <div id="depthPinLabel" class="depth-pin-label"></div>
    <div id="measureLabel" class="measure-label"></div>
    <button id="fishViewBtn" class="fish-view-btn" aria-label="Unterwasser-Modus starten">🐟 Unterwasser-Modus</button>
-   <div class="fish-view-info">
+   <div id="fishViewInfo" class="fish-view-info">
      <span class="fish-hint-desktop">Im Bild ziehen: umsehen · Mausrad: vor/zurück · Fisch anklicken: Informationen</span>
      <span class="fish-hint-touch">1 Finger: schwimmen · 2 Finger: Blick/Tauchwinkel · Antippen: Fischinfo</span>
    </div>
@@ -1219,7 +1220,7 @@ html,body{
          <div class="help-item"><strong>📏 Messen</strong><span>Start- und Zielpunkt auf der Karte setzen; Entfernung und Zieltiefe werden angezeigt.</span></div>
          <div class="help-item"><strong>📍 Standort</strong><span>Zeigt nach Freigabe die eigene Position im Bereich des Weihers.</span></div>
          <div class="help-item"><strong>👁️ Anzeigen</strong><span>Blendet Wetterfenster, Tiefenlegende und Kompass gemeinsam ein oder aus.</span></div>
-         <div class="help-item"><strong>🐟 Unterwasser-Modus</strong><span>Im Weiher schwimmen, Fische anklicken und alle 16 Arten farbig freischalten. Die Minikarte zeigt die Position.</span></div>
+         <div class="help-item"><strong>🐟 Unterwasser-Modus</strong><span>Im Weiher schwimmen, Fische anklicken und alle 16 Arten farbig freischalten. Mobil erscheint die Gestenhilfe bei jedem Einstieg sechs Sekunden; die Minikarte zeigt die Position.</span></div>
          <div class="help-item"><strong>🌿 Unterwasserwelt</strong><span>Boden, Steine, Pflanzen, Schwebstoffe, Lichtmuster und Fischverhalten bilden den Weiher lebendig nach.</span></div>
          <div class="help-item"><strong>🚶🚲🚗 Umgebung</strong><span>Radfahrer, Fußgänger, Besucher und Vögel beleben die Umgebung.</span></div>
        </div>
@@ -1256,7 +1257,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.56 STABILITY TEST';
+const VIEWER_VERSION='FINAL V5.57';
 const VIEWER_BUILD='27.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
@@ -6752,6 +6753,20 @@ function updatePersonalCampScene(dt){
 // FINAL V4.7: freie Unterwasser-Fischsicht mit Maus- und Gestensteuerung
 // =========================================================
 const fishViewBtn=document.getElementById('fishViewBtn');
+const fishViewInfo=document.getElementById('fishViewInfo');
+let fishViewInfoTimer=0;
+function showFishViewInfoTemporarily(){
+  window.clearTimeout(fishViewInfoTimer);
+  fishViewInfo.classList.remove('fish-hint-visible');
+  const compactView=window.matchMedia('(max-width:700px)').matches||
+    window.matchMedia('(pointer:coarse)').matches;
+  if(!compactView)return;
+  requestAnimationFrame(()=>fishViewInfo.classList.add('fish-hint-visible'));
+  fishViewInfoTimer=window.setTimeout(()=>{
+    fishViewInfo.classList.remove('fish-hint-visible');
+    fishViewInfoTimer=0;
+  },6000);
+}
 const fishIdentify=document.getElementById('fishIdentify');
 const fishCollection=document.getElementById('fishCollection');
 const fishCollectionItems=document.getElementById('fishCollectionItems');
@@ -7930,6 +7945,7 @@ function enterFishView(){
   sunDisc.renderOrder=3.80;
   moonDisc.renderOrder=3.80;
   document.querySelector('.wrap').classList.add('fish-mode');
+  showFishViewInfoTemporarily();
   fishMiniMap.style.display='block';
   fishViewBtn.classList.add('on');
   fishViewBtn.textContent='👁 Unterwasser-Modus verlassen';
@@ -8020,6 +8036,9 @@ function finishLeavingFishView(){
   fishTouchPointers.clear();fishTouchForward=0;fishTouchStrafe=0;
   fishTouchImpulseForward=0;fishTouchImpulseStrafe=0;fishTouchTwoLast=null;
   fishMiniMap.style.display='none';
+  window.clearTimeout(fishViewInfoTimer);
+  fishViewInfoTimer=0;
+  fishViewInfo.classList.remove('fish-hint-visible');
   hideFishIdentify();
   document.querySelector('.wrap').classList.remove('fish-mode');
   fishViewBtn.classList.remove('on');
