@@ -1257,7 +1257,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.57';
+const VIEWER_VERSION='FINAL V5.60';
 const VIEWER_BUILD='27.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
@@ -6858,8 +6858,24 @@ let savedSceneFog=null;
 const fishUnderwaterFog=new THREE.FogExp2(0x174f68,.060);
 const fishUnderwaterFogDensity=.060;
 let fishSavedPondVisible=false,fishSavedPondNeutralVisible=false,fishSavedPondNightLiftVisible=false;
+let fishCloudDepthOrderSubmerged=null;
+
+function setFishCloudDepthOrder(submerged){
+  const active=!!submerged;
+  if(fishCloudDepthOrderSubmerged===active)return;
+  fishCloudDepthOrderSubmerged=active;
+  // Wolken und Fische sind transparente Objekte und schreiben deshalb nicht
+  // in den Tiefenpuffer. Unter Wasser müssen die Wolken nach Sonne/Mond und
+  // Wasseroberfläche, aber unmittelbar VOR den Fischen gezeichnet werden.
+  // Andernfalls überblendet die normale Wolkenreihenfolge (40) die Fische.
+  cloudGroup.renderOrder=active?0:40;
+  cloudGroup.traverse(object=>{
+    if(object.isMesh)object.renderOrder=active?4.9:40;
+  });
+}
 
 function setFishSubmergedLayers(submerged){
+  setFishCloudDepthOrder(submerged);
   pond.visible=submerged?false:fishSavedPondVisible;
   pondNeutral.visible=submerged?false:fishSavedPondNeutralVisible;
   pondNightLift.visible=submerged?false:fishSavedPondNightLiftVisible;
@@ -8021,6 +8037,7 @@ function leaveFishView(){
 
 function finishLeavingFishView(){
   fishMode=false;
+  setFishCloudDepthOrder(false);
   hideCelestialDiscsForFishMode=false;
   [sunDisc,moonDisc,moonGlow].forEach(disc=>{
     if(!disc||!disc.material) return;
