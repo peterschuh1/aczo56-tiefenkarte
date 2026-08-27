@@ -1256,7 +1256,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.49 ONLINE';
+const VIEWER_VERSION='FINAL V5.50 ONLINE';
 const VIEWER_BUILD='26.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
@@ -6353,54 +6353,85 @@ const personalCatchPile=[];
 let personalScene=null;
 let personalCampReady=false;
 let personalCampScheduled=false;
+let personalCampBuilding=false;
+let personalCampBuildStep=0;
+
+function scheduleNextPersonalCampBuildStep(){
+  const run=()=>buildPersonalCampSceneStep();
+  // Safari bekommt zwischen den einzelnen Bauabschnitten sicher mindestens
+  // einen Render-/Eingabezyklus. So blockiert der spaete Szenenaufbau nicht
+  // mehr fuer eine volle Sekunde die Touch-Steuerung.
+  if(typeof window.requestIdleCallback==='function'){
+    window.requestIdleCallback(run,{timeout:220});
+  }else{
+    window.setTimeout(run,70);
+  }
+}
+
+function buildPersonalCampSceneStep(){
+  if(personalCampReady)return;
+  personalCampBuilding=true;
+
+  if(personalCampBuildStep===0){
+    personalCamper=createGrandCalifornia();
+  }else if(personalCampBuildStep===1){
+    personalCamperLight=createBikeLight();
+    personalCamperLight.scale.set(1.18,1.28,1);
+    personalAngler=createPersonalAngler();
+  }else if(personalCampBuildStep===2){
+    personalRodPod=createRodPodScene();
+    personalChair=createFishingChair();
+  }else if(personalCampBuildStep===3){
+    personalCarryRods=createRodPodScene();
+    personalCarryRods.scale.setScalar(.56);
+    personalCaughtZander=createPersonalZander();
+  }else if(personalCampBuildStep===4){
+    personalHandRod=new THREE.Group();
+    const personalHandRodMat=new THREE.MeshPhongMaterial({color:0x172521,shininess:42});
+    const personalHandReelMat=new THREE.MeshPhongMaterial({color:0x9ba4a6,shininess:72});
+    personalHandRod.add(cylinderBetween(
+      new THREE.Vector3(0,0,.72),new THREE.Vector3(0,-4.75,2.12),.026,personalHandRodMat,8
+    ));
+    const personalHandReel=new THREE.Mesh(new THREE.TorusGeometry(.13,.036,7,14),personalHandReelMat);
+    personalHandReel.rotation.x=Math.PI/2;personalHandReel.position.set(0,-.14,.72);
+    personalHandRod.add(personalHandReel);
+  }else{
+    personalSceneGroup.add(
+      personalCamper,personalAngler,personalRodPod,personalChair,
+      personalCarryRods,personalCaughtZander,personalHandRod
+    );
+    personalAngler.visible=personalRodPod.visible=personalChair.visible=personalCarryRods.visible=false;
+    personalCaughtZander.visible=personalHandRod.visible=false;
+
+    personalLineMat=new THREE.LineBasicMaterial({
+      color:0xd7e1dc,transparent:true,opacity:.68,depthWrite:false,depthTest:true
+    });
+    [-.27,.27].forEach((x,i)=>{
+      const geo=new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(personalFishingSpot.x+x,personalFishingSpot.y-4.2,1.55),
+        new THREE.Vector3(personalFishingSpot.x+x+(i?1.0:-.7),personalFishingSpot.y-15.0,.74)
+      ]);
+      const line=new THREE.Line(geo,personalLineMat);line.visible=false;line.renderOrder=12;
+      personalSceneGroup.add(line);personalCastLines.push(line);
+    });
+
+    personalScene={state:'driving',distance:0,timer:0,finished:false};
+    samplePersonalCamperRoute(0,personalCamper.position,personalTmpDir);
+    personalCamper.rotation.z=Math.atan2(-personalTmpDir.x,personalTmpDir.y);
+    personalCampReady=true;
+    personalCampBuilding=false;
+    personalSceneGroup.visible=!(typeof fishMode!=='undefined'&&fishMode);
+    return;
+  }
+
+  personalCampBuildStep++;
+  scheduleNextPersonalCampBuildStep();
+}
 
 function initPersonalCampScene(){
-  if(personalCampReady)return;
-
-  personalCamper=createGrandCalifornia();
-  personalCamperLight=createBikeLight();
-  personalCamperLight.scale.set(1.18,1.28,1);
-  personalAngler=createPersonalAngler();
-  personalRodPod=createRodPodScene();
-  personalChair=createFishingChair();
-  personalCarryRods=createRodPodScene();
-  personalCarryRods.scale.setScalar(.56);
-  personalCaughtZander=createPersonalZander();
-
-  personalHandRod=new THREE.Group();
-  const personalHandRodMat=new THREE.MeshPhongMaterial({color:0x172521,shininess:42});
-  const personalHandReelMat=new THREE.MeshPhongMaterial({color:0x9ba4a6,shininess:72});
-  personalHandRod.add(cylinderBetween(
-    new THREE.Vector3(0,0,.72),new THREE.Vector3(0,-4.75,2.12),.026,personalHandRodMat,8
-  ));
-  const personalHandReel=new THREE.Mesh(new THREE.TorusGeometry(.13,.036,7,14),personalHandReelMat);
-  personalHandReel.rotation.x=Math.PI/2;personalHandReel.position.set(0,-.14,.72);
-  personalHandRod.add(personalHandReel);
-
-  personalSceneGroup.add(
-    personalCamper,personalAngler,personalRodPod,personalChair,
-    personalCarryRods,personalCaughtZander,personalHandRod
-  );
-  personalAngler.visible=personalRodPod.visible=personalChair.visible=personalCarryRods.visible=false;
-  personalCaughtZander.visible=personalHandRod.visible=false;
-
-  personalLineMat=new THREE.LineBasicMaterial({
-    color:0xd7e1dc,transparent:true,opacity:.68,depthWrite:false,depthTest:true
-  });
-  [-.27,.27].forEach((x,i)=>{
-    const geo=new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(personalFishingSpot.x+x,personalFishingSpot.y-4.2,1.55),
-      new THREE.Vector3(personalFishingSpot.x+x+(i?1.0:-.7),personalFishingSpot.y-15.0,.74)
-    ]);
-    const line=new THREE.Line(geo,personalLineMat);line.visible=false;line.renderOrder=12;
-    personalSceneGroup.add(line);personalCastLines.push(line);
-  });
-
-  personalScene={state:'driving',distance:0,timer:0,finished:false};
-  samplePersonalCamperRoute(0,personalCamper.position,personalTmpDir);
-  personalCamper.rotation.z=Math.atan2(-personalTmpDir.x,personalTmpDir.y);
-  personalCampReady=true;
-  personalSceneGroup.visible=!(typeof fishMode!=='undefined'&&fishMode);
+  if(personalCampReady||personalCampBuilding)return;
+  personalCampBuildStep=0;
+  scheduleNextPersonalCampBuildStep();
 }
 
 function schedulePersonalCampScene(){
