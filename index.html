@@ -1256,7 +1256,7 @@ Wetterdaten: Open-Meteo · Astronomische Berechnungen: SunCalc<br>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
 <script>
-const VIEWER_VERSION='FINAL V5.50 ONLINE';
+const VIEWER_VERSION='FINAL V5.51 ONLINE';
 const VIEWER_BUILD='26.08.2026';
 const helpVersion=document.getElementById('helpVersion');
 if(helpVersion) helpVersion.textContent=VIEWER_VERSION;
@@ -1351,7 +1351,7 @@ host.prepend(renderer.domElement);
 renderer.domElement.style.touchAction='none';
 renderer.domElement.addEventListener('touchstart',()=>{}, {passive:false});
 
-const controls=new THREE.OrbitControls(camera,renderer.domElement);
+let controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;
 controls.dampingFactor=.07;
 controls.screenSpacePanning=true;
@@ -1465,7 +1465,13 @@ function finishSkyLookPointer(e){
   if(e.pointerId===skyLookPointer) skyLookPointer=null;
 }
 renderer.domElement.addEventListener('pointerup',finishSkyLookPointer,{passive:true});
-renderer.domElement.addEventListener('pointercancel',finishSkyLookPointer,{passive:true});
+renderer.domElement.addEventListener('pointercancel',e=>{
+  if(e.pointerId!==skyLookPointer)return;
+  skyLookPointer=null;
+  // iOS kann eine laufende Geste ohne pointerup abbrechen. In diesem Fall
+  // darf der Himmelmodus die normale Orbit-Steuerung nicht deaktiviert lassen.
+  if(skyLookMode)leaveSkyLookMode(true);
+},{passive:true});
 
 // 2D-Drehwinkel. In echter Draufsicht ist Orbit-Rotation wirkungslos;
 // deshalb drehen wir dort gezielt die camera.up-Achse.
@@ -8432,6 +8438,89 @@ function updateCelestialLensFlare(){
   const angle=Math.atan2(.5-y,.5-x)*180/Math.PI;
   lensFlareParts[4].style.transform='translate(-50%,-50%) rotate('+angle.toFixed(2)+'deg)';
 }
+
+// FINAL V5.51: iOS kann bei schnellen Gesten, dem Wechsel zwischen einem und
+// zwei Fingern oder einem vom System abgebrochenen Kontakt das abschliessende
+// pointerup verschlucken. OrbitControls behaelt dann intern einen alten Pointer
+// und reagiert mehrere Sekunden lang nicht mehr korrekt, obwohl die Animation
+// normal weiterlaeuft. Bei einem echten Abbruch verbinden wir die Steuerung neu,
+// ohne Kamera, Ziel oder Bedienparameter zu veraendern.
+const activeMobilePointers=new Set();
+let orbitRecoveryPending=false;
+
+function orbitInputMayRun(){
+  const helpOpen=helpOverlay&&helpOverlay.classList.contains('open');
+  return !fishMode&&!skyLookMode&&!helpOpen&&!measuring;
+}
+
+function rebuildOrbitControlsAfterLostPointer(){
+  if(orbitRecoveryPending)return;
+  orbitRecoveryPending=true;
+  window.setTimeout(()=>{
+    orbitRecoveryPending=false;
+    if(!orbitInputMayRun())return;
+
+    const old=controls;
+    const target=old.target.clone();
+    const settings={
+      enableDamping:old.enableDamping,dampingFactor:old.dampingFactor,
+      screenSpacePanning:old.screenSpacePanning,
+      enableZoom:old.enableZoom,enablePan:old.enablePan,enableRotate:old.enableRotate,
+      rotateSpeed:old.rotateSpeed,zoomSpeed:old.zoomSpeed,panSpeed:old.panSpeed,
+      minDistance:old.minDistance,maxDistance:old.maxDistance,
+      minPolarAngle:old.minPolarAngle,maxPolarAngle:old.maxPolarAngle,
+      minAzimuthAngle:old.minAzimuthAngle,maxAzimuthAngle:old.maxAzimuthAngle,
+      mouseButtons:{...old.mouseButtons},touches:{...old.touches}
+    };
+    try{old.dispose();}catch(err){}
+    controls=new THREE.OrbitControls(camera,renderer.domElement);
+    Object.assign(controls,settings);
+    controls.mouseButtons={...settings.mouseButtons};
+    controls.touches={...settings.touches};
+    controls.target.copy(target);
+    controls.enabled=true;
+    controls.update();
+  },0);
+}
+
+// Capture-Phase: Status wird vor den internen OrbitControls-Listenern erfasst.
+renderer.domElement.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='touch')return;
+  // Ein neuer Primaerpointer bei noch gespeicherten IDs beweist, dass iOS die
+  // vorherige Geste ohne Abschluss verworfen hat.
+  if(e.isPrimary&&activeMobilePointers.size){
+    activeMobilePointers.clear();
+    rebuildOrbitControlsAfterLostPointer();
+  }
+  activeMobilePointers.add(e.pointerId);
+},true);
+
+window.addEventListener('pointerup',e=>{
+  if(e.pointerType==='touch')activeMobilePointers.delete(e.pointerId);
+},true);
+
+window.addEventListener('pointercancel',e=>{
+  if(e.pointerType!=='touch')return;
+  activeMobilePointers.delete(e.pointerId);
+  rebuildOrbitControlsAfterLostPointer();
+},true);
+
+renderer.domElement.addEventListener('lostpointercapture',e=>{
+  if(!activeMobilePointers.has(e.pointerId))return; // normal nach pointerup
+  activeMobilePointers.delete(e.pointerId);
+  rebuildOrbitControlsAfterLostPointer();
+},true);
+
+window.addEventListener('blur',()=>{
+  if(!activeMobilePointers.size)return;
+  activeMobilePointers.clear();
+  rebuildOrbitControlsAfterLostPointer();
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible')return;
+  activeMobilePointers.clear();
+  rebuildOrbitControlsAfterLostPointer();
+});
 
 const clock=new THREE.Clock();
 
